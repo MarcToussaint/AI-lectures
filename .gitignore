@@ -30,3 +30,4 @@ _region_.*
 .DS_Store
 comment.cut
 *.idx
+*.vrb
