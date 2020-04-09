@@ -9,12 +9,7 @@ do
     grep -A2 "Error" ${input%.*}.log
 done
 
-pdflatex script.tex
+echo '-----------------------------------'
+echo 'compiling script'
 makeindex script.idx
-
-# for file in meshes/*
-# do
-#     cmd="meshlabserver -i $file -o ${file%.*}.ply -s cleanMeshes.mlx -om"
-#     echo $cmd
-#     $cmd
-# done
+pdflatex -interaction=nonstopmode script.tex > /dev/null
