@@ -1,0 +1,72 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Maths for Intelligent Systems}
+\renewcommand{\coursedate}{Summer 2019}
+
+\renewcommand{\exnum}{Exercise 10}
+
+\exercises
+
+\excludecomment{solution}
+
+\exercisestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Restarts of Local Optima}
+
+\includegraphics[width=.45\textwidth]{{pics-Optim/func1}.png}
+\hfill
+\includegraphics[width=.45\textwidth]{{pics-Optim/func2}.png}
+
+The following function is essentially the Rastrigin function, but written slightly differently. It can be tuned to become uni-modal and is a sum-of-squares problem. For $x\in\RRR^2$ we define
+$$f(x) = \phi(x)^\T \phi(x) \comma \phi(x) =
+\begin{pmatrix}
+\sin(a x_1) \\
+\sin(a c x_2) \\
+2x_1 \\
+2c x_2
+\end{pmatrix}
+$$
+The function is plotted above for $a=4$ (left) and $a=5$ (right,
+having local minima), and conditioning $c=1$. The function is
+non-convex.
+
+Choose $a=6$ or larger and implement a random restart method: Repeat initializing $x \sim \UU( [-2,2]^2 )$ uniformlly, followed by a gradient descent (with backtracking line search and monotone convergence).
+
+Restart the method at least 100 times. Count how often the method converges to which local optimum.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{GP-UCB Bayesian Optimization}
+
+Find an implementation of Gaussian Processes for your language of
+choice (e.g.  python: scikit-learn, or Sheffield/Gpy; octave/matlab:
+gpml) and implement GP-UCB global optimization.  Test your
+implementation with different hyperparameters (Find the best
+combination of kernel and its parameters in the GP) on the 2D function
+defined above.
+
+On the webpage you find a starting code to use GP regression in scikit-learn. To install scikit-learn: \url{https://scikit-learn.org/stable/install.html}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \exsection{No Free Lunch Theorems}
+
+%% Broadly speaking, the No Free Lunch Theorems state that all algorithms
+%% perform ``in average'' exactly the same, if no restrictions or
+%% assumptions are made w.r.t.\ the problem.  Algorithms
+%% outperform each other only w.r.t.\ specific classes of problems.
+
+%% a) Read the publication ``No Free Lunch Theorems for Optimization'' by Wolpert
+%% and Macready and get a better feel for what the statements are about.
+
+%% b) You are given an optimization problem where the search space is a
+%% discrete set $X$ of integers $\{1,\dots,100\}$, and the cost space $Y$
+%% is the set of integers $\{1,\dots, 100\}$.  Come up with three
+%% different algorithms, and three different assumptions about the
+%% problem-space such that each algorithm outperforms the others in one
+%% of the assumptions.
+
+\exerfoot

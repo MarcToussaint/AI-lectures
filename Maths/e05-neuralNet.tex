@@ -1,0 +1,89 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Maths for Intelligent Systems}
+\renewcommand{\coursedate}{Summer 2019}
+
+\renewcommand{\exnum}{Exercise 5}
+
+\exercises
+
+\excludecomment{solution}
+
+\exercisestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Backprop in a Neural Net}
+
+We consider again the function
+$$f:~ \RRR^{h_0} \to \RRR^{h_3} \comma f(x_0) = W_2 \s( W_1 \s( W_0 x_0 )
+) ~,$$ where $W_l \in\RRR^{h_{l\po}\times h_l}$ and $\s(z) = 1/(e^{-z}+1)$ is the sigmoid function which is applied element-wise. We established last time that
+$$\frac{d f}{d x_0}
+= \frac{\del f}{\del x_2}~
+  \frac{\del x_2}{\del z_2}~ \frac{\del z_2}{\del x_1}~
+  \frac{\del x_1}{\del z_1}~ \frac{\del z_1}{\del x_0} $$
+with:
+$$
+\frac{\del x_l}{\del z_l} = \diag( x_l \circ (1-x_l) ) \comma
+\frac{\del z_{l\po}}{\del x_l} = W_l \comma
+\frac{\del f}{\del x_2}  = W_2
+$$
+
+Note: In the following we still let $f$ be a $h_3$-dimensional vector. For those that are confused with the resulting tensors, simplify to $f$ being a single scalar output.
+
+\begin{enumerate}
+
+\item Derive also the necessary equations to get the derivative w.r.t.\ the weight matrices $W_l$, that is the Jacobian tensor
+$$\frac{d f}{d W_l}$$
+
+
+
+\item Write code to implement $f(x)$ and $\frac{d f}{d x_0}$ and $\frac{d f}{d W_l}$.
+
+To test this, choose layer sizes $(h_0, h_1, h_2, h_3) = (2, 10, 10, 2)$, i.e., 2 input and 2 output dimensions, and hidden layers of dimension 10.
+
+For testing, choose random inputs sampled from $x\sim$@randn(2,1)@
+
+And choose random weight matrices $W_l\sim\frac{1}{\sqrt{h_{l\po}}}$@rand(h[l+1],h[l])@. 
+
+Check the implemented Jacobian by comparing to the finite difference
+approximation.
+
+Debugging Tip: If your first try does not work right away, the typical
+approach to debug is to ``comment out'' parts of your function $f$ and
+$df$. For instance, start with testing $f(x) = W_0 x_0$; then test
+$f(x) = \s(W_0 x_0)$; then $f(x) = W_1 \s(W_0 x_0)$; then I'm sure all
+bugs are found.
+
+\item Bonus: Try to train the network to become the identity mapping. In the simplest case, use ``stochastic gradient descent'', meaning that you sample an input, compute the gradients $w_l = \frac{d (f(x)-x)^2}{d W_l}$, and make tiny updates $W_l \gets W_l - \a w_l$.
+
+\end{enumerate}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Logistic Regression Gradient \& Hessian}
+
+Consider the function
+$$L:~ \RRR^d \to \RRR:~ L(\b) 
+= - \sum_{i=1}^n \[ y_i \log \s(x_i^\T\b) + (1-y_i) \log
+[1-\s(x_i^\T\b)] \] ~+~ \l\b^\T \b ~,$$
+where $x_i\in\RRR^d$ is the $i$th row of a matrix $X\in\RRR^{n\times
+d}$, and $y\in\{0,1\}^n$ is a vector of 0s and 1s only. Here, $\sigma(z) =
+1/(e^{-z}+1)$ is the sigmoid function, with $\s'(z) = \s(z) (1-\s(z))$.
+
+Derive the gradient $\Del \b L(\b)$, as well as the Hessian
+$$\he L(\b) = \frac{\del^2}{\del \b^2} L(\b) ~.$$
+%% The gradient is
+%% $$\frac{\del L(\b)}{\del \b}
+%%  = (p - y)^\T X + 2\l \b^\T \comma p = \s(X\b)$$
+%% and the hessian
+%% $$\he L(\b)
+%%  =  X^\T \diag(p \circ (1-p)) X + 2 \l \Id$$
+
+%% Implement the function, gradient and hessian. Generate a random matrix
+%% $X$ (using @randn@) and random $y$ (using @randi(2,n,1)-1@) and test
+%% using finite differences that $\del L$ is the Jacobian of $L$, and
+%% that $\he L$ is the Jacobian of $\na L = \del L^\T$.
+
+
+\exerfoot

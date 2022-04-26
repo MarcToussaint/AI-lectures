@@ -1,0 +1,94 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Maths for Intelligent Systems}
+\renewcommand{\coursedate}{Summer 2019}
+
+\renewcommand{\exnum}{Exercise 4}
+
+\exercises
+
+\excludecomment{solution}
+
+\exercisestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Multivariate Calculus}
+
+Given tensors $y\in\RRR^{a\times\ldots\times z}$ and
+$x\in\RRR^{\alpha\times\ldots\times\omega}$ where $y$ is a function of $x$, the
+Jacobian tensor $J = \del_x y$ is in $\RRR^{a\times \ldots\times z\times\alpha\times\ldots\times\omega}$ and has coefficients
+$$
+  J_{i,j,k,\ldots,l,m,n\ldots} = \frac{\partial}{\partial x_{l,m,n,\ldots}} y_{i,j,k,\ldots}
+$$
+
+(All ``output'' indices come before all ``input'' indices.)
+
+Compute the following Jacobian tensors
+\begin{enumerate}
+  \item $\Del x x$, where $x$ is a vector
+  \item $\Del x x^\T A x$, where $A$ is a matrix
+  \item $\Del A y^\T A x$, where $x$ and $y$ are vectors ~ (note, we take the derivative w.r.t.\ $A$)
+  \item $\Del A A x$
+  \item $\Del x f(x)^\T A g(x)$, where $f$ and $g$ are vector-valued functions
+\end{enumerate}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Finite Difference Gradient Checking}
+
+The following exercises will require you to code basic functions and
+derivatives. You can code in your prefereed language (Matlab, NumPy,
+Julia, whatever).
+
+\begin{enumerate}
+
+\item Implement the following pseudo code for empirical gradient checking in
+  the programming language of your choice:
+
+\begin{algo}
+\Require $x\in\RRR^n$, function $f:~ \RRR^n \to \RRR^d$, function
+$df:~ \RRR^n \to \RRR^{d\times n}$
+\State initialize $\hat J \in \RRR^{d\times n}$, and $\e=10^{-6}$
+\For{$i=1:n$}
+\State $\hat J_{\cdot i} =  [f(x + \e e_i) - f(x - \e e_i)]/2\e$
+\Comment{assigns the $i$th column of $\hat J$}
+\EndFor
+\State if $\norm{\hat J - df(x)}_\infty < 10^{-4}$ return true; else false
+\end{algo}
+
+Here $e_i$ is the $i$th standard basis vector in $\RRR^n$.
+
+\item Test this for
+
+\begin{itemize}
+\item $f: x \mapsto A x$, $df: x \mapsto A$, where you sample $x\sim$@randn(n,1)@
+($\NN(0,1)$ in Matlab) and
+$A\sim$@randn(m,n)@
+
+\item $f: x\mapsto x^\T x$, $df: x \mapsto 2x^\T$, where $x\sim$@randn(n,1)@
+\end{itemize}
+
+\end{enumerate}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Backprop in a Neural Net}
+
+Consider the function
+$$f:~ \RRR^{h_0} \to \RRR^{h_3} \comma f(x_0) = W_2 \s( W_1 \s( W_0 x_0 )
+)$$
+where $W_l \in\RRR^{h_{l\po}\times h_l}$ and $\s: \RRR\to\RRR$ is a differentiable activation function which is applied element-wise. We also describe the function as the computation graph:
+$$
+x_0 ~~\mapsto~~ z_1 = W_0 x_0 ~~\mapsto~~ x_1 = \s(z_1) ~~\mapsto~~
+z_2 = W_1 x_1 ~~\mapsto~~ x_2 = \s(z_2) ~~\mapsto~~
+f = W_2 x_2
+$$
+
+Derive pseudo code to efficiently compute $\frac{d f}{d x_0}$. (Ideally also for deeper networks.)
+
+
+\exerfoot

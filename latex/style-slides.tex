@@ -1,8 +1,9 @@
 \newcommand{\slideshead}{
   \newcommand{\thepage}{\arabic{mypage}}
   %beamer
-  \documentclass[t,hyperref={bookmarks=true}]{beamer}
-%  \documentclass[t,hyperref={bookmarks=true},aspectratio=169]{beamer}
+%  \documentclass[t,hyperref={bookmarks=true}]{beamer}
+%  \geometry{papersize={171mm,96mm}}
+  \documentclass[t,hyperref={bookmarks=true},aspectratio=169]{beamer}
   \setbeamersize{text margin left=5mm}
   \setbeamersize{text margin right=5mm}
   \usetheme{default}
@@ -14,12 +15,15 @@
 
   %\usepackage{palatino}
   \stdpackages
+  %\usepackage{tikz} \usetikzlibrary {shapes.geometric} 
   \usepackage{multimedia}
+  \usepackage[utf8]{inputenc}
 
   %%% geometry/spacing issues
   %
   \definecolor{bluecol}{rgb}{0,0,.5}
   \definecolor{greencol}{rgb}{0,.6,0}
+  \definecolor{citcol}{rgb}{.4,.4,.4}
   %\renewcommand{\baselinestretch}{1.1}
   \renewcommand{\arraystretch}{1.2}
   \columnsep 0mm
@@ -30,10 +34,11 @@
   %\setlength{\itemparsep}{3ex}
   %\renewcommand{\labelitemi}{\rule[3pt]{10pt}{10pt}~}
   %\renewcommand{\labelenumi}{\textbf{(\arabic{enumi})}}
-  \newcommand{\headerfont}{\helvetica{13}{1.5}{b}{n}}
-  \newcommand{\slidefont} {\helvetica{10}{1.4}{m}{n}}
-  \newcommand{\codefont} {\helvetica{8}{1.2}{m}{n}}
-  \renewcommand{\small} {\helvetica{9}{1.4}{m}{n}}
+  \setbeamertemplate{enumerate item}{(\roman{enumi})}
+  \newcommand{\headerfont}{\helvetica{14}{1.5}{b}{n}}
+  \newcommand{\slidefont} {\helvetica{11}{1.4}{m}{n}}
+  %\newcommand{\codefont} {\helvetica{8}{1.2}{m}{n}}
+  \renewcommand{\small} {\helvetica{10}{1.4}{m}{n}}
   \renewcommand{\tiny} {\helvetica{8}{1.3}{m}{n}}
   \newcommand{\ttiny} {\helvetica{7}{1.3}{m}{n}}
 
@@ -52,44 +57,48 @@
   \cfoot{}
   \rhead{}
   \lhead{}
-  \lfoot{\vspace*{-3mm}\hspace*{-3mm}\helvetica{5}{1.3}{m}{n}{\texttt{github.com/MarcToussaint/AI-lectures}}}
+  %% \lfoot{\vspace*{-3mm}\hspace*{-3mm}\helvetica{5}{1.3}{m}{n}{\texttt{github.com/MarcToussaint/AI-lectures}}}
+\lfoot{}
 %  \rfoot{{\tiny\textsf{AI -- \topic -- \subtopic -- \arabic{mypage}/\pageref{lastpage}}}}
-%  \rfoot{\vspace*{-4.5mm}{\tiny\textsf{\topic\ -- \subtopic\ -- \arabic{mypage}/\pageref{lastpage}}}\hspace*{-4mm}}
-  \rfoot{\vspace*{-4.5mm}{\tiny\textsf{\color{gray}\topic\ -- \subtopic\ -- \arabic{mypage}/\pageref{lastpage}}}\hspace*{-4mm}}
   %\lfoot{\raisebox{5mm}{\tiny\textsf{\slideauthor}}}
   %\rfoot{\raisebox{5mm}{\tiny\textsf{\slidevenue{} -- \arabic{mypage}/\pageref{lastpage}}}}
   %\rfoot{~\anchor{30,12}{\tiny\textsf{\thepage/\pageref{lastpage}}}}
   %\lfoot{\small\textsf{Marc Toussaint}}
+  \rfoot{\vspace*{-4.5mm}{\tiny\textsf{\color{gray}\topic\ -- \subtopic\ -- \arabic{mypage}/\pageref{lastpage}}}\hspace*{-4mm}}
+%  \rfoot{~\anchor{-10,12}{\tiny\textsf{\color{gray}\topic\ --  \arabic{mypage}/\pageref{lastpage}}}}
+  \lfoot{\vspace*{-4.5mm}{\hspace*{-3mm}\includegraphics[height=4mm]{LIS-logo-longText}}}
 
   \definecolor{grey}{rgb}{.8,.8,.8}
   \definecolor{head}{rgb}{.85,.9,.9}
-  \definecolor{blue}{rgb}{.0,.0,.5}
-  \definecolor{green}{rgb}{.0,.5,.0}
+%  \definecolor{blue}{rgb}{.0,.0,.5}
+%  \definecolor{green}{rgb}{.0,.5,.0}
   \definecolor{red}{rgb}{.8,.0,.0}
   \newcommand{\inverted}{
     \definecolor{main}{rgb}{1,1,1}
     \color{main}
     \pagecolor[rgb]{.3,.3,.3}
   }
-  \input{../shared/macros}
+  \input{../latex/macros}
 
-  \graphicspath{{pics/}{../shared/pics/}}
+  \graphicspath{{pics/}{../pics/}{../latex/pics/}}
+}
 
+\newcommand{\lecturetitleslide}{
   \title{\course \topic}
   \author{Marc Toussaint}
-  \institute{Machine Learning \& Robotics Lab, U Stuttgart}
+  \institute{Learning \& Intelligent Systems Lab, TU Berlin}
 
   \begin{document}
 
-  \rfoot{\vspace*{-5mm}{\tiny
-  \textsf{\arabic{mypage}/\pageref{lastpage}}}\hspace*{-4mm}}
 
   %% title slide!
   \slide{}{
     \thispagestyle{empty}
 
     \twocol{.27}{.6}{
-      \vspace*{-5mm}\hspace*{-15mm}\includegraphics[width=4cm]{\coursepicture}
+      %\vspace*{-5mm}%
+      \hspace*{-5mm}%
+      \includegraphics[width=1.\columnwidth]{\coursepicture}
     }{\center
 
       \textbf{\fontsize{17}{20}\selectfont \course}
@@ -107,7 +116,7 @@
 
       Marc Toussaint
       
-      University of Stuttgart
+      Technical University of Berlin
 
       \coursedate
 
@@ -130,6 +139,7 @@
   \end{frame}
 }
 
+% use \begin{frame}[fragile] around slidecore!
 \newenvironment{slidecore}[1]{
   \slidefont\incpage
   \addcontentsline{toc}{section}{#1}
@@ -141,6 +151,65 @@
   \vfill
 }
 
+\newcommand{\titleslide}[4][Marc Toussaint]{
+  \newcommand{\slideauthor}{#1}
+  \newcommand{\slidevenue}{#3}
+  \slidefont
+  \incpage
+  \begin{frame}
+  \begin{center}
+    \vspace*{15mm}
+
+    {\headerfont #2\\}
+        
+    \vspace*{10mm}
+
+    #1 \\
+
+    \vspace*{5mm}
+
+    {\small
+      Learning \& Intelligent Systems Lab, TU Berlin\\
+%      Science of Intelligence Cluster of Excellence, Berlin\\
+      Max Planck Fellow, Institute for Intelligent Systems\\ %Physical Reasoning \& Manipulation Lab -- 
+%      MIT CSAIL\\
+%      mtoussai@mit.edu,~ marc.toussaint@informatik.uni-stuttgart.de
+
+      \vspace*{10mm}
+
+      \emph{#3}
+    }
+
+    \vspace*{0mm}
+
+    %\includegraphics[scale=.1]{pics/eushield-fullcolour}
+
+  \end{center}
+  \begin{itemize}\item[]~\\
+    #4
+  \end{itemize}
+  \end{frame}
+}
+
+\newcommand{\titleslideempty}[2]{
+  \slidefont
+  \incpage
+  \begin{frame}
+  \begin{center}
+    \vspace*{15mm}
+
+    {\headerfont #1\\}
+        
+    %% \vspace*{5mm}
+
+    %% {\small\emph{#2}} \\
+
+  \end{center}
+  \begin{itemize}\item[]~\\
+    #2
+  \end{itemize}
+  \end{frame}
+}
 
 \providecommand{\key}[1]{
   \addtocounter{mypage}{1}
@@ -160,6 +229,10 @@
   \slide{#1}{#2}
 }
 
+\providecommand{\sublectureHide}[2]{
+  \renewcommand{\subtopic}{#1}
+}
+
 \providecommand{\story}[1]{
 ~
 
@@ -170,6 +243,15 @@ Motivation: {\tiny #1}\clearpage
 \par\setlength{\unitlength}{1pt}\fontsize{#1}{#1}\linespread{1.2}\selectfont
 \begin{list}{--}{\leftmargin4ex \rightmargin0ex \labelsep1ex \labelwidth2ex
 \topsep0pt \parsep0ex \itemsep3pt}
+}{
+\end{list}
+}
+
+\newenvironment{itemS}[1][4ex]{
+\par
+\tiny
+\begin{list}{--}{\leftmargin#1 \rightmargin0ex \labelsep1ex
+  \labelwidth2ex \topsep0pt \parsep0ex \itemsep2pt}
 }{
 \end{list}
 }

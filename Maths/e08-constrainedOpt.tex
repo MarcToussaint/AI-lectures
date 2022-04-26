@@ -1,0 +1,96 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Maths for Intelligent Systems}
+\renewcommand{\coursedate}{Summer 2019}
+
+\renewcommand{\exnum}{Exercise 8}
+
+\exercises
+
+\excludecomment{solution}
+
+\exercisestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Lagrangian and dual function}
+
+(Taken roughly from `Convex Optimization', Ex. 5.1)
+
+Consider the optimization problem
+$$\min_x~ x^2 + 1 \quad\st~  (x-2)(x-4) \le 0$$
+with variable $x \in \RRR$.
+
+a) Derive the optimal solution $x^*$ and the optimal value
+$p^*=f(x^*)$ by hand.
+
+
+b) Write down the Lagrangian $L(x,\l)$. Plot (using gnuplot or so)
+$L(x,\l)$ over $x$ for various values of $\l\ge 0$. Verify the
+lower bound property $\min_x L(x,\l) \le p^*$, where $p^*$ is the
+optimum value of the primal problem.
+
+
+c) Derive the dual function $l(\l) = \min_x L(x,\l)$ and plot it (for $\l\ge
+0$). Derive the dual optimal solution $\l^* = \argmax_\l l(\l)$. Is
+$\max_\l l(\l) = p^*$ (strong duality)?
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% \exsection{Augmented Lagrangian Programming}
+
+% Take last week's programming exercise on Squared Penalty and ``augment'' it so
+% that it becomes the Augmented Lagrangian method.  Compare the function/gradient
+% evaluations between the simple Squared Penalty method and the Augmented method.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Optimize a constrained problem}
+
+Consider the following constrained problem
+\begin{align}
+\min_x \sum_{i=1}^n x_i \st& g(x) \le 0 \\
+& g(x) = \mat{c}{x^\T x - 1 \\ -x_1}
+\end{align}
+
+a) First, assume $x\in\RRR^2$ is 2-dimensional, and
+draw on paper what the problem looks like and where you expect the
+optimum.
+
+b) Find the optimum analytically using the Lagrangian. Here, assume
+that you know apriori that all constraints are active! What are the
+dual parameters $\l=(\l_1,\l_2)$?
+
+Note: Assuming that you know a priori which constraints are active is
+a huge assumption! In real problems, this is the actual hard (and
+combinatorial) problem. More on this later in the lecture.
+
+
+c) Implement a simple the Log Barrier Method. Tips:
+\begin{items}
+\item Initialize $x=(\half,\half)$ and $\mu=1$
+\item First code an inner loop:
+\begin{items}
+\item In each iteration, first compute the gradient of the log-barrier
+function. Recall that
+\begin{align}
+F(x;\mu)
+ &= f(x) - \mu \sum_i \log(-g_i(x)) \\
+\na F(x;\mu)
+ &= \na f - \mu \sum_i (1/g_i(x)) \na g_i(x)
+\end{align}
+\item Then perform a backtracking line search along $-\na F(x,\mu)$. In particular, backtrack if a step goes beyond the barrier (where $g(x)\not\le 0$ and $F(x,\mu)=\infty$).
+\item Iterate until convergence; let's call the result
+$x^*(\mu)$. Further, compute $\l^*(m) = -(\mu/g_1(x), \mu/g_2(x))$ at convergence.
+\end{items}
+\item Decrease $\mu \gets \mu/2$, recompute $x^*(\mu)$ (with the
+previous $x^*$ as initialization) and iterate this.
+\end{items}
+Does $x^*$ and $\l^*$ converge to the expected solution?
+
+Note: The path $x^*(\mu) = \argmin_x F(x;\mu)$ (the optimum in dependence of $\mu$) is called \emph{central path}.
+
+
+\exerfoot

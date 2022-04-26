@@ -1,0 +1,188 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Maths for Intelligent Systems}
+\renewcommand{\coursedate}{Summer 2019}
+
+\renewcommand{\exnum}{Exercise 6}
+
+\exercises
+
+\excludecomment{solution}
+
+\exercisestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Convergence proof}
+
+a) Given a function $f:~\RRR^n \to \RRR$ with $f_\Min = \min_x
+f(x)$. Assume that its Hessian---that is, the eigenvalues of $\he
+f$---are lower bounded by $m>0$ and upper bounded by $M>m$, with $m,M\in\RRR$. Prove that
+for any $x\in\RRR^n$ it holds
+$$f(x) - \frac{1}{2m} |\na f(x)|^2
+ \le f_\Min
+ \le f(x) - \frac{1}{2M} |\na f(x)|^2 ~.$$
+Tip: Start with bounding $f(x)$ between the functions with maximal and minimal curvature. Then consider
+ the minima of these bounds.
+Note, it also follows:
+$$|\na f(x)|^2  \ge 2m(f(x) - f_\Min) ~.$$
+
+b) Consider backtracking line search with Wolfe parameter $\lsstop\le\half$,
+and step decrease factor $\adec$. First prove that line search
+terminates the latest when $\frac{\adec}{M} \le \a \le \frac{1}{M}$,
+and then it found a new point $y$ for which
+$$f(y) \le f(x) - \frac{\lsstop\adec}{M} |\na f(x)|^2 ~.$$
+From this, using the result from a), prove the convergence equation
+$$f(y) - f_\Min \le \[1-\frac{2m\lsstop\adec}{M}\]~ (f(x) - f_\Min) ~.$$
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Backtracking Line Search}
+
+Consider the functions
+\begin{align}
+f_\text{sq}(x)
+ &= x^\T C x ~, \\
+f_\text{hole}(x)
+ &= 1-\exp(-x^\T C x) ~.
+\end{align}
+
+with diagonal matrix $C$ and entries $C(i,i) = c^{\frac{i-1}{n-1}}$, where $n$
+is the dimensionality of $x$. We choose a conditioning\footnote{The word
+``conditioning'' generally denotes the ratio of the largest and smallest
+Eigenvalue of the Hessian.} $c=10$. To plot the function for $n=2$, you can use gnuplot calling
+\begin{code}
+\begin{Verbatim}[numbers=none]
+set isosamples 50,50
+set contour
+f(x,y) = x*x+10*y*y
+#f(x,y) = 1 - exp(-x*x-10*y*y)
+splot [-1:1][-1:1] f(x,y)
+\end{Verbatim}
+\end{code}
+
+
+a) Implement gradient descent with backtracking, as described on page 42 (Algorithm 2 Plain gradient descent). Test the algorithm on
+$f_\text{sq}(x)$ and $f_\text{hole}(x)$ with start point
+$x_0=(1,1)$. To judge the performance, create the following plots:
+\begin{items}
+  \item The function value over the number of function evaluations.
+  \item For $n=2$, the function surface including algorithm's search trajectory. If using gnuplot, store every evaluated point $x$ and function value $f(x)$ in a line (with $n+1$ entries) in a file 'path.dat', and plot using
+\begin{code}
+\begin{Verbatim}[numbers=none]
+unset contour
+splot [-3:3][-3:3] f(x,y), 'path.dat' with lines
+\end{Verbatim}
+\end{code}
+\end{items}
+
+b) Play around with parameters. How does the performance change for higher dimensions, e.g., $n=100$? How does the performance change with
+$\rho_\text{ls}$ (the Wolfe stop criterion)?  How does the alternative
+in step 3 work?
+
+c) Newton step: Modify the algorithm simply by multiplying $C^\1$ to the step. How does that work?
+
+(The Newton direction diverges (is undefined) in the
+concave part of $f_\text{hole}(x)$. We're cheating here when always multiplying with $C^\1$ to get a good direction.)
+
+\exerfoot
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%% a) How do you have to choose the ``damping'' $\l$ depending on $\he
+%% f(x)$ in line 3 of the Newton method (slide 02-18) to ensure that the
+%% $d$ is always well defined (i.e., finite)?
+
+%% % b)
+%% The Gauss-Newton method uses the ``approximate Hessian''
+%% $2\na\phi(x)^\T \na\phi(x)$. First show that for any vector
+%% $v\in\RRR^n$ the matrix $v v^\T$ is symmetric and
+%% semi-positive-definite.\footnote{ A matrix $A\in\RRR^{n\times n}$ is
+%% semi-positive-definite simply when for any $x\in\RRR^n$ it holds $x^\T
+%% A x \ge 0$. Intuitively: $A$ might be a metric as it ``measures'' the
+%% norm of any $x$ as positive. Or: If $A$ is a Hessian, the function is
+%% (locally) convex.}  From this, how can you argue that
+%% $\na\phi(x)^\T \na\phi(x)$ is also symmetric and
+%% semi-positive-definite?
+
+%% c) In the context of BFGS, convince yourself that choosing $H\Id
+%% = \frac{\delta \delta^\T}{\delta^\T y}$ indeed fulfills the desired relation $\delta =
+%% H\Id y$, where $\delta$ and $y$ are defined as on slide 02-23. Are there other
+%% choices of $H\Id$ that fulfill the relation? Which?
+
+\exsection{Gauss-Newton}
+
+\includegraphics[width=.45\textwidth]{{pics-Optim/func1}.png}
+\hfill
+\includegraphics[width=.45\textwidth]{{pics-Optim/func2}.png}
+
+In $x\in\RRR^2$ consider the function
+$$f(x) = \phi(x)^\T \phi(x) \comma \phi(x) =
+\begin{pmatrix}
+\sin(a x_1) \\
+\sin(a c x_2) \\
+2x_1 \\
+2c x_2
+\end{pmatrix}
+$$
+The function is plotted above for $a=4$ (left) and $a=5$ (right,
+having local minima), and conditioning $c=1$. The function is
+non-convex.
+
+Extend your backtracking method implemented in the last week's exercise
+to a Gauss-Newton method (with constant $\l$) to solve the unconstrained
+minimization problem $\min_x f(x)$ for a random start point in
+$x\in[-1,1]^2$. Compare the algorithm for $a=4$ and $a=5$ and
+conditioning $c=3$ with gradient descent.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Robust unconstrained optimization}
+
+A 'flattened' variant of the Rosenbrock function is defined as
+$$ f(x) = \log[1+(x_2-x_1^2)^2 + \frac{1}{100}(1-x_2)^2 ] $$
+and has the minimum at $x^*=(1,1)$. For reference, the gradient and
+hessian are
+\begin{align}
+g(x)
+&:= 1+ (x_2-x_1^2)^2 + \frac{1}{100}(1-x_2)^2 \\
+\del_{x_1} f(x)
+&= \frac{1}{g(x)} \[- 4 (x_2 - x_1^2) x_1 \] \\
+\del_{x_2} f(x)
+&= \frac{1}{g(x)} \[2 (x_2 - x_1^2) - \frac{2}{100}(1-x_2)\] \\
+\del_{x_1}^2 f(x)
+&= -\[\del_{x_1} f(x)\]^2
++ \frac{1}{g(x)} \[8 x_1^2 -4 (x_2 - x_1^2) \]\\
+\del_{x_2}^2 f(x)
+&= -\[\del_{x_2} f(x)\]^2
++ \frac{1}{g(x)} \[2 + \frac{2}{100} \]\\
+\del_{x_1}\del_{x_2} f(x)
+&= -\[\del_{x_1} f(x)\]\[\del_{x_2} f(x)\]
++ \frac{1}{g(x)} \[-4 x_1 \]
+\end{align}
+
+a) Use gnuplot to display the function copy-and-pasting the following
+lines:
+
+\begin{code}
+\begin{Verbatim}[numbers=none]
+set isosamples 50,50
+set contour
+f(x,y) = log(1+(y-(x**2))**2 + .01*(1-x)**2 ) - 0.01
+splot [-3:3][-3:4] f(x,y)
+\end{Verbatim}
+\end{code}
+
+(The '-0.01' ensures that you can see the contour at the optimum.)
+List and discuss at least three properties of the function (at
+different locations) that may raise problems to naive optimizers.
+
+b) Use $x=(-3,3)$ as starting point for an optimization algorithm. Try
+to code an optimization method that uses all ideas mentioned in the
+lecture. Try to tune it to be efficient on this problem (without
+cheating, e.g.\ by choosing a perfect initial stepsize.)
+
+
+\exerfoot

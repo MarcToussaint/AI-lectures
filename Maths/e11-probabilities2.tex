@@ -1,0 +1,89 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Maths for Intelligent Systems}
+\renewcommand{\coursedate}{Summer 2019}
+
+\renewcommand{\exnum}{Exercise 11}
+
+\exercises
+
+\excludecomment{solution}
+
+\exercisestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+~
+
+Note: The exercise will take place on Tue, 2nd Feb. Hung will also
+prepare how much `votes' you collected in the exercises.
+
+~
+
+\exsection{Maximum likelihood and KL-divergence}
+
+Assume we have a very large data set $D=\{ x_i \}_{i=1}^n$ of samples
+$x_i \sim q(x)$ from some data distribution $q(x)$. Using this data
+set we can approximate any expectation
+$$\<f\>_q = \sum_x q(x) f(x) \approx \sum_{i=1}^n f(x_i) ~.$$
+
+Assume we have a parameteric family of distributions $p(x | \b )$ and
+would find the Maximum Likelihood (ML) parameter $\b^* = \argmax_\b
+p(D|\b)$. Express this ML problem as a KL-divergence minimization.
+
+\exsection{Laplace Approximation}
+
+In the context of so-called ``Gaussian Process Classification'' the
+following problem arises (we neglect dependence on $x$ here): We have a
+real-valued RV $f\in\RRR$ with prior $P(f)=\NN(f\|\m,\s^2)$. Further
+we have a Boolean RV $y\in\{0,1\}$ with conditional probability
+$$P(y\=1 \| f) = \s(f) = \frac{e^f}{1+e^f} ~.$$
+The function $\s$ is called sigmoid funtion, and $f$ is a
+discriminative value which predicts $y\=1$ if it is very positive, and
+$y\=0$ if it is very negative. The sigmoid function has the property
+$$\frac{\del}{\del f} \s(f) = \s(f)~ (1-\s(f)) ~.$$
+
+Given that we observed $y=1$ we want to compute the posterior $P(f\|
+y\=1 )$, which cannot be expressed analytically. Provide the Laplace
+approximation of this posterior.
+
+~
+
+(Bonus) As an alternative to the sigmoid function $\s(f)$, we can use
+the probit function $\phi(z) = \int_{-\infty}^z \NN(x|0,1)~ dx$ to
+define the likelihood $P(y\=1 \| f) = \phi(f)$. Now how can the
+posterior $P(f\|y\=1)$ be approximated?
+
+\exsection{Learning = Compression}
+
+In a very abstract sense, learning means to model the distribution
+$p(x)$ for given data $D=\{ x_i \}_{i=1}^n$. This is literally the
+case for unsupervised learning; regression, classification and
+graphical model learning could be viewed as specific instances of this
+where $x$ factores in several random variables, like input and output.
+
+Show in which sense the problem of learning is equivalent to the
+problem of compression.
+
+
+\exsection{A gzip experiment}
+
+Get three text files from the Web, approximately equal length, mostly
+text (no equations or stuff). Two of them should be in English, the
+third in Frensh. (Alternatively, perhaps, not sure if it'd work, two
+of them on a very similar topic, the third on a very different.)
+
+How can you use \texttt{gzip} (or some other compression tool) to
+estimate the mutual information between every pair of files? How can
+you ensure some ``normalized'' measures which do not depend too much
+on the absolute lengths of the text? Do it and check whether in fact
+you find that two texts are similar while the third is different.
+
+~
+
+(Extra) Lempel-Ziv algorithms (like gzip) need to build a codebook on
+the fly. How does that fit into the picture?
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exerfoot

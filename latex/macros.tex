@@ -21,7 +21,7 @@
     \newcommand{\s}{\sigma}
   \renewcommand{\S}{\Sigma}
   \renewcommand{\t}{\theta}
-    \newcommand{\T}{\Theta}
+    \newcommand{\Th}{\Theta}
   %\renewcommand{\v}{\vartheta}
     \newcommand{\x}{\xi}
     \newcommand{\X}{\Xi}
@@ -55,6 +55,7 @@
     \newcommand{\XX}{{\cal X}}
     \newcommand{\xx}{\mathcal{x}}
     \newcommand{\YY}{{\cal Y}}
+    \newcommand{\ZZ}{{\cal Z}}
     \newcommand{\SOSO}{{\cal SO}}
     \newcommand{\GLGL}{{\cal GL}}
 
@@ -66,6 +67,8 @@
   %\newcommand{\RRR}{{\mathrm{I\!R}}}
   \newcommand{\RRR}{{\mathbb{R}}}
   \newcommand{\SSS}{{\mathbb{S}}}
+  \newcommand{\EEE}{{\mathbb{E}}}
+  \newcommand{\VVV}{{\mathbb{V}}}
   \newcommand{\CCC}{{\mathbb{C}}}
   \newcommand{\DDD}{{\mathbb{D}}}
   \newcommand{\one}{{{\bf 1}}}
@@ -119,7 +122,7 @@
   \newcommand{\To}{\Rightarrow}
   \newcommand{\oT}{\Leftarrow}
   \newcommand{\oTo}{\Leftrightarrow}
-  \renewcommand{\iff}{~\Longleftrightarrow~}
+  \renewcommand{\iff}{~\Leftrightarrow~}
   \newcommand{\Too}{\;\Longrightarrow\;}
   \newcommand{\oto}{\leftrightarrow}
   \newcommand{\ot}{\leftarrow}
@@ -131,6 +134,9 @@
   \newcommand{\comma}{~,\quad}
   \newcommand{\period}{~.\quad}
   \newcommand{\del}{\partial}
+  \newcommand{\Del}[1]{\frac{\del}{\del #1}}
+  \newcommand{\Hes}[1]{\frac{\del^2}{\del #1^2}}
+
 %  \newcommand{\quabla}{\Delta}
   \newcommand{\point}{$\bullet~~$}
   \newcommand{\doubletilde}{ ~ \raisebox{0.3ex}{$\widetilde {}$} \raisebox{0.6ex}{$\widetilde {}$} \!\! }
@@ -139,7 +145,7 @@
   \newcommand{\topddot} {\parbox{0ex}{~\raisebox{1.3ex}{$\ddot{~}$}}}
   \newcommand{\sym}{\topcirc}
   \newcommand{\tsum}{\textstyle\sum}
-  \newcommand{\st}{\quad\text{s.t.}\quad}
+  \newcommand{\st}{~~\text{s.t.}~~}
 
   \newcommand{\half}{\ensuremath{\frac{1}{2}}}
   \newcommand{\third}{\ensuremath{\frac{1}{3}}}
@@ -201,7 +207,7 @@
   \newcommand{\seq}[1]{\textsf{\<#1\>}}
   \newcommand{\seqq}[1]{\textsf{#1}}
   \newcommand{\floor}[1]{\lfloor#1\rfloor}
-  \newcommand{\Exp}[2][]{\text{E}_{#1}\{#2\}}
+  \newcommand{\Exp}[2][]{\mathbb{E}_{#1}\!\left\{#2\right\}}
   \newcommand{\Var}[2][]{\text{Var}_{#1}\{#2\}}
   \newcommand{\cov}[2][]{\text{cov}_{#1}\{#2\}}
 
@@ -230,8 +236,8 @@
   \newcommand{\Hide}{\renewcommand{\hide}[1]{\message{^^JHIDE--Warning (hidden)!^^J}}}
   \newcommand{\HIDE}{\renewcommand{\hide}[1]{}}
   \newcommand{\fullhide}[1]{\message{^^JHIDE--Warning (hidden)!^^J}}
-  \newcommand{\todo}[1]{{\tt[TODO: #1]}\message{^^JTODO--Warning: #1^^J}}
-  \newcommand{\Todo}{\renewcommand{\todo}[1]{\message{^^JTODO--Warning (hidden)!^^J}}}
+  %\newcommand{\todo}[1]{{\tt[TODO: #1]}\message{^^JTODO--Warning: #1^^J}}
+  %\newcommand{\Todo}{\renewcommand{\todo}[1]{\message{^^JTODO--Warning (hidden)!^^J}}}
   %\renewcommand{\title}[1]{\renewcommand{\thetitle}{#1}}
   \newcommand{\myauthor}[1]{\author{#1}\newcommand{\theauthor}{#1}}%\@author}
   \newcommand{\mytitle}[1]{\title{#1}\newcommand{\thetitle}{#1}}%\@title}
@@ -268,6 +274,7 @@
   \newcommand{\helvetica}[4]{\setlength{\unitlength}{1pt}\fontsize{#1}{#1}\linespread{#2}\usefont{OT1}{phv}{#3}{#4}}
   \newcommand{\helve}[1]{\helvetica{#1}{1.5}{m}{n}}
   \newcommand{\german}{\usepackage[german]{babel}\usepackage[utf8]{inputenc}}
+\newcommand{\sans}{\renewcommand{\familydefault}{\sfdefault}}
 
 \newcommand{\norm}[1]{|\!|#1|\!|}
 \newcommand{\expr}[1]{[\hspace{-.2ex}[#1]\hspace{-.2ex}]}
@@ -288,7 +295,8 @@
 \newcommand{\pt}{{\myplus2}}
 %\renewcommand{\-}{\myminus}
 %\newcommand{\+}{\myplus}
-\renewcommand{\T}{{\!\top\!}}
+\newcommand{\T}{{\!\top\!}}
+%\newcommand{\T}{{\!\textsf{\scriptsize T}\!}}
 \newcommand{\xT}{{\underline x}}
 \newcommand{\uT}{{\underline u}}
 \newcommand{\zT}{{\underline z}}
@@ -316,43 +324,86 @@
 \DeclareMathOperator{\opKL}{KL}
 \newcommand{\KL}[2]{\opKL\big(#1\,\big|\!\big|\,#2\big)} %\left(#1 |\!| #2\right)}
 
-\renewcommand{\show}[2][.8]{\centerline{\includegraphics[width=#1\columnwidth]{#2}}}
+\renewcommand{\show}[2][.7]{\centerline{\includegraphics[width=#1\columnwidth]{#2}}}
 \newcommand{\showh}[2][.8]{\includegraphics[width=#1\columnwidth]{#2}}
 \newcommand{\shows}[2][.8]{\centerline{\includegraphics[scale=#1]{#2}}}
 \newcommand{\showhs}[2][.8]{\includegraphics[scale=#1]{#2}}
 \newcommand{\mov}[2]{\movie[externalviewer]{{\color{blue}\small #1}}{movies/#2}}
 \newcommand{\movex}[2]{\movie[externalviewer]{#1}{#2}} %\pdflatex\usepackage{multimedia}
 %\newcommand{\movgb}[1]{\hfill\movie[externalviewer]{\small[movie]}{/home/mtoussai/movies/10-goalDirectedBehavior/#1}}
-\newcommand{\movh}[3][loop]{
-\movie[#1]{\showh[#2]{movies/#3.png}}{movies/#3.avi}%
-\movie[externalviewer]{$\circ$}{movies/#3.avi}
+\newcommand{\movh}[3][autostart,loop]{
+\movie[#1]{\showh[#2]{#3.jpg}}{#3.mp4}%
+\movie[externalviewer]{$\circ$}{#3.mp4}
 }
-\newcommand{\movc}[3][loop]{\centerline{\movh[#1]{#2}{#3}}}
+\newcommand{\movc}[3][autostart,loop]{\centerline{\movh[#1]{#2}{#3}}}
+\newcommand{\mymovie}[3][]{\centerline{\movie[autostart,loop,#1]{\includegraphics[#1]{#2}}{#3}}}
+
+
 \newcommand{\cen}[1]{\centerline{#1}}
 
 \newcommand{\citing}[1]{
-{\color{citcol}\tiny#1\par}
+{\color{citcol}\ttiny#1\par}
 }
 
 \newcommand{\cit}[3]{
 \par\smallskip
-{\color{greencol}\tiny #1: \emph{#2}. #3 \par}
+{\color{citcol}\ttiny #1: \emph{#2}. #3 \par}
 }
 
 \newcommand{\citurl}[4]{
 \par\smallskip
-{\color{greencol}\tiny #1: \protect{\href{#4}{\color{blue}{#2.}}} #3 \par}
+{\color{citcol}\ttiny #1: \protect{\href{#4}{\color{blue}{#2.}}} #3 \par}
 }
 
 \newcommand{\cito}[3]{
 \par\smallskip
-{\color{bluecol}\tiny #1: \emph{#2}. #3 \par}
+{\color{bluecol}\ttiny #1: \emph{#2}. #3 \par}
 }
 
 \newcommand{\redoMacrosInProof}{
   \renewcommand{\d}{\delta}
 %  \renewcommand{\|}{\,|\,}
   \renewcommand{\=}{\!=\!}
+}
+
+\newcommand{\pdflatex}{
+  \definecolor{bluecol}{rgb}{0,0,.5}
+  %\definecolor{greencol}{rgb}{0,.4,0}
+  \usepackage[
+    %    pdftex%,
+    %%    letterpaper,
+    %bookmarks,
+    %bookmarksnumbered,
+    colorlinks,
+    urlcolor=bluecol,
+    citecolor=black,
+    linkcolor=bluecol,
+    %    pagecolor=bluecol,
+    pdfborder={0 0 0},
+    %pdfborderstyle={/S/U/W 1},
+    %%    backref,     %link from bibliography back to sections
+    %%    pagebackref, %link from bibliography back to pages
+    %%    pdfstartview=FitH, %fitwidth instead of fit window
+    pdfpagemode=UseOutlines, %bookmarks are displayed by acrobat
+    %%    pdftitle={\thetitle},
+    pdfauthor={Marc Toussaint}
+  ]{hyperref}
+  \DeclareGraphicsExtensions{.pdf,.png,.jpg,.eps}
+  \renewcommand{\r}{\varrho}
+  \renewcommand{\l}{\lambda}
+  \renewcommand{\L}{\Lambda}
+  \renewcommand{\s}{\sigma}
+  \renewcommand{\b}{\beta}
+  \renewcommand{\d}{\delta}
+  \renewcommand{\k}{\kappa}
+  \renewcommand{\t}{\theta}
+  \renewcommand{\O}{\Omega}
+  \renewcommand{\o}{\omega}
+  \renewcommand{\SS}{{\cal S}}
+  \renewcommand{\=}{\!=\!}
+  %\renewcommand{\boldsymbol}{}
+  %\renewcommand{\Chapter}{\chapter}
+  %\renewcommand{\Subsection}{\subsection}
 }
 
 %% \makeatletter
@@ -370,7 +421,9 @@
 \end{shaded}
 }
 
-%\newcommand{\refeq}[1]{(\ref{#1})}
+\newcommand{\signature}{
+  \includegraphics[height=6ex]{signatureColor} %unterschrift2}
+}
 
 \usepackage{algorithm}
 \usepackage{algpseudocode}
@@ -380,7 +433,7 @@
 \algrenewcommand{\alglinenumber}[1]{\helvetica{6}{1.3}{m}{n}#1:}
 
 \newenvironment{algo}[1][8]{
-\quad\begin{minipage}{.8\columnwidth}\helvetica{#1}{1.3}{m}{n}
+\quad\begin{minipage}{.8\columnwidth}\helvetica{#1}{1.4}{m}{n}
 \medskip\hrule\medskip
 \begin{algorithmic}[1]
 }{
@@ -429,7 +482,7 @@
 \newcommand{\Astar}{A$^*$}
 
 %for AI course:
-\newcommand{\defn}[1]{\textbf{#1}}
+\providecommand{\defn}[1]{\textbf{#1}}
 
 %for optimization course:
 \newcommand{\adec}{\r_\a^-}
@@ -438,7 +491,11 @@
 \newcommand{\linc}{\r_\l^+}
 \newcommand{\minc}{\r_\m^+}
 \newcommand{\mdec}{\r_\m^-}
+\newcommand{\step}{{\delta}}
 \newcommand{\lsstop}{\r_{\text{ls}}}
+\newcommand{\stepmax}{\step_{\text{max}}}
+\newcommand{\Min}{\text{min}}
+\newcommand{\Max}{\text{max}}
 
 
 \definecolor{boxcol}{rgb}{.85,.9,.92}

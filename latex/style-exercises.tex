@@ -1,6 +1,7 @@
 \newcommand{\exerciseshead}{
   \documentclass[10pt,fleqn]{article}
   \stdpackages
+\usepackage[utf8]{inputenc}
 
   \definecolor{bluecol}{rgb}{0,0,.5}
   \definecolor{greencol}{rgb}{0,.4,0}
@@ -45,24 +46,25 @@
   \renewcommand{\baselinestretch}{1.1}
   \geometry{a4paper,headsep=7mm,hdivide={15mm,*,15mm},vdivide={20mm,*,15mm}}
 
-  \fancyhead[L]{\thetitle, \textit{Marc Toussaint}---\coursedate}
+  \fancyhead[L]{\thetitle, \textit{\teacher}---\coursedate}
   \fancyhead[R]{\thepage}
   \fancyhead[C]{}
   \fancyfoot{}
   \pagestyle{fancy}
+
+  \renewcommand{\labelenumi}{{\alph{enumi})}}
 
   \parindent 0pt
   \parskip 0.5ex
 
   \newcommand{\codefont}{\helvetica{8}{1.2}{m}{n}}
 
-  \input{../shared/macros}
+  \input{../latex/macros}
 
   \DefineShortVerb{\@}
 
-  \newcounter{solutions}
-  \setcounter{solutions}{1}
-  \newenvironment{solution}{
+  \usepackage{comment}
+  \specialcomment{solution}{
     \small
     \begin{shaded}
   }{
@@ -71,19 +73,17 @@
   
   \renewcommand{\hat}{\widehat}
   \newcommand{\bbg}{{\bar{\bar g}}}
-  \graphicspath{{pics/}{../shared/pics/}}
+  \graphicspath{{pics/}{../latex/pics/}}
 
-  \renewcommand{\labelenumi}{{\alph{enumi})}}
+  \mytitle{\course\\\exnum}
+  \myauthor{\teacher\\ \small\addressTUB}
+  \date{\coursedate}
+}
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-
-  \mytitle{\course\\Exercise \exnum}
-  \myauthor{Marc Toussaint\\ \small\addressUSTT}
-  \date{\coursedate}
-  
+\newcommand{\exercisestitle}{  
   \begin{document}
-  \onecolumn
   \maketitle
 }
 

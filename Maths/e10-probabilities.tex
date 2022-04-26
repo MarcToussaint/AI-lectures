@@ -1,0 +1,64 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Maths for Intelligent Systems}
+\renewcommand{\coursedate}{Summer 2019}
+
+\renewcommand{\exnum}{Exercise 10}
+
+\exercises
+
+\excludecomment{solution}
+
+\exercisestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+~
+
+Note: These exercises are for 'extra credits'. We'll discuss them on
+Thu, 21th Jan.
+
+~
+
+\exsection{Maximum Entropy and Maximum Likelihood}
+
+(These are taken from MacKay's book \emph{Information Theory...},
+Exercise 22.12 \& .13)
+
+
+a) Assume that a random variable $x$ with discrete domain
+$\text{dom}(x)=\XX$ comes from a probability distribution of the
+form
+$$P(x\|w) = \frac{1}{Z(w)}~ \exp\[\sum_{k=1}^d w_k f_k(x)\] ~,$$
+where the functions $f_k(x)$ are given, and the parameters $w\in\RRR^d$ are
+not known. A data set $D=\{x_i\}_{i=1}^n$ of $n$ points $x$ is supplied.
+Show by differentiating the log likelihood $\log P(D|w) = \sum_{i=1}^n
+\log P(x_i|w)$ that the maximum-likelihood
+parameters $w^* = \argmax_w \log P(D|w)$ satisfy
+$$\sum_{x\in\XX} P(x\|w^*)~ f_k(x) = \frac{1}{n}~ \sum_{i=1}^n
+f_k(x_i)$$
+where the left-hand sum is over all x, and the right-hand sum is over the
+data points. A shorthand for this result is that each function-average
+under the fitted model must equal the function-average found in the
+data:
+$$\<f_k\>_{P(x\|w^*)} = \<f_k\>_D$$
+
+b) When confronted by a probability distribution $P(x)$ about which only a
+few facts are known, the maximum entropy principle (MaxEnt) offers a
+rule for choosing a distribution that satisfies those constraints. According
+to MaxEnt, you should select the $P(x)$ that maximizes the entropy
+$$H(P) = -\sum_x P(x) \log P(x)$$
+subject to the constraints. Assuming the constraints assert that the
+averages of certain functions $f_k(x)$ are known, i.e.,
+$$\<f_k\>_{P(x)} = F_k ~,$$
+show, by introducing Lagrange multipliers (one for each constraint, including
+normalization), that the maximum-entropy distribution has the
+form
+$$P_{\text{MaxEnt}}(x) = \frac{1}{Z}~ \exp\[ \sum_k w_k~ f_k(x) \]$$
+where the parameters $Z$ and $w_k$ are set such that the constraints
+are satisfied. And hence the maximum entropy method gives identical
+results to maximum likelihood fitting of an exponential-family model.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exerfoot

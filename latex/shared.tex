@@ -1,16 +1,22 @@
 \providecommand{\slides}{
-  \input{../shared/style-slides}
+  \input{../latex/style-slides}
   \slideshead
+  \lecturetitleslide
 }
 
 \providecommand{\exercises}{
-  \input{../shared/style-exercises}
+  \input{../latex/style-exercises}
   \exerciseshead
 }
 
 \providecommand{\script}{
-  \input{../shared/style-script}
+  \input{../latex/style-script}
   \scripthead
+}
+
+\providecommand{\note}{
+  \input{../latex/style-note}
+  \notehead{10}{1.1}
 }
 
 \providecommand{\course}{NO COURSE}
@@ -19,7 +25,7 @@
 \providecommand{\topic}{NO TOPIC}
 \providecommand{\keywords}{NO KEYWORDS}
 \providecommand{\exnum}{NO NUMBER}
-
+\providecommand{\teacher}{Marc Toussaint}
 
 \providecommand{\stdpackages}{
   \usepackage{amsmath}
@@ -36,7 +42,9 @@
   \definecolor{shadecolor}{gray}{0.9}
   \setlength{\FrameSep}{3pt}
   \usepackage{fancyvrb}
-  \fvset{numbers=left,xleftmargin=5ex}
+  \fvset{numbers=none,xleftmargin=5ex}
+
+  \usepackage{pdfpages}
 
   \usepackage{multicol} 
   \usepackage{fancyhdr}
@@ -45,4 +53,9 @@
 \providecommand{\addressUSTT}{
   Machine~Learning~\&~Robotics~lab, U~Stuttgart\\\small
   Universit{\"a}tsstra{\ss}e 38, 70569~Stuttgart, Germany
+}
+
+\providecommand{\addressTUB}{
+  Learning~\&~Intelligent~Systems~Lab, TU~Berlin\\\small
+  Marchstr. 23, 10587 Berlin, Germany
 }

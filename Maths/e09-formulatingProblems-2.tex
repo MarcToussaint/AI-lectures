@@ -1,0 +1,55 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Network flow problem}
+
+\textbf{Comment:} Solving problems in the real world involves 2 parts:
+\begin{enumerate}
+\item[1)] formulating the problem as an optimization problem ($\to$ human)
+\item[2)] the actual optimization problem ($\to$ algorithm)
+\end{enumerate}
+The first part is perhaps more interesting -- that's the science
+part. But understanding the algorithms helps to better formalize
+problems. This and the following exercises are from Boyd \&
+Vandenberghe's book
+\url{http://www.stanford.edu/~boyd/cvxbook/bv_cvxbook.pdf}. They are only about the first part.
+
+
+Solve Exercise 4.12 (pdf page 207) from  Boyd \& Vandenberghe,
+\emph{Convex Optimization.}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Minimum fuel optimal control}
+
+Solve Exercise 4.16 (pdf page 208) from  Boyd \& Vandenberghe,
+\emph{Convex Optimization.}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Voluntary: Reformulating Norms}
+
+Solve Exercise 4.11 (pdf page 207) from  Boyd \& Vandenberghe,
+\emph{Convex Optimization.}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Voluntary: Some more examples}
+
+a) Grocery Shopping: You're at the market and you find $n$ offers,
+each represented by a set of items $A_i$ and the respective price
+$c_i$. Your goal is to buy at least one of each item for as little as
+possible. Formulate as an integer LP.
+
+b) Facility Location: There are $n$ facilities with which to satisfy the needs of $m$ clients.  The
+cost for opening facility $j$ is $f_j$, and the cost for servicing client $i$
+through facility $j$ is $c_{ij}$.  You have to find an optimal way to open
+facilities and to associate clients to facilities. Formulate as an ILP.
+
+% in exam
+%% c) Taxicab Driver: You're a taxicab driver in hyper-space ($\RRR^d$)
+%% and have to service $n$ clients.  Each client $i$ has a known initial
+%% position $c_i\in\RRR^d$ and a destination $d_i\in\RRR^d$.  You start
+%% out at position $p_0\in\RRR^d$ and have to service all the clients
+%% while minimizing fuel use, which is proportional to covered distance.
+%% Hyper-space is funny, so the geometry is not Euclidean and distances
+%% are Manhattan distances. Formulate as an LP.

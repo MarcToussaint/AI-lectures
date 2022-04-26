@@ -1,0 +1,132 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Maths for Intelligent Systems}
+\renewcommand{\coursedate}{Summer 2019}
+
+\renewcommand{\exnum}{Exercise 3}
+
+\exercises
+
+\excludecomment{solution}
+
+\exercisestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Eigenvectors}
+
+\begin{enumerate}
+
+\item A symmetric matrix $A\in\RRR^{n\times n}$ is called positive semidefinite (PSD) if $x^\T A x \geq 0, \forall x\in\RRR^n$. (PSD is usually only used with symmetric matrices.) Show that \emph{all} eigenvalues of a PSD matrix
+  are non-negative.  
+
+
+\item Show that if $v$ is an eigenvector of $A$ with eigenvalue $\l$, then
+  $v$ is also an eigenvector of $A^k$ for any positive integer $k$. What is the
+  corresponding eigenvalue?
+
+%% \item A square matrix $M$ is idempotent if $M^2 = M$. What are the possible
+%%   eigenvalues of an idempotent matrix?
+
+\item Let $v$ be an eigenvector of $A$ with eigenvalue $\l$ and $w$ an
+  eigenvector of $A^\T$ with a different eigenvalue $\mu\neq\l$. Show that
+  $v$ and $w$ are orthogonal.
+
+
+\item Suppose $A\in\RRR^{n\times n}$ has eigenvalues
+  $\l_1,\ldots,\l_n\in\RRR$. What are the eigenvalues of $A + \alpha
+  I$ for $\alpha\in\RRR$ and $I$ an identity matrix?
+
+
+\item Assume $A\in \RRR^{n\times n}$ is diagonalizable, i.e., it has $n$
+  linearly independent eigenvectors, each with a different eigenvalue. Initialize $x\in\RRR^n$ as a random
+  normalized vector and iterate the two steps
+$$
+    x \gets A x\comma x \gets \frac{1}{\norm{x}}~ x
+$$
+  Prove that (under certain conditions) these iterations converge to the eigenvector $x$ with a largest (in \emph{absolute} terms $|\l_i|$)
+  eigenvalue of $A$. How fast does this converge? In what sense does it converge if the largest eigenvalue is negative? What if eigenvalues are not different? Other convergence conditions?
+
+
+\item Let $A$ be a positive definite matrix with $\l_\text{max}$ its largest
+  eigenvalue (in absolute terms $|\l_i|$). What do we get when we apply
+  power iteration method to the matrix $B = A - \l_{max}\Id$? How can we
+  get the smallest eigenvalue of $A$?
+
+
+\item Consider the following variant of the previous power iteration:
+  $$z \gets A x\comma
+  \l \gets x^\T z\comma
+  y \gets (\l I - A) y\comma
+  x \gets \frac{1}{\norm{z}}~ z\comma
+  y \gets \frac{1}{\norm{y}}~ y~. $$
+
+If $A$ is a positive definite matrix, show that the algorithm can give an
+estimate of the smallest eigenvalue of $A$.  %(Hint: use the results in Q.1.1 and Q.1.2)
+
+\end{enumerate}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Covariance and PCA}
+
+Suppose we're given a collection of zero-centered data points $D=\{ x_i \}_{i=1}^N$, with each $x_i \in \RRR^n$. The covariance matrix is defined as
+
+$$C = \frac{1}{n} \sum_{i=1}^N x_i x_i^\T = \frac{1}{n} X^\T X $$
+
+where (consistent to ML lecture convention) the data matrix $X$
+contains each $x_i^\T$ as a row, i.e., $X^\T=(x_1,..,x_N)$.
+
+If we project $D$ onto some unit vector $v\in\RRR^n$,  then  the  variance  of  the  projected  data  points  is $v^\T C v$. Show
+that the direction that maximizes this variance is the largest eigenvector of
+$C$.  (Hint: Expand $v$ in terms of the eigenvector basis of
+$C$ and exploit the constraint $v^\T v = 1$.)
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Bonus: RKHS}
+
+In machine learning we often work in spaces of functions called
+Reproducing Kernel Hilbert Spaces. These spaces are constructed from a
+certain type of function called the kernel. The kernel
+$k:\RRR^d\times\RRR^d\rightarrow\RRR$ takes two $d$-dimensional inputs
+$k(x,x')$, and from the kernel we construct a basis for the space of
+function, namely $B = \{ k(x, \cdot) \}_{x\in\RRR^d}$. Note that this is
+a set of infinite element: each $x\in\RRR^d$ adds a basis function
+$k(x,\cdot)$ to the basis $B$. The scalar product between two basis
+functions $k_x = k(x, \cdot)$ and $k_{x'} = k(x',\cdot)$ is defined 
+to be the kernel evaluation itself: $\<k_x,k_{x'}\> = k(x, x')$. The
+kernel function is therefore required to be a positive definite
+function so that it defines a viable scalar product.
+
+\begin{enumerate}
+\item Show that for any function $f\in\Span B$ it holds
+$$\<f, k_x\> = f(x) $$
+
+
+\item Assume we only have a finite set of points $\{ D =\{x_i\}_{i=1}^n \}$, which defines a finite basis $\{k_{x_i}\}_{i=1}^n\subset B$. This finite function basis spans a subspace $\FF_D = \Span\{k_{x_i} : x_i \in D\}$ of the space of all functions.
+
+For a general function $f$, we decompose it $f=f_s + f_\bot$ with $f_s \in \FF_D$ and $\forall g\in\FF_D: \<f_{\bot}, g\>=0$, i.e., $f_\bot$ is orthogonal to $\FF_D$. Show that for every $x_i \in D$:
+$$f(x_i) = f_s(x_i)$$
+
+
+(Note: This shows that the function values of any function $f$ at the
+data points $D$ only depend on the part $f_s$ which is inside the spann of
+$\{k_{x_i} : x_i \in D\}$. This implies the so-called representer
+theorem, which is fundamental in kernel machines: A loss can only
+depend on function values $f(x_i)$ at data points, and therefore on
+$f_s$. The part $f_\bot$ can only increase the complexity (norm) of a
+function. Therefore, the simplest function to optimize any loss will
+have $f_\bot=0$ and be within $\Span\{k_{x_i} : x_i \in D\}$.)
+
+
+
+\item Within $\Span\{k_{x_i} : x_i \in D\}$, what is the coordinate
+representation of the scalar product?
+
+\end{enumerate}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exerfoot

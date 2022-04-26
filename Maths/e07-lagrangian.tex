@@ -1,0 +1,57 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Maths for Intelligent Systems}
+\renewcommand{\coursedate}{Summer 2019}
+
+\renewcommand{\exnum}{Exercise 7}
+
+\exercises
+
+\excludecomment{solution}
+
+\exercisestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Lagrangian Method of Multipliers}
+
+In a previous exercise we defined the ``hole function'' $f^c_{\text{hole}}(x)$. Assume conditioning $c=10$ and use the Lagrangian Method of Multipliers to
+solve on paper the following constrained optimization problem in $2D$:
+\begin{align}
+\min_x f^c_{\text{hole}}(x) \st& h(x)=0 \\
+h(x) = v^\T x - 1
+\end{align}
+
+Near the very end, you won't be able to proceed until you have special values
+for $v$. Go as far as you can without the need for these values.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Equality Constraint Penalties and Augmented Lagrangian}
+
+The squared penalty approach to solving a constrained optimization problem minimizes
+\begin{align}
+\min_x~ f(x) + \mu \sum_{i=1}^m h_i(x)^2 ~. \label{eq1}
+\end{align}
+
+The Augmented Lagrangian method adds a Lagrangian term and minimizes
+\begin{align}
+\min_x~ f(x) + \mu \sum_{i=1}^m h_i(x)^2 + \sum_{i=1}^m \l_i h_i(x)
+~.\label{eq2}
+\end{align}
+
+Assume that we first minimize (\ref{eq1}) we end up at a minimum $\bar{x}$.
+
+Now prove that setting $\l_i = 2\mu h_i(\bar{x})$ will, if we assume
+that the gradients $\na f(x)$ and $\na h(x)$ are (locally) constant,
+ensure that the minimum of (\ref{eq2}) fulfills the constraints
+$h(x)=0$.
+
+%% Tip: Compare the. Think about how the gradient that arises from
+%% the penalty in (\ref{eq1}) is now generated via the $\l_i$.
+
+
+
+
+\exerfoot

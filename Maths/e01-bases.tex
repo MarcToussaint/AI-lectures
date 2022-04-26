@@ -1,0 +1,157 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Maths for Intelligent Systems}
+\renewcommand{\coursedate}{Summer 2019}
+
+\renewcommand{\exnum}{Exercise 1}
+
+\exercises
+
+\excludecomment{solution}
+
+\exercisestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \exsection{Examples for Vector Spaces (voluntary, discussed on Oct 23rd)}
+
+%% \begin{enumerate}
+%%   \item Find 3 interesting examples of vector spaces that we haven't covered in
+%%     class.  What are their dimensions? What bases are commonly used to
+%%     represent them?  (It's okay to look this up in a textbook or online---just
+%%     find interesting examples.)
+
+%%   \item Come up with one example of a set which is \emph{almost} a vector
+%%     space, i.e.\ it satisfies some of the core requirements of a vector space,
+%%     but not all.
+
+%%   \item Consider the set of of all \emph{even} functions.  Is this a Vector
+%%     space?  If so, define 3 different bases which span the
+%%     entire space.
+
+%% \end{enumerate}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Basis}
+
+Given a linear transform $f: \RRR^2 \to \RRR^2,$
+$$ f(x) = A x = \mat{cc}{7 & -10 \\ 5 & -8} x ~.$$ Consider the basis
+$\BB = \big\{ \mat{c}{1\\1}, \mat{c}{2\\1} \big\}$, which we also
+simply refer to by the matrix $B=\mat{cc}{1 & 2 \\ 1 & 1}$. Given a
+vector $x$ in the vector space $\RRR^2$, we denote its coordinates in
+basis $\BB$ with $x^B$.
+
+\begin{enumerate}
+\item Show that $x = B x^B$.
+
+
+\item What is the matrix $F^B$ of $f$ in the basis $\BB$, i.e., such that $[f(x)]^B = F^B x^B$? Prove the general equation $F^B = B^\1 A B$.
+
+
+\item Provide $F^B$ numerically
+\end{enumerate}
+
+Note that for a matrix $M = \mat{cc}{a & b \\ c & d},~ M^\1 = \frac{1}{ad-bc}\mat{cc}{d & -b \\ -c & a}$
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{From the Robotics Course}
+
+You have a book lying on the table. The edges of the book define the basis
+$B$, the edges of the table define basis $A$. Initially $A$ and $B$ are identical (also their origins align). Now we rotate the book
+ by $45^\circ$ counter-clock-wise
+about its origin.
+
+\begin{enumerate}
+\item Given a dot $p$ marked on the book at position
+$p^B=(1,1)$ in the book coordinate frame, what are the coordinates
+$p^A$ of that dot with respect to the table frame?
+
+\item Given a point $x$ with coordinates $x^A=(0,1)$ in table
+frame, what are its coordinates $x^B$ in the book frame?
+
+
+\item What is the \emph{coordinate} transformation matrix from book frame to table frame, and from table frame to book
+frame?
+
+\end{enumerate}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Bases for Polynomials}
+
+Consider the set $V$ of all polynomials $\sum_{i=0}^n \alpha_i x^i$ of
+degree $n$, where $x \in \RRR$ and $\alpha_i \in\RRR$ for each
+$i=0,\ldots,n$.
+
+\begin{enumerate}
+\item Is this set of functions a vector space? Why?
+
+
+
+\item Consider two different bases of this vector space: 
+\begin{align*}
+  \mathcal{A} = \{1,\ x,\ x^2,\ \ldots,\ x^n\}
+\end{align*}
+and 
+\begin{align*}
+  \mathcal{B} = \{1,\ 1 + x,\ 1 + x + x^2,\ \ldots,\ 1 + x + \ldots + x^n\}.
+\end{align*}
+Let $f(x) = 1 + x + x^2 + x^3$ be one element in $V$. (This function $f$ is a vector in the
+  vector space $V$, so from here on we refer to it as a vector rather
+than a function.)
+
+What are the coordinates $[f]^A$ of this vector in basis $\mathcal{A}$?
+
+What are the coordinates $[f]^B$ of this vector in basis $\mathcal{B}$?
+
+
+\item What matrix $I^{BA}$ allows you to convert between coordinates $[f]^A$ and
+  $[f]^B$, i.e.\ $[f]^B = I^{BA} [f]^A$?  Which matrix $I^{AB}$ does the same
+  in the opposite direction, i.e.\ $[f]^A = I^{AB} [f]^B$?  What is the
+  relationship between $I^{AB}$ and $I^{BA}$?
+
+
+\item What does the difference between coordinates $[f]^A - [f]^B$
+        represent?
+
+
+\item Consider the linear transform $t:~ V \to V$ that maps basis elements of $\mathcal{A}$ directly to basis elements of 
+$\mathcal{B}$:
+\begin{align*}
+  &1 \rightarrow 1 \\
+  &x \rightarrow 1 + x \\
+  &x^2 \rightarrow 1 + x + x^2 \\
+  &\vdots \\
+  &x^n \rightarrow 1 + x + x^2 + \cdots + x^n 
+\end{align*}
+
+\begin{itemize}
+\item What is the matrix $T^A$ for the linear transform $t$ in the basis $\AA$, i.e., such that $[t(f)]^A = T^A [f]^A$? (Basis $\AA$ is used for both, input and output spaces.)
+\item What is the matrix $T^B$ for the linear transform $t$ in the basis $\BB$, i.e., such that $[t(f)]^B = T^B [f]^B$? (Basis $\BB$ is used for both, input and output spaces.)
+\item What is the matrix $T^{BA}$ if we use $\AA$ as input space basis, and $\BB$ as output space basis, i.e., such that $[t(f)]^B = T^{BA} [f]^A$?
+\item What is the matrix $T^{AB}$ if we use $\BB$ as input space basis, and $\AA$ as output space basis, i.e., such that $[t(f)]^A = T^{AB} [f]^B$?
+\item Show that $T^B = I^{BA} T^A I^{AB}$ (cp.\ Exercise 1(b)). Also note that $T^{AB} = T^A I^{AB}$ and $T^{BA} = I^{BA} T^A$.
+\end{itemize}
+
+
+%% \item The identity transformation $I$ maps $f\mapsto f$.  What
+%%    is the matrix $M$ which performs the identity transformation in all possible combinations of input and output basis? i.e. find the matrices $M$ such that
+%%        \begin{itemize}
+%%           \item $[If]^A = M [f]^A$
+%%           \item $[If]^B = M [f]^B$
+%%           \item $[If]^B = M [f]^A$
+%%           \item $[If]^A = M [f]^B$
+%%         \end{itemize}
+
+
+\end{enumerate}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+\exerfoot

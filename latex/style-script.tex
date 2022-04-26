@@ -1,15 +1,38 @@
 \newcommand{\scripthead}{
-  \documentclass[9pt,twoside]{article}
+  \documentclass[9pt,fleqn,twoside]{article}
   \stdpackages
 
-  \usepackage{palatino}
-  \usepackage[envcountsect]{beamerarticle}
   \usepackage{makeidx}
   \makeindex
 
+  \usepackage{thmtools}
+  \definecolor{shadecolor}{gray}{0.85}
+  \declaretheoremstyle[
+    %headfont=\normalfont\bfseries,
+    %notefont=\mdseries, notebraces={(}{)},
+    %bodyfont=\normalfont,
+    %postheadspace=0.5em,
+    %spaceabove=6pt,
+    mdframed={
+      %  skipabove=8pt,
+      %  skipbelow=6pt,
+      hidealllines=true,
+      backgroundcolor={shadecolor},
+      innertopmargin=8pt,
+      %  innerleftmargin=3pt,
+      %  innerrightmargin=3pt
+    }
+  ]{shaded}
+  \declaretheorem[style=shaded,within=section,name=Definition]{myDefinition}
+  \declaretheorem[style=shaded,within=section,name=Theorem]{myTheorem}
+  \declaretheorem[style=shaded,within=section,name=Identities]{Identities}
+  \declaretheorem[style=shaded,within=section,name=Example]{myExample}
+
+  \definecolor{grey}{rgb}{.8,.8,.8}
   \definecolor{bluecol}{rgb}{0,0,.5}
   \definecolor{greencol}{rgb}{0,.4,0}
   \definecolor{shadecolor}{gray}{0.9}
+  \definecolor{citcol}{rgb}{.4,.4,.4}
   \usepackage[
     %    pdftex%,
     %%    letterpaper,
@@ -32,8 +55,13 @@
   ]{hyperref}
   \DeclareGraphicsExtensions{.pdf,.png,.jpg,.eps}
 
+  %\usepackage{multirow}
   \usepackage{multimedia}
+  %\usepackage{marginnote}
   %\setbeamercolor{background canvas}{bg=}
+
+  \usepackage[round]{natbib}
+  \bibliographystyle{abbrvnat}
 
   \renewcommand{\r}{\varrho}
   \renewcommand{\l}{\lambda}
@@ -59,47 +87,47 @@
   \fancyfoot{}
   \pagestyle{fancy}
 
-%  \setcounter{tocdepth}{3}
-  \setcounter{tocdepth}{2}
+  \renewcommand{\labelenumi}{{(\roman{enumi})}}
+  \renewcommand{\theenumi}{(\roman{enumi})} %for ref
+  \parindent 0pt
+  \parskip .5pc
 
-   \columnsep 6ex
-  %  \renewcommand{\familydefault}{\sfdefault}
+  \columnsep 6ex
+
+  \renewcommand{\familydefault}{\sfdefault}
+
   \newcommand{\headerfont}{\large}%helvetica{12}{1}{b}{n}}
   \newcommand{\slidefont} {}%\helvetica{9}{1.3}{m}{n}}
   \newcommand{\storyfont} {}
   %  \renewcommand{\small}   {\helvetica{8}{1.2}{m}{n}}
   \renewcommand{\tiny}    {\footnotesize}%helvetica{7}{1.1}{m}{n}}
-  \newcommand{\ttiny} {\fontsize{5}{5}\selectfont}
-  \newcommand{\codefont}{\fontsize{6}{6}\selectfont}%helvetica{8}{1.2}{m}{n}}
+  \newcommand{\ttiny} {\footnotesize}%fontsize{7}{7}\selectfont}
+%  \newcommand{\codefont}{\fontsize{6}{6}\selectfont}%helvetica{8}{1.2}{m}{n}}
+  \newcommand{\codefont} {\helvetica{8}{1.2}{m}{n}}
 
-  \input{../shared/macros}
+  \input{../latex/macros}
 
-  \DefineShortVerb{\@}
-
-  \newcounter{solutions}
-  \setcounter{solutions}{1}
-  \renewenvironment{solution}{
+  \usepackage{comment}
+  \specialcomment{solution}{
     \small
     \begin{shaded}
   }{
     \end{shaded}
   }
 
-  \graphicspath{{pics/}{../shared/pics/}}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  \graphicspath{{pics/}{../latex/pics/}}
 
   \mytitle{\course\\Lecture Script}
   \myauthor{Marc Toussaint}
   \date{\coursedate}
+}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\scripttitle}{
   \begin{document}
-
-  %% \vspace*{2cm}
-
   \maketitle
   %\anchor{100,10}{\includegraphics[width=4cm]{optim}}
-
 %  \vspace*{1cm}
 
   \emph{This is a direct concatenation and reformatting of all lecture
@@ -111,60 +139,39 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%% \renewcommand{\keywords}{}
-%% \newcommand{\topic}{}
-%% \renewcommand{\mypause}{}
+\newcounter{mypage}
+\setcounter{mypage}{0}
+\newcommand{\incpage}{\addtocounter{mypage}{1}}
 
-  \newcounter{mypage}
-  \setcounter{mypage}{0}
-  \newcounter{mysec}
-  \setcounter{mysec}{0}
-  \newcommand{\incpage}{\addtocounter{mypage}{1}}
-  \newcommand{\incsec} {\addtocounter{mysec}{1}}
-
-\newcommand{\beginTocMinipage}{
-  \addtocontents{toc}{\smallskip\noindent\hspace*{.036\columnwidth}}
-  \addtocontents{toc}{\protect\begin{minipage}{.914\columnwidth}\small}
-}
-\newcommand{\closeTocMinipage}{
-  \addtocontents{toc}{\protect\end{minipage}}
-  \addtocontents{toc}{}
-  \addtocontents{toc}{\medskip}
-}
+\newcommand{\subtopic}{}
+\newcommand{\pause}{}
+\newcommand{\only}[1]{#1}
 
 \renewcommand{\slides}[1][]{
-  \clearpage
-  \incsec
-  \section{\topic}
+  %  \clearpage
+  \subsection{\topic}
+  \index{\topic}
   {\small #1}
-  \beginTocMinipage
   \setcounter{mypage}{0}
   \smallskip\nopagebreak\hrule\medskip
 }
 
 \newcommand{\slidesfoot}{
-  \closeTocMinipage
   \bigskip
 }
 
 \newcommand{\sublecture}[2]{
-  \pagebreak[3]
-  \incpage
-  \closeTocMinipage
-  \subsection{#1}
-  {\storyfont #2}
-  \beginTocMinipage
-  {\hfill\tiny \textsf{\arabic{mysec}:\arabic{mypage}}}\nopagebreak%
-  \smallskip\nopagebreak\hrule
+  \index{#1}
 }
 
 \newcommand{\key}[1]{
-  \pagebreak[2]
-  \addtocounter{mypage}{1}
-  \addtocontents{toc}{\hyperref[key:#1]{#1 (\arabic{mysec}:\arabic{mypage})}}
-  \phantomsection\label{key:#1}
-  \index{#1@{\hyperref[key:#1]{#1 (\arabic{mysec}:\arabic{mypage})}}|phantom}
-  \addtocounter{mypage}{-1}
+  \phantomsection\addcontentsline{toc}{subsubsection}{#1}
+  %\subsubsection{#1}
+  \index{#1}
+}
+
+\providecommand{\defn}[1]{%
+  \textbf{#1}\index{#1}%
 }
 
 \newenvironment{slidecore}[1]{
@@ -175,7 +182,7 @@
     \labelwidth2ex \partopsep0ex \topsep0ex \parsep.5ex \parskip0ex \itemsep0pt}\item[]~\\\nopagebreak%
 }{
   \end{list}\nopagebreak%
-  {\hfill\tiny \textsf{\arabic{mysec}:\arabic{mypage}}}\nopagebreak%
+  {\hfill\tiny \textsf{\arabic{section}.\arabic{subsection}:\arabic{mypage}}}\nopagebreak%
   \smallskip\nopagebreak\hrule
 }
 
@@ -185,22 +192,13 @@
   \end{slidecore}
 }
 
-\newcommand{\exsection}[1]{
-  \subsubsection{#1}
-}
-
-\renewcommand{\exercises}{
-  \subsection{Exercise \exnum}
-}
-
-\newcommand{\exerfoot}{
-  \bigskip
-}
+\renewcommand{\exercises}{}
+\newcommand{\exercisestitle}{}
+\newcommand{\exsection}[1]{\subsubsection{#1}}
+\newcommand{\exerfoot}{\bigskip}
 
 \newcommand{\story}[1]{
   \subsection*{Motivation \& Outline}
-  \addtocontents{toc}{\hyperref[mot\arabic{mysec}]{Motivation \& Outline}}
-  \phantomsection\label{mot\arabic{mysec}}
   {\storyfont\sf #1}
   \medskip\nopagebreak\hrule
 }
@@ -221,3 +219,6 @@
 }{
 \end{list}
 }
+
+\newcommand{\Def}[1]{%
+\textbf{#1}\index{#1}}%\marginnote{#1}}

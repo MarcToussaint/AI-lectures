@@ -1,0 +1,114 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Maths for Intelligent Systems}
+\renewcommand{\coursedate}{Summer 2019}
+
+\renewcommand{\exnum}{Exercise 2}
+
+\exercises
+
+\excludecomment{solution}
+
+\exercisestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Projections}
+
+\begin{enumerate}
+
+  \item
+In $\RRR^n$, a plane (through the origin) is typically described by
+the linear equation
+\begin{align}
+  c^\T x = 0 ~,
+\end{align}
+where $c\in\RRR^n$ parameterizes the plane. Provide the matrix that describes the orthogonal projection onto this plane. (Tip: Think of the projection as $\Id$ minus a rank-1 matrix.)
+
+
+\item In $\RRR^n$, let's have $k$ linearly independent $\{v_i\}_{i=1}^k$, which form the matrix $V = (v_1,..,v_k) \in\RRR^{n\times k}$. Let's formulate a projection using an optimality principle, namely,
+\begin{align}
+  \a^*(x) = \argmin_{\a\in\RRR^k} \norm{x - V \a}^2 ~.
+\end{align}
+Derive the equation for the optimal $\a^*(x)$ from the optimality principle.
+
+(For information only: Note that $V \a = \sum_{i=1}^k \a_i v_i$ is just the linear combination of $v_i$'s with coefficients $\a$. The projection of a vector $x$ is then $x_{|\!|} = V \a^*(x)$.)
+
+
+\end{enumerate}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{SVD}
+
+Consider the matrices
+\begin{align}
+  A &= \begin{bmatrix}
+      1 & 0 & 0 \\
+      0 & -2 & 0 \\
+      0 & 0 & 0 \\
+      0 & 0 & 0 \\
+  \end{bmatrix} \comma
+  B = \begin{bmatrix}
+      1 & 1 & 1 \\
+      1 & 0 & -1 \\
+      2 & 1 & 0 \\
+      0 & 1 & 2 \\
+  \end{bmatrix}
+\end{align}
+
+\begin{enumerate}
+
+  \item Describe their $4$ fundamental spaces (dimensionality, possible basis
+    vectors).
+
+
+  \item Find the SVD of $A$ (using pen and paper only!)
+
+
+  \item Given an arbitrary input vector $x\in\RRR^3$, provide the linear
+    transformation matrices $P_A$ and $P_B$ that project $x$ into the
+    input null space of matrix $A$ and $B$, respectively.
+
+
+  \item Compute the pseudo inverse $A^\dagger$.
+
+
+  \item Determine all solutions to the linear equations $Ax = y$ and $Bx = y$
+    with $y = (2, 3, 0, 0)$.  What is the more
+    general expression for an arbitrary $y$?
+
+
+\end{enumerate}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Bonus: Scalar product and Orthogonality}
+
+\begin{enumerate}
+
+  \item Show that $f(x, y) = 2x_1 y_1 - x_1 y_2 - x_2 y_1 + 5x_2 y_2$ is an scalar
+    product on $\RRR^2$.
+
+  \item In the space of functions with the scalar product $\langle f, g\rangle
+    = \int_0^{2\pi} f(x) g(x) dx$, what is the scalar product of $\sin(x)$
+    with $\sin(2x)$?  (Graphical argument is ok.)
+
+  %% \item Given a vector space $V$, a basis $\{e_i\}$ and the \emph{metric
+  %%   tensor} (the matrix of basis vector scalar products) $g_{ij} = \langle e_i
+  %%   e_j \rangle$, how does one compute $\langle v w \rangle$ for any $v, w\in
+  %%   V$?  In which case does this become equivalent to the dot product $v \cdot
+  %%   w = \sum_i v_i w_i$?
+
+  \item What property does a matrix $M$ have to satisfy in order to be a valid
+    metric tensor, i.e.\ such that $x^\T M y$ is a valid scalar product?
+
+\end{enumerate}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\exerfoot

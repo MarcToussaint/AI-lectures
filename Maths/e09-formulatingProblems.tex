@@ -1,0 +1,73 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Maths for Intelligent Systems}
+\renewcommand{\coursedate}{Summer 2019}
+
+\renewcommand{\exnum}{Exercise 9}
+
+\exercises
+
+\excludecomment{solution}
+
+\exercisestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\textbf{Comment:} Solving problems in the real world involves 2 parts:
+\begin{enumerate}
+\item[1)] formulating the problem as an optimization problem (conform to a
+standard optimization problem category) ($\to$ human)
+\item[2)] the actual optimization problem ($\to$ algorithm)
+\end{enumerate}
+
+These exercises focus on the first type, which is just as important as the
+second, as it enables the use of a wider range of solvers.  Exercises from Boyd
+et al \url{http://www.stanford.edu/~boyd/cvxbook/bv_cvxbook.pdf}:
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Network flow problem}
+
+Solve Exercise 4.12 (pdf page 193) from  Boyd \& Vandenberghe,
+\emph{Convex Optimization.}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Minimum fuel optimal control}
+
+Solve Exercise 4.16 (pdf page 194) from  Boyd \& Vandenberghe,
+\emph{Convex Optimization.}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Reformulating an $\ell_1$-norm}
+
+(This is a subset of  Exercise 4.11 (pdf page 193) from  Boyd \& Vandenberghe.)
+
+Let $x\in\RRR^n$. The optimization problem is $\min_x \norm{x-b}_1$,
+where the $\ell_1$-norm is defined as $\norm{z}_1 = \sum_{i=1}^n
+|z_i|$. Reformulate this optimization problem as a Linear Program.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \exsection{ Solve one of these only, the otheres are optional}
+
+%% a) Grocery Shopping: You're at the market and you find $n$ offers,
+%% each represented by a set of items $A_i$ and the respective price
+%% $c_i$. Your goal is to buy at least one of each item for as little as
+%% possible. Formulate as an integer LP.
+
+%% b) Facility Location: There are $n$ facilities with which to satisfy the needs of $m$ clients.  The
+%% cost for opening facility $j$ is $f_j$, and the cost for servicing client $i$
+%% through facility $j$ is $c_{ij}$.  You have to find an optimal way to open
+%% facilities and to associate clients to facilities. Formulate as an ILP.
+
+%% c) Taxicab Driver: You're a taxicab driver in hyper-space ($\RRR^d$)
+%% and have to service $n$ clients.  Each client $i$ has a known initial
+%% position $c_i\in\RRR^d$ and a destination $d_i\in\RRR^d$.  You start
+%% out at position $p_0\in\RRR^d$ and have to service all the clients
+%% while minimizing fuel use, which is proportional to covered distance.
+%% Hyper-space is funny, so the geometry is not Euclidean and distances
+%% are Manhattan distances. Formulate as an LP.
+
+\exerfoot
