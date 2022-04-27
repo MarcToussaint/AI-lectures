@@ -4,6 +4,8 @@
 \renewcommand{\exnum}{3}
 
 \exercises
+\excludecomment{solution}
+\exercisestitle
 
 (BSc Data Science students may skip b) parts.)
 
@@ -26,65 +28,12 @@ of the loss w.r.t.\ the discriminative values. For simplicity,
 distinguish the cases of taking the derivative w.r.t.\ $f(y^*,x)$ and
 w.r.t.\ $f(y,x)$ for $y\not= y^*$. (3 P)
 
-\ifnum\value{solutions}=1
-\begin{solution}
-	If we reduce the problem to $L(f) = [1 - (f(y^*, x) - f(y,x))]_+$ we have two general cases:
-	
-	(i) $1 - (f(y^*, x) - f(y,x)) \leq 0$:
-	
-	\begin{align*}
-		\frac{\partial L(f)}{\partial f(y,x)} &= 0
-	\end{align*}
-
-	(ii) $1 - (f(y^*, x) - f(y,x)) > 0$:
-	
-	\begin{align*}
-		\frac{\partial L(f)}{\partial f(y,x)} &= 1, \\
-		\frac{\partial L(f)}{\partial f(y^*,x)} &= -1
-	\end{align*}
-
-	From this follows in general for $L(f) = \sum_{y \neq y^*} [1 - (f(y^*, x) - f(y,x))]_+$
-	(using the indicator function):
-	
-	\begin{align*}
-		\frac{\partial L(f)}{\partial f(y,x)} &= [1 - (f(y^*, x) - f(y,x)) > 0], \\
-		\frac{\partial L(f)}{\partial f(y^*,x)} &= -\sum_{y \neq y^*} [1 - (f(y^*, x) - f(y,x)) > 0]
-	\end{align*}
-\end{solution}
-\fi
-
 b) Now assume the parameteric model $f(y,x) = \phi(x)^\T \b_y$, where
 for every $y$ we have different parameters $\b_y\in\RRR^d$. And we
 have a full data set $D=\{(x_i,y_i)\}_{i=1}^n$ with class labels
 $y_i\in\{1,..,M\}$ and loss
 $$L^\text{hinge}(f) =  \sum_{i=1}^n \sum_{y\not=y_i} [1 - (f(y_i,x_i)-f(y,x_i))]_+$$
 What is the gradient $\frac{\del L^\text{hinge}(f)}{\del \b_y}$? (2 P)
-
-\ifnum\value{solutions}=1
-\begin{solution}
-	If we fix the index $i$, we can reduce the problem to
-	$L(f) = \sum_{y \neq y_i} [1 - (f(y_i, x_i) - f(y,x_i))]_+$ which has two general cases:
-	
-	(i) $y \neq y_i$:
-	
-	\begin{align*}
-		\frac{\partial L(f)}{\partial \beta_y} &= [1 - (f(y_i, x_i) - f(y,x_i)) > 0] \cdot \phi(x_i)^\T
-	\end{align*}
-	
-	(ii) $y = y_i$:
-	
-	\begin{align*}
-		\frac{\partial L(f)}{\partial \beta_y} &= - \left(\sum_{y \neq y^*} [1 - (f(y^*, x) - f(y,x)) > 0]\right) \cdot \phi(x_i)^\T
-	\end{align*}
-	
-	From this follows in general for all data points (if we fix $\beta_{y_j}$):
-	
-	\begin{align*}
-		\frac{\partial L(f)}{\partial \beta_{y_j}} &= \sum_{i=1}^{n} [y_i \neq y_j] \cdot [1 - (f(y_i, x_i) - f(y,x_i)) > 0] \cdot \phi(x_i)^\T - [y_i = y_j] \cdot \left(\sum_{y \neq y^*} [1 - (f(y^*, x) - f(y,x)) > 0]\right) \cdot \phi(x_i)^\T
-	\end{align*}
-\end{solution}
-\fi
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -105,27 +54,6 @@ a) Compute the derivative $\frac{\del}{\del \b} L(\b)$. Tip: use the fact
 $\frac{\del}{\del z}\s(z) = \s(z)(1-\s(z))$. (3 P)
 
 b) Compute the 2nd derivative $\frac{\del^2}{\del \b^2} L(\b)$. (2 P)
-
-\ifnum\value{solutions}=1
-\begin{solution}
-	Let $p_i \equiv p(x_i)$. We have $\frac{\del}{\del \b} p_i = p_i (1-p_i) x_i^\T$
-	\begin{align}
-		L(\b)
-		&= - \sum_{i=1}^n \[ y_i \log p_i + (1-y_i) \log
-		[1-p_i]\] \\
-		\textrm{a) } \frac{\del}{\del \b} L(\b)
-		&= - \sum_{i=1}^n \[ y_i \frac{p_i (1-p_i)}{p_i} x_i^\T +
-		(1-y_i) \frac{-p_i (1-p_i)}{1-p_i} x_i^\T \] \\
-		&= - \sum_{i=1}^n \[ y_i (1-p_i) - (1-y_i) p_i \]~ x_i^\T \\
-		&= \sum_{i=1}^n \[ p_i - y_i \]~ x_i^\T  = (p-y)^\T X \\
-		\textrm{b) } \frac{\del^2}{\del \b^2} L(\b)
-		&= \frac{\del}{\del\b} \sum_{i=1}^n x_i \[p_i - y_i\] \\
-		&= \sum_{i=1}^n x_i p_i (1-p_i) x_i^\T = X^\T W X \comma
-		W = \diag(p\circ(1-p))
-	\end{align}
-	
-\end{solution}
-\fi
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

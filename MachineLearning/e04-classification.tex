@@ -4,6 +4,8 @@
 \renewcommand{\exnum}{4}
 
 \exercises
+\excludecomment{solution}
+\exercisestitle
 
 At the bottom several 'extra' exercises are given. These are not part of the tutorial and only for your interest.
 
@@ -107,28 +109,6 @@ c) Extra: Assume that the data set would contain a third output variable $y_3\in
 d) Extra: General discussion: Based on this, how are regression, classification, and conditional random fields related?
 
 
-\ifnum\value{solutions}=1
-\begin{solution}
-Let us define $y=(y_1,y_2)\in\RRR^2$, the regression parameter matrix
-$\a=(\b_1^\T;\b_2^\T) \in \RRR^{d\times 2}$, and the correlation
-matrix $B=(1,\b_c; \b_c,1)$. We define a discriminative function
-\begin{align}
-f(x,y)
- &= -\half (y-\phi^\T\a)^\T B (y-\phi^\T\a) + \half \a^\T \phi B \phi^\T\a ~.
-\end{align}
-Note that this is not anymore linear in the parameters: E.g., the term $y^\T
-B \phi^\T \a$ includes the monomial $\b_c\b_1$. But that's not a
-problem. We have
-\begin{align}
-p(y \| x)
-&= \NN(y \| \phi^\T\a, B^\1)~ \frac{|B|^{1/2}}{2\pi}~ e^{\half \a^\T \phi B \phi^\T\a - Z(x,\b)} ~.
-\end{align}
-Again, for this to be normalized, $Z(x,\b)$ has to subsume all terms,
-and $p(y \| x) = \NN(y \| \phi^\T\a, B^\1)$.
-\end{solution}
-\fi
-
-
 %% \begin{figure}[b]
 %% \show{digits_twoClasses}
 %% \show{digits_pca}
@@ -197,23 +177,6 @@ This results in $$P(y=1|x) = \frac{\exp f(x, 1)}{1 + \exp f(x, 1)} =
 discriminative function $f'$ as a function of the old one, such that $f'(x,
 0)=0$ and for which $P(y|x)$ maintains the same expressibility.)
 
-\ifnum\value{solutions}=1
-\begin{solution}
-	Assume $f(x, y) = \phi(x, y)^\T\beta$. Define new discriminative function $f'(x, y) = f(x, y) - f(x, 0)$.
-	
-	Proof that new discriminative function $f'$ still fulfills class probabilites:
-	\begin{align*}
-		P'(y|x)
-		&= \frac{\exp f'(x, y)}{\sum_{y'}\exp f'(x, y')} \\
-		&= \frac{\exp (f(x, y) - f(x, 0))}{\sum_{y'}\exp (f(x, y') - f(x, 0))} \\
-		&= \frac{\exp (f(x, y)) \cdot \exp (-f(x, 0))}{\sum_{y'}\exp (f(x, y')) \cdot \exp (-f(x, 0))} \\
-		&= \frac{\exp (-f(x, 0))}{\exp (-f(x, 0))} \cdot \frac{\exp (f(x, y))}{\sum_{y'}\exp (f(x, y'))} \\
-		&= \frac{\exp f(x, y)}{\sum_{y'}\exp f(x, y')} 
-		= P(y|x)
-	\end{align*}
-\end{solution}
-\fi
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \exsection{Extra: Special cases of CRFs}
@@ -230,72 +193,6 @@ $\he[\b] L(\b)$ on slide 03:31. (The same is true for the multi-class case .)
 
 c) Proof that ordinary ridge regression is a special case of CRFs if
 you choose the discriminative function $f(x,y) = - y^2 + 2 y \phi(x)^\T \b$.
-
-\ifnum\value{solutions}=1
-\begin{solution}
-In all of the following, $f=f(x,y;\b)$ and $Z=Z(x;\b)$.
-
-a)
-\begin{align}
-\na Z
-&= \na \log \sum_y e^f
- = \frac{1}{e^Z}~ \sum_y e^f \na f
- = \sum_y p(y|x)~ \na f \\
-\he Z
-&= \na \[ \sum_y p(y|x)~ \na f^\T \] \\
-\na p(y|x)
-&= \na e^{f-Z} = e^{f-Z}~ [\na f - \na Z] = p(y|x)~ [\na f - \na Z] \\
-\he Z
-&= \sum_y p(y|x)~ [\na f - \na Z]~  \na f^\T \\
-&= \sum_y p(y|x)~ \na f~  \na f^\T  - \na Z [\sum_y p(y|x)~ \na f^\T]\\
-&= \sum_y p(y|x)~ \na f~  \na f^\T  - \na Z \na Z^\T
-\end{align}
-b)
-\begin{align}
-y & \in\{0,1\}\\
-f(x,y)
-&= \phi(x,y)^\T \b = [y=1] \phi(x)^\T \b = y \phi(x)^\T \b \\
-\na Z
-&= \sum_y p(y|x)~ [y=1]~ \phi(x) = p(x)~ \phi(x) \\
-\na L
-&= \sum_i \na Z(x_i) - \na f(x_i,y_i) \\
-&= \sum_i p(x_i) \phi(x) - y_i \phi(x_i) \\
-&= \sum_i (p_i - y_i) \phi(x_i) = X^\T (\vec p-\vec y) \\
-\he Z
-&= \sum_y p(y|x)~ [y=1]~ \phi(x) \phi(x)^\T - [p(x)~ \phi(x)]~
-[p(x)~ \phi(x)]^\T\\
-&= [p(x) - p(x)^2] \phi(x) \phi(x)^\T \\
-\he L
-&= \sum_i \he Z(x_i)
- = \sum_i \phi(x_i) [p_i - p_i^2] \phi(x_i)^\T
- = X^\T W X
-\end{align}
-c) Let me define $f(x,y) = -\half y^2 + y \phi(x)^\T \b$ instead. We have
-\begin{align}
-p(y | x)
- &= e^{f(x,y) - Z(x,\b)}
-  = e^{ -\half  y^2 + y \phi(x)^\T \b - Z(x,\b)} \\
- &= e^{- \half (y - \phi(x)^\T \b)^2 + \half (\phi(x)^\T \b)^2 - Z(x,\b)} \\
- &=  (2\pi)^{1/2}~ \NN(y \| \phi(x)^\T \b, 1)~ e^{\half (\phi(x)^\T \b)^2 - Z(x,\b)} \\
- &= \NN(y \| \phi(x)^\T \b, 1) \comma Z(x,\b) \defeq \half (\phi(x)^\T \b)^2 - \half \log( 2\pi )
-\end{align}
-where $\NN(y|m,1) = \frac{1}{\sqrt{2\pi}} e^{-\half(y-m)^2}$. Note
-that we \emph{have} to define $Z(x,y)$ as above, because, by
-definition, $Z(x,y)$ needs to be the normalization factor (partition
-function). So, the conditional probability $p(y | x) = \NN(y
-\| \phi(x)^\T \b, 1)$ is just the unit-variance Gaussian around the
-linear prediction $\phi(x)^\T \b$. Next, the loss:
-\begin{align}
-L(\b)
- &= - \sum_i \log p(y_i | x_i)
-  = - \sum_i \half \log(2\pi) - \half (y_i - \phi(x_i)^\T \b)^2 ~.
-\end{align}
-and that's nothing but the squared error. (The factor $\half$ changes
-the effect of regularization a bit; let's neglect this; or I shouldn't
-have redefined $f(x,y)$...) So, as we have the same objective, the
-optimal $\b$ will be exactly the same as for ridge regression.
-\end{solution}
-\fi
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \exerfoot

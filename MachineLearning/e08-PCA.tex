@@ -4,6 +4,8 @@
 \renewcommand{\exnum}{8}
 
 \exercises
+\excludecomment{solution}
+\exercisestitle
 
 (DS BSc students should nominally achieve 8 Pts on this sheet.)
 
@@ -103,69 +105,6 @@ Guide:
 %% d) Proove that you can compute the $V$ also from the SVD of $X$
 %% (instead of $X^\T X$).
 
-
-\ifnum\value{solutions}=1
-\begin{solution}
-We use $V^\T V = I$ ($p$-dimensional).
-
-a) For $\argmin_{z_i} \norm{Vz_i + \mu - x_i}^2$ we want
-~ $ 2 V^\T (Vz_i + \m - x_i) = 0 ~\To~ z_i = V^\T (x_i - \mu)$.
-
-b) For $\argmin_\mu \sum_i \norm{Vz_i + \mu - x_i}^2$ we want ~
-$ 2 \sum_i (Vz_i + \m - x_i) = 0 ~\To~ \mu = \frac{1}{n} \sum_i (x_i
-- V z_i) = \<x\> - V \<z\>$
-
-Let us assume (``Ansatz'') that $\<z\> = (1/n) \sum_{i=1}^n z_i = 0$. Then $\mu
-= \<x\>$ and $z_i = V^\T (x_i - \<x\>)$. We can then verify that the
-assumption holds: $\<z\> = (1/n) \sum_i V^\T (x_i - \<x\>) = V^\T
-(\<x\> - \<x\>) = 0$. Therefore this Ansatz yields a solution that
-fulfills the optimality conditions. (We don't care for other solutions.)
-
-c) For brevity of notation, let's redefine $x_i \gets x_i - \mu$ (centered). We
-rewrite the objective 
-\begin{align}
-L
-&= \sum_i \norm{Vz_i + \mu - x_i}^2
- = \sum_i \norm{V V^\T x_i - x_i}^2
- = \sum_i x_i^\T V V^\T V V^\T x_i - 2 x_i^\T V V^\T x_i + c\\
-&= - \sum_i x_i^\T V V^\T x_i + c
- = \sum_i \tr\[ (V^\T x_i)(V^\T x_i)^\T \] + c
- = - \tr \[ V^\T \sum_i (x_i x_i^\T) V \] + c
- = - \tr \[ V^\T S V \] + c
-\end{align}
-where constant $c=\sum_i x_i^\T x_i = \tr(X^\T X)$ and $S =  \sum x_i x_i^\T$ is the data covariance matrix. Now we
-represent $S = \sum_{i=1}^d \s_i u_i u_i^\T$ in its singular value
-decomposition, and $V = \sum_{i=1}^p v_i v_i^\T$ as sum of rank one
-matrices of $p$ orthonomal vectors. Then
-\begin{align}
-\tr (V^\T S V)
- &= \sum_{j=1}^p \sum_{i=1}^d \s_i (u_i^\T v_j)^2 ~.
-\end{align}
-This shows that one can choose vectors $v_j$ to ``pick out'' eigen
-values $\s_i$ by aligning with vectors $u_i$. For instance, choosing
-$v_j$ to align with the $p$ largest $u_i$ yields $\tr (V^\T S V) = \sum_{j=1}^p
-\s_j$. It is ``obvious'' that this is the maximal $\tr (V^\T S V)$,
-as any other choice will pick linear combinations of $\s_i$ with lower
-values. [A bit more formal: $\sum_{j=1}^p \sum_{i=1}^d \s_i (u_i^\T
-v_j)^2 = \sum_{j=1}^p \sum_{i=1}^d \s_i (U^\T V)_{ij}^2$. The
-Frobenius norm $\norm{U^\T V}^2 = p$. Let $z_i = \sum_j (U^\T
-V)_{ij}^2$ with norm $\norm{z}^2 = p$ and each element $|z_i|\le
-1$. Then $\sum_{i=1}^d \s_i z_i$ is maximized by $z_i=1$ for the $p$
-largest $\s_i$.] [To me the last arguments seems all a bit overly
-complicated. Intuitively, and by the understanding of SVD, everything
-seems obvious. Is there an easier proof? Would just taking the
-derivative, with lagrange terms, lead to an easier proof? (Bishop also
-sneeks around a general proof. I didn't check other books.)]
-
-d) Essential, no. But also other, non-orthonormal projections onto
-$p$-dimensions can not achive a loss smaller than $L=\tr(X^\T X) - \sum_{j=1}^p \s_j$.
-
-e) Given the SVD $X = U \bar S V^\T$, the SVD of $S = X^\T X = V \bar S^2 V^\T$
-has the same $V$.
-
-\end{solution}
-\fi
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \exsection{PCA and reconstruction on the Yale face database (5 Points)}
@@ -231,66 +170,6 @@ Repeat for various PCA-dimensions $p=5, 10, 15, 20\ldots$.
 %% lost through the low-dim projection?
 
 \end{enumerate}
-
-\ifnum\value{solutions}=1
-\begin{solution}
-\begin{verbatim}
-clear;
-W = 160
-H = 243
-files = dir('yalefaces');
-files=files(3:end); % remove . & ..
-nFiles = size(files,1);
-
-%% load data
-X = zeros(nFiles,H*W);
-for i=1:nFiles
- I = imread(['yalefaces/',files(i).name]);
- X(i,:) = I(:);
-end
-
-%% compute mean face
-mean_face = mean(X,1);
-Xc = X - repmat(mean_face,nFiles,1);
-
-%% compute SVD
-[U S V] = svd(Xc,'econ');
-P = round(linspace(1,size(X,1),10));
-K = [];
-for i=1:length(P)
- p=P(i);
- Z = Xc*V(:,1:p);
- 
- %% reconstruction
- Xr = repmat(mean_face,nFiles,1) + Z*V(:,1:p)';
- 
- K = [K,reshape(Xr(3,:),H,W)];
- 
- %% compute error
- error(i) = norm(X-Xr);
-end
-
-%% plotting
-figure(1);clf;
-colormap(gray)
-imagesc(reshape(mean_face,H,W))
-title('mean face');
-figure(2);clf;
-plot(P,error,'.-');
-title('reconstruction error');
-figure(3);clf;
-colormap(gray)
-imagesc(K)
-axis equal;axis tight;
-title('reconstructions for different p values');
-figure(4);clf;
-colormap(gray)
-imagesc([reshape(V(:,1),H,W),reshape(V(:,2),H,W),reshape(V(:,3),H,W)]);
-title('eigen faces');
-axis equal;axis tight;
-\end{verbatim}
-\end{solution}
-\fi
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

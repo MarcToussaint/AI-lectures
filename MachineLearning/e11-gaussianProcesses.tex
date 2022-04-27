@@ -5,6 +5,8 @@
 \renewcommand{\exnum}{11}
 
 \exercises
+\excludecomment{solution}
+\exercisestitle
 
 (DS BSc students may skip coding exercise 3, but should be able to draw on the board what the result would look like.)
 
@@ -18,52 +20,6 @@ probability tables $P(D_1)$, $P(D_2)$, and $P(D_3)$. Write down the
 equations and an algorithm (in pseudo code) that computes the
 conditional probability $P(S|D_1)$ of the sum of all three dices
 conditioned on the value of the first dice.
-
-\ifnum\value{solutions}=1
-\begin{solution}
-	
-	A straightforward solution can be found as follows:
-	\begin{align*}
-		P(S | D_1) &= \sum_{D_2, D_3} P(S, D_2, D_3 \mid D_1) \\
-		&= \sum_{D_2, D_3} P(S \mid D_1, D_2, D_3) P(D_2, D_3 
-		\mid D_1) \\
-		&= \sum_{D_2, D_3} P(S \mid D_1, D_2, D_3) P(D_2) P(D_3) 
-		\\
-		&= \sum_{D_2, D_3} \III\[S  = D_1 + D_2 + D_3\] P_2(D_2) 
-		P_3(D_3)
-	\end{align*}
-	
-	
-	For maximum efficiency, we can get rid of a couple more things. We 
-	realize
-	that, within the inner-most loop, the indicator function term 
-	$\III\[S = D_1 +
-	D_2 + D_3\]$ will only assume a value of $1$ at maximum once (or 
-	possibly $0$
-	times). This means that there's really only one value of $D_3$ that 
-	we care
-	about: specifically, the one for which $S = D_1 + D_2 + D_3$. This 
-	allows us at
-	the same time to both remove the indicator term and to avoid looping 
-	through
-	the values of $D_3$ (We assume the functions $P_1(D), P_2(D), 
-	P_3(D)$
-	are defined for inputs $D \not\in \{1, 2, 3, 4, 5, 6\}$, and that in 
-	such
-	cases, $P_1(D) = P_2(D) = P_3(D) = 0$).
-	
-	Thus we find the following:
-	\begin{align*}
-		P(S | D_1) &= \ldots \\
-		&= \sum_{D_2, D_3} \III\[S  = D_1 + D_2 + D_3\] P_2(D_2) 
-		P_3(D_3) \\
-		&= \sum_{D_2} P_2(D_2) P_3(S - D_1 - D_2)
-	\end{align*}
-	
-	In pseudo-code, we compute this as follows
-	
-\end{solution}
-\fi
 
 \begin{algorithm}
 	\begin{algorithmic}
@@ -99,43 +55,6 @@ $\NN[x \| \bar a,\bar A] = \NN(x \| \bar A^\1 \bar a, \bar A^\1)$; in
 this convention the product reads much nicher: $\NN[x \| \bar a,\bar
 A]~ \NN[x \| \bar b,\bar B] \propto \NN[x \| \bar a+\bar b,\bar A+\bar
 B]$. You can first prove this before proving the above, if you like.
-
-\ifnum\value{solutions}=1
-\begin{solution}
-	We use the abbreviations 
-	
-	$d = (A^\1+B^\1)^\1 (A^\1 a + B^\1 b)$
-	
-	$D = (A^\1+B^\1)^\1$
-	
-	for the mean $d$ and covariance 
-	$D$ of the resulting Gaussian.
-	\begin{align*}
-		\NN(x \| a,A)~ &\NN(x \| b,B)  = \underbrace{\frac{1}{\sqrt{\det(2\pi 
-					A)}\sqrt{\det(2\pi B)}}}_{c_1} \exp\left(-\frac{1}{2}\left[(x-a)^\T 
-		A^\1 
-		(x-a)+(x-b)^\T B^\1 
-		(x-b)\right]\right) \\
-		&=c_1 \exp\left(-\frac{1}{2}\left[x^\T 
-		(A^\1 +B^\1)x -2x^\T (A^\1a+B^\1b) +a^\T A^\1 a + b^\T B^\1 
-		b\right]\right)\\
-		&=c_1 \exp\left(-\frac{1}{2}\left[x^\T 
-		(A^\1 +B^\1)x -2x^\T (A^\1a+B^\1b)\right]\right) 
-		\underbrace{\exp\left( 
-			-\frac{1}{2}\left[ a^\T A^\1 
-			a + b^\T B^\1b \right]\right)}_{c_2} \\
-		&=c_1 c_2 \exp\bigg(-\frac{1}{2}[x^\T 
-		\underbrace{(A^\1 +B^\1)}_{D^\1} x -2x^\T \underbrace{(A^\1 
-			+B^\1)}_{D^\1} \underbrace{(A^\1 
-			+B^\1)^\1(A^\1a+B^\1b)}_{d} +d^\T D^\1d]\bigg) 
-		\underbrace{\exp\left( 
-			\frac{1}{2}d^\T D^\1d\right)}_{c_3} \\
-		&=c_1 c_2 c_3 \exp\left(-\frac{1}{2}(x-d)^\T 
-		D^\1(x-d)\right)\\
-		&=c_1 c_2 c_3 \underbrace{\sqrt{\det(2\pi D)}}_{c_4} \NN(x|d,D)
-	\end{align*}
-\end{solution}
-\fi
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

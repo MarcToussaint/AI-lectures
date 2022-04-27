@@ -4,6 +4,8 @@
 \renewcommand{\exnum}{10}
 
 \exercises
+\excludecomment{solution}
+\exercisestitle
 
 (DS BSc students please try to complete the full exercise this time.)
 
@@ -39,73 +41,12 @@ this weak learner. By ``pseudo code'' I mean explicit equations
 for every step that can directly be implemented. This needs
 to be specific for this particular learner and loss. (3 P)
 
-\ifnum\value{solutions}=1
-\begin{solution}
-  \begin{algorithmic}
-    % \Comment a
-    \Function{$f$}{$x, x_i$}
-      \Comment Computes single discriminative function. $\alpha$ and $\sigma$ are predefined parameters.
-      \State \Return $\alpha \exp \left( - (x - x_i)^2 / 2\sigma^2 \right)$
-    \EndFunction
-    \Function{$f^\*$}{$x, \bar X, \bar i, \bar \alpha$}
-      \Comment Computes linear combination of discriminative functions.
-      \State $s \gets 0$
-      % \For{$k$ in $\{1, \ldots, $@len(@$\bar x$@)@$\}$}
-      \For{$k$ in $\{1, \ldots, len(\bar i)\}$}
-        \State $s \gets s + \bar \alpha_k f(x, \bar X_{\bar i_k, :})$
-      \EndFor
-      \State \Return $s$
-    \EndFunction
-    \Function{Gradient Boosting}{$\bar X, \bar y, K$}
-      \State $\bar i \gets$ @empty_list()@
-      \State $\bar \alpha \gets$ @empty_list()@
-      \For{$k$ in $\{1, \ldots, K\}$}
-        \State $neg\_dL \gets \left( [1 - \sigma(y_i f^\*(x_i, \bar X, \bar i, \bar \alpha))] y_i \right)_{i=1}^n$
-        \State $i \gets$ @optim_regression(@$\bar X, neg\_dL$@)@
-        \Comment Finds data index which best approximated gradient vector.
-        \State $\bar i$@.append(@$i$@)@
-        \State $\bar F \gets \[ f(\bar X_{i, :}, \bar X_{\bar i_j, :}) \]_{i=1,j=1}^{n, k}$
-        \State $\bar \alpha \gets$ @optim_classification(@$\bar F, \bar y$@)@
-        \Comment Finds best linear combination of discriminative functions.
-      \EndFor
-      \State \Return $\bar i, \bar \alpha$
-    \EndFunction
-  \end{algorithmic}
-\end{solution}
-\fi
-
 b) Here is a 1D data set, where $\circ$ are $0$-class, and $\times$
 $1$-class data points. ``Simulate'' the algorithm graphically on paper. Show at least $2$ iterations. (2 P)
 
 \show[.5]{gradientBoost}
 
-\ifnum\value{solutions}=1
-\begin{solution}
-Only one iteration is shown:
-
-\show[.5]{gradientBoost_sol}
-\end{solution}
-\fi
-
 Extra: If we would replace the neg-log-likelihood by a hinge loss, what
 would be the relation to SVMs?
-
-\ifnum\value{solutions}=1
-\begin{solution}
-
-  The derivative of the hinge loss is constant (except for the sign) for all
-  points which are either misclassified or within the margin boundary.  This
-  means that all ''misclassified`` points assume the same importance (Compare
-  this with the neg-log-likelihood loss used in the previous exercise, where
-  some points become more important than others---this is reflected in the
-  gradient values).  This implies that the next weak model's parameters are
-  purely guided by how many misclassified points it is going to be able to
-  cover and correct.  The learned center of the weak model $i$ assumes a role
-  similar to that of support vectors in SVMs:  these are the points which,
-  alone, are able to correct the most points.
-
-\end{solution}
-\fi
-
 
 \exerfoot
