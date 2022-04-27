@@ -3,14 +3,17 @@
 * Introduction to Artificial Intelligence
 * Introduction to Robotics
 * Introduction to Machine Learning
+* Introduction to Optimization
 * Maths for Intelligent Systems
 
-## Introduction to Machine Learning
+## Precompiled:
+
+### Introduction to Machine Learning
 
 * [Full script](../../releases/download/v0.1/script.pdf) from summer 2019
 * [Individual slides and exercises with solutions](../../releases/tag/v0.1)
 
-## Introduction to Optimization
+### Introduction to Optimization
 
 * [Full script](../../releases/download/v0.2/script.pdf) from summer 2015
 * [Individual slides and exercises with solutions](../../releases/tag/v0.2)
@@ -28,25 +31,25 @@ sudo apt-get install \
 
 Generate the shared pdf pics (from fig-files)
 ```
-cd shared/pics
+cd latex/pics
 ./compile.sh
 ```
 
-Compile a single lecture
+Generated pdf pics for a specific course
 ```
 cd MachineLearning/pics
 ./compile.sh
 ```
 
+Compile a course
+```
+cd MachineLearning
+./compile.sh
+```
+
 Compile a single lecture
 ```
 cd MachineLearning
 pdflatex -interaction=nonstopmode 01-introduction
 pdflatex -interaction=nonstopmode 01-introduction
-```
-
-Compile a whole set of lectures
-```
-cd MachineLearning
-./compile.sh
 ```
