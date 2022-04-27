@@ -1,6 +1,20 @@
+for input in ./e*.tex
+do
 echo '-----------------------------------'
-echo 'compiling paper'
-pdflatex -interaction=nonstopmode paper.tex > /dev/null
-makeindex paper.idx
-bibtex paper
-pdflatex -interaction=nonstopmode paper.tex > /dev/null
+    echo 'compiling' ${input}
+    pdflatex -interaction=nonstopmode ${input} > /dev/null
+    grep "Missing" ${input%.*}.log
+    grep -A2 "Undefined control sequence" ${input%.*}.log
+    grep -A2 "Error" ${input%.*}.log
+done
+
+input='paper.tex'
+echo '-----------------------------------'
+echo 'compiling' ${input}
+pdflatex -interaction=nonstopmode ${input} > /dev/null
+makeindex ${input%.*}.idx 2> /dev/null
+bibtex ${input%.*} > /dev/null
+pdflatex -interaction=nonstopmode ${input} > /dev/null
+grep "Missing" ${input%.*}.log
+grep -A2 "Undefined control sequence" ${input%.*}.log
+grep -A2 "Error" ${input%.*}.log
