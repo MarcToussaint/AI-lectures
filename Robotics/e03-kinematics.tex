@@ -1,4 +1,4 @@
-\input{../shared/shared}
+\input{../latex/shared}
 
 \renewcommand{\course}{Robotics}
 \renewcommand{\coursepicture}{roboticsLecture}
@@ -6,6 +6,10 @@
 \renewcommand{\exnum}{3}
 
 \exercises
+
+\excludecomment{solution}
+
+\exercisestitle
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -36,79 +40,16 @@ a) Assume you would like to control the pointing direction of the robot's
 head (e.g., its eyes) to point to a desired external world point $x^W$. What
 task map can you define to achieve this? What is the Jacobian?
 
-\begin{solution}
-There are really many ways to define a task map $\phi(q)$ such that
-$\phi(q)=0$ implies looking at $x^W$. Let $\phi^\pos_{h,e}$ be the
-position of the eye on the robot's head, let $\phi^\veC_{h,g}$ be the
-gaze direction of the eye, let $\phi^\veC_{h,x}$ and $\phi^\veC_{h,y}$
-be the two direction \emph{orthogonal} to the gaze direction (spanning
-the camera plane of the eye). We may define
-\begin{align}
-\phi_1(q)
- &= \mat{c}{
-\phi^\veC_{h,x}{}^\T (x^W - \phi^\pos_{h,e}) \\
-\phi^\veC_{h,y}{}^\T (x^W - \phi^\pos_{h,e}) } \quad\in \RRR^2 \\
-\phi_2(q)
- &= 
-\phi^\veC_{h,g} - \frac{x^W - \phi^\pos_{h,e}}{|x^W - \phi^\pos_{h,e}|}  \quad\in \RRR^3 \\
-\phi_3(q)
- &= 
-\phi^\veC_{h,g}{}^\T \[\frac{x^W - \phi^\pos_{h,e}}{|x^W - \phi^\pos_{h,e}|}\] - 1  \quad\in \RRR^1
-\end{align}
-Here, $\phi_1$ enforces that the eye-camera plane is orthogonal to the
-desired gaze, $\phi_2$ enforces that the eye gaze vector is equal to
-the normalized desired gaze, and $\phi_3$ enforces that the scalar
-product between the eye gaze vector and the normalized desired gaze is
-equal to 1. The Jacobians are straight-forward, except for where the
-normalization is involved. For any vector-valued function
-$f:~ \RRR^n \to \RRR^d$ we have
-\begin{align}
-\del_q \frac{f(x)}{|f(x)|}
-&= \del_q \frac{f(x)}{[f(x)^\T f(x)]^\half} \\
-&= \frac{1}{[f(x)^\T f(x)]^\half} \del_q f(x)
- + f(x) \del_q \frac{1}{[f(x)^\T f(x)]^\half} \\
-&= \frac{1}{[f(x)^\T f(x)]^\half} \del_q f(x)
- + f(x) \frac{-1/2}{[f(x)^\T f(x)]^{3/2}} [2f(x)^\T \del_q f(x)]  \\
-&= \frac{1}{|f(x)|} \[ \Id - \frac{f(x)f(x)^\T}{f(x)^\T f(x)} \] \del_q f(x)
-\end{align}
-NOTE: A student proposed a variant of (2) where the normalization
-$|x^W - \phi^\pos_{h,e}|$ is dropped. Well, yes, it does the job of
-gazing a $x^W$. But this additionally does the job of trying to place
-the point 1 Meter in front of the eye exactly at $x^W$---which might
-be quite undesirable.
-\end{solution}
 
 b) You would like the two hands or the robot to become parallel
 (e.g.\ for clapping). What task map can you define to achieve this?
 What is the Jacobian?
 
-\begin{solution}
-Option 1: align the hand normals requiring their scalar product to be
-$+1$ or $-1$. Option 2: make the hand-plane vectors of one hand
-orthogonal to the normal of the other hand (2-dimensional task, as (1) above).
-\end{solution}
 
 c) You would like to control a standard endeffector position $p_\eff$
 to be at $y^*$, as usual. Can you define a 1-dimensional task map
 $\phi:~ \RRR^n \to \RRR$ to achieve this? What is its Jacobian?
 
-\begin{solution}
-Two options:
-\begin{align}
-\phi_1(q)
-&= \norm{\phi^\pos_\eff - y^*}^2 \\
-\phi_2(q)
-&= |\phi^\pos_\eff - y^*|
- = \sqrt{(\phi^\pos_\eff - y^*)^\T (\phi^\pos_\eff - y^*)} \\
-J_2
-&= \half \sqrt{(\phi^\pos_\eff - y^*)^\T (\phi^\pos_\eff -
- y^*)}^{-\half}~ 2 (\phi^\pos_\eff - y^*)^\T~ J^\pos_\eff 
- = \frac{(\phi^\pos_\eff - y^*)^\T}{|\phi^\pos_\eff - y^*|}~ J^\pos_\eff
-\end{align}
-The first option has the  drawback that $\norm{\phi_1(q)}^2$
-is of fourth order, which has little slope at 0. The second option is
-ok, but numerically difficult when $\phi^\pos_\eff - y^* \approx 0$.
-\end{solution}
 
 %% \exsection{Derivation of inverse kinematics}
 

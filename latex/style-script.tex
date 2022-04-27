@@ -2,6 +2,7 @@
   \documentclass[9pt,fleqn,twoside]{article}
   \stdpackages
 
+  \usepackage[envcountsect]{beamerarticle}
   \usepackage{makeidx}
   \makeindex
 
@@ -149,7 +150,7 @@
 
 \renewcommand{\slides}[1][]{
   %  \clearpage
-  \subsection{\topic}
+  \section{\topic}
   \index{\topic}
   {\small #1}
   \setcounter{mypage}{0}
@@ -161,6 +162,7 @@
 }
 
 \newcommand{\sublecture}[2]{
+  \subsection{#1}
   \index{#1}
 }
 

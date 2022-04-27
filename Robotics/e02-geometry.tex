@@ -1,4 +1,4 @@
-\input{../shared/shared}
+\input{../latex/shared}
 
 \renewcommand{\course}{Robotics}
 \renewcommand{\coursepicture}{roboticsLecture}
@@ -6,6 +6,10 @@
 \renewcommand{\exnum}{2}
 
 \exercises
+
+\excludecomment{solution}
+
+\exercisestitle
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -30,34 +34,6 @@ frame, and from book frame to world frame?
 
 Please use homogeneous coordinates to derive these answers.
 
-\begin{solution}
-We assume a 2D space, but work with homogeneous coordinates. Let $s= 1/\sqrt{2}$.
-\begin{align}
-\TR{W}{B}
-&= \mat{ccc}{s & -s & 1 \\s & s & 0\\0&0&1} \\
-p^B
-&= \mat{c}{1 \\ 1 \\ 1} \comma
-p^W
- = \TR{W}{B}~ p^B = \mat{c}{1 \\ 2s \\ 1} \\
-\TR{B}{W}
-&= \TR{B}{W}^\1
- = \mat{ccc}{s & s & -s \\-s & s & s\\0&0&1}\comma
-\text{where we used}~
-\mat{cc}{R & t\\0 & 1}^\1
-= \mat{cc}{R^\1 & -R^\1 t\\0 & 1} ~\text{and}~ R^\1=R^\T \\
-x^W
-&= \mat{c}{0 \\ 1 \\ 1} \comma
-x^B
- = \TR{B}{W}~ x^W
- = \mat{c}{0 \\ 2s \\ 1}
-\end{align}
-Concerning d):
-\begin{itemize}
-\item $\TR{W}{B}$ describes the how the world \emph{frame} is transformed into the book \emph{frame}
-\item $\TR{W}{B}$ also describes the \emph{coordinate} transformation from book to world. Why? Because, given a vector in book coordinates, you have to apply exactly the same transformations $\TR{W}{B}$ you applied previously on the book frame to make the coordinates become world coordinates.
-\item $\TR{B}{W} = \TR{W}{B}^\1$ describes the coordinate transformation from world to book.
-\end{itemize}
-\end{solution}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

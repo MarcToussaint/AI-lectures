@@ -1,4 +1,4 @@
-\input{../shared/shared}
+\input{../latex/shared}
 
 \renewcommand{\course}{Robotics}
 \renewcommand{\coursepicture}{roboticsLecture}
@@ -6,6 +6,10 @@
 \renewcommand{\exnum}{4}
 
 \exercises
+
+\excludecomment{solution}
+
+\exercisestitle
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -49,27 +53,6 @@ $$ \d q = (\Id - J^\# J) a ~ \To ~ \d y=0 $$
 y$). Note: this means that any choice of $a$, the motion $(\Id - J^\# J) a$ will
 not change the ``endeffector position'' $y$.
 
-\begin{solution}
-Due to the Woodbury identity, the pseudo inverse can be written in two
-ways:
-\begin{align}
-J^\#
- &= (W/\r + J^\T J)^\1 J^\T 
-  = W^\1 J^\T (J W^\1 J^\T + \Id/\r)^\1
-\end{align}
-Note that you CANNOT USE THE FIRST VERSION to take the limit
-$\r\to\infty$ because $J^\T J$ is not invertible. (It is a $n\times
-n$-matrix of rank $d$.) But you can use the second version to let
-$\r\to\infty$ and $J^\# \to W^\1 J^\T (J W^\1 J^\T)^\1$, where $J W^\1
-J^\T$ is a $d\times d$-matrix with full rank (for non-singular
-$J$). Therefore we have
-\begin{align}
-\d y
-&= J \d q
- = J (\Id - J^\# J) a \\
-&= [J - J  W^\1 J^\T (J W^\1 J^\T)^\1 J] a = [J-J]a = 0
-\end{align}
-\end{solution}
 
 c) On slide 02:27 we derived the basic inverse kinematics law. Verify
 that (assuming linearity of $\phi$) for $C\to\infty$ the desired task
