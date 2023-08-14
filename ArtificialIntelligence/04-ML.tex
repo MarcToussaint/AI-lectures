@@ -1,0 +1,750 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Artificial Intelligence}
+\renewcommand{\coursepicture}{course_ai}
+\renewcommand{\coursedate}{Summer 2023}
+
+\renewcommand{\topic}{Machine Learning as Decision Making}
+\renewcommand{\keywords}{}
+
+\slides
+
+\renewcommand{\b}{\theta}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\story{
+Decision Making on the basis of data is one of the central topics of AI. Unlike standard introductions to Machine Learning, we want to introduce it here explicitly as an instance of decision making. This clarifies what a decision ML actually takes (e.g.\ deciding on the function), and what the utility of typical ML is (empirical risk minimization).
+
+As a primer for ML we will derive optimal solutions for linear regression. A core aspect to learn here is that linear regression assumes a model linear in the \emph{parameters} (and therefore also linear in the features). And we describe neural networks briefly (a more detailed introduction is given in a later lecture) as a function class that alternates linear and non-linear operators.
+
+As a non-trivial example of applying ML, we reconsider the bandits setting, but now for continuous bandits. Learning from previous bandit samples now means to learn the mean function over continuous $x\in\RRR$. But as UCB1 also requires uncertainty estimates, we have to discuss how we can also estimate confidence bounds of an ML prediction -- e.g.\ using bootstrapping. Active Learning \& Uncertainty Sampling are natural special cases of this setting.
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\sublecture{ML as Decision Making}{
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{ML as Decision Making}{
+
+\item In words roughly: ``You're given a data set $D=\{(x_i,y_i)\}_{i=1}^n$, \\ then a new query $x'$, how do you decide on $y'$?''
+
+~\pause
+
+\item As decision network:
+
+~
+
+\twocol{.35}{.6}{
+
+\showh[.8]{decisionNet-ML1}
+
+}{
+\footnotesize
+\item data $D=\{(x_i,y_i)\}_{i=1}^n$ ~ (i.i.d. $D \overset{n}\sim p(x,y)$ from unknown $p$)
+\item new query $x'$ and label $y'$ ~ (also  $(x',y')\sim p(x,y)$ from \emph{same} $p$!)
+\item prediction $y$
+\item loss function $l(y,y')$ ~ (``penalty for mismatch between $y$ and $y'$'')
+}
+
+~\pause
+
+~
+
+\item Objective: \qquad $\argmin_y~ \Exp[p(y'|x')]{l(y,y')}$
+
+\footnotesize
+(This is called \emph{Risk Minimization} in \emph{Statistical Learning Theory}.)
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{ML as Decision Making}{
+
+\item ML usually not about a single prediction $y$, but a \emph{function} $f_\t$ with parameters $\t$:
+
+~
+%{\includegraphics[scale=1.5]{decisionNet-ML1}}}
+
+\twocol{.45}{.5}{
+
+\showh[.8]{decisionNet-ML2}
+%\showh[.8]{decisionNet-ML1}
+
+}{
+\footnotesize
+\item decision variable: parameters (aka.\ weights) $\t \in \RRR^d$
+\item function $f_\t$ is defined by parameters $\t$
+\item prediction $y=f_\t(x')$
+}
+
+~\pause
+
+~
+
+\item Objective: \qquad $\argmin_\t~ \Exp[p(x',y')]{l(f_\t(x'),y')}$
+
+~\pause
+
+\item As we don't know $p(x,y)$, we approximate the expectation as in Monte Carlo:
+
+$$\Exp[p(x',y')]{l(f_\t(x'),y')} ~\approx ~\frac{1}{n}\sum_{i=1}^n l(f_\t(x_i),y_i) \qquad\text{with data $D=\{(x_i,y_i)\}_{i=1}^n$}$$
+
+\tiny This is called \emph{\textbf{Empirical} Risk Minimization} in \emph{Statistical Learning Theory}.
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\item This was a definition of \emph{Supervised Machine Learning} in decision theoretic terms, namely as \emph{Empirical Risk Minimization}.
+
+~\pause
+
+\item Next, let's see how to solve the ``$\argmin_\t$''! ~ (For a tracktable case: Linear Regression.)
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\sublecture{Linear Models (with Non-Linear Features)}{
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\item References
+\begin{items}
+\item Script {\tiny\url{https://www.user.tu-berlin.de/mtoussai/teaching/Lecture-MachineLearning.pdf}}
+\item Hastie et al:\emph{The Elements of Statistical Learning: Data Mining, Inference, and Prediction} Springer, 2009.
+\item Pedro Domingos: \emph{A Few Useful Things to Know about Machine
+Learning}
+\end{items}
+
+~
+
+\item Two brief lessons in this course:
+\begin{items}
+\item Linear models are more powerful than you might think
+\item Deep Learning as optimizing highly paramerized non-linear models
+%\item Cross-Validation to get variances (for UCB-type decision making)
+\end{items}
+
+}
+
+\slide{}{
+
+\cen{
+\showh[.35]{codepics/cubicReg-compressed}
+\quad
+\showh[.35]{codepics/kernelRidgeClass}
+}
+
+\small
+
+\item Are these models linear?
+
+\pause
+
+\item Linear in \emph{what}?
+\begin{items}
+\item Input: ~ No.
+\item Parameters, features: ~ Yes!
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{}{
+
+%% \centerline{\emph{Linear Modelling is more powerful than it might seem at
+%% first!}}
+
+%% ~\mypause
+
+%% {\small
+%% \item Linear Regression on non-linear features $\to$ very powerful
+%%    (polynomials, piece-wise, spline basis, kernels)
+
+%% \item Regularization (Ridge, Lasso) \& cross-validation for proper
+%%    generalization to test data
+
+%% \item Gaussian Processes and SVMs are closely related (linear in kernel
+%%    features, but with different optimality criteria)
+
+%% \item Liquid/Echo State Machines, Extreme Learning, are examples of
+%% linear modelling on many (sort of random) non-linear features
+
+%% \item Basic insights in model complexity (effective degrees of freedom)
+
+%% \item Input relevance estimation (z-score) and feature selection (Lasso)
+
+%% \item Linear regression $\to$ linear classification (logistic regression:
+%%    outputs are likelihood ratios)
+
+%% }
+
+%% ~
+
+%% \item[$\To$] Linear modelling is a core of ML
+
+%% {\small
+%% (We roughly follow Hastie, Tibshirani, Friedman: \emph{Elements of
+%% Statistical Learning})
+%% }
+
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Linear regression}
+\slide{Linear Regression}{
+
+\item Setting:
+\begin{items}
+\item input vector $x\in\RRR^d$
+
+\item label value $y\in\RRR$
+
+\item parameters $\b=(\b_0,\b_1,..,\b_d)^\T \in \RRR^{d\po}$
+
+\item linear model
+\end{items}
+$$f_\t(x) = \b_0 + \sum_{j=1}^d \b_j x_j = \bar x^\T \b
+\qquad \text{\footnotesize where $\bar x = (1,x) = (1,x_1,..,x_d)^\T \in \RRR^{d\po}$}
+$$
+
+~\mypause
+
+\item Loss: squared error: \quad $l(y,y') = (y-y')^2$ is squared error
+
+\item Objective: $\argmin_\t L(\t)$ for
+
+$$L(\b) = \sum_{i=1}^n l(f_\t(x_i), y_i) = \sum_{i=1}^n (f_\t(x_i) - y_i)^2$$
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Solving for optimal parameters $\b$}{
+
+\item Rewrite sum of squares using matrix notation:
+$$L(\b) = \sum_{i=1}^n (y_i - \bar x_i^\T\b)^2 = (y - X \b)^\T(y - X \b) = \norm{y - X \b}^2$$
+
+{\footnotesize
+
+with input matrix $X
+ = \mat{c}{\bar x_1^\T \\ \vdots \\ \bar x_n^\T}
+ = \mat{ccccc}{1 & x_{1,1} & x_{1,2} & \cdots & x_{1,d} \\
+\vdots&&&&\vdots\\
+1 & x_{n,1} & x_{n,2} & \cdots & x_{n,d}}$
+and label vector
+$y = \mat{c}{y_1\\\vdots\\ y_n}$% \in \RRR^n$
+
+}
+
+
+~\mypause
+
+\item Solution:
+
+$$\vec 0_d^\T=\frac{\del L(\b)}{\del \b}
+= - 2 (y - X \b)^\T X ~ \iff ~ \vec 0_d=X^\T X \b - X^\T y$$
+
+\eqbox{$\hat \b = (X^\T X)^\1 X^\T y$}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{Linear Regression}{
+
+%% What if the data is not ``centered'' ($\b_0\not=0$)?
+
+%% \item \emph{Approach 2:} ``centering the data''
+
+%% First translate the input and output data to become ``centered''
+
+%% $x_i' = x_i - \<x_i\>$ \qquad ($\<x_i\> \equiv 1/n \sum_{i=1}^n x_i$)
+
+%% $y_i' = y_i - \<y_i\>$
+
+%% For the centered data $y', X'$ the optimal $\b_0 = 0$.
+
+%% $\to$ solve as above.
+
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{Linear Regression}{
+
+%% \begin{algorithmic}[1]
+%% \Require input data matrix $X$, output data vector $y$
+%% \Ensure $\b_0$, $\b$
+%% \State $n = \dim(y)$
+%% \State $\bar x = 1/n~ \SUM(X,1)$ \comma
+%%        $\bar y = 1/n~ \SUM(y)$ 
+%%        \COMMENT{input \& output mean}
+%% \State $X \gets X - \vec 1_n \bar x^\T$ \comma
+%%        $y \gets y - \bar y \vec 1_n$
+%%        \COMMENT{center input \& output data}
+%% \State $\b = (X^\T X)^\1 X^\T y$
+%% \State $\b_0 = \bar y - \bar x^\T \b$ \COMMENT{$\b_0$ for the
+%% non-centered original data}
+%% \end{algorithmic}
+
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\showh[.4]{codepics/linReg}
+\quad
+\showh[.4]{codepics/linRegSin}
+
+~
+
+\hfill\tiny\texttt{./x.exe -mode 1 -dataFeatureType 1 -modelFeatureType 1}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Features}
+\slide{How to fit non-linear data? Non-linear features!}{
+
+\item Replace the inputs $x_i\in\RRR^d$ by some non-linear features $\phi(x_i) \in \RRR^h$
+$$f_\t(x) = \sum_{j=1}^h \phi_j(x)~ \b_j = \phi(x)^\T \b$$
+
+~
+
+\item The optimal $\b$ is the same
+
+\cen{$\hat \b = (X^\T X)^\1 X^\T y$
+\quad but with\quad
+$X
+ = \mat{c}{\phi(x_1)^\T \\ \vdots \\ \phi(x_n)^\T}\in\RRR^{n\times h}$}
+
+~\pause
+
+\item What are ``features''?
+\begin{items}
+\item any quantities computable from $x$, an arbitrary set of basis functions
+%that allow us to write $f(x) = \phi(x)^\T \b$
+\item any function $\phi$ so that \textbf{the model $f(x) = \phi(x)^\T \b$ is linear in parameters $\b$}
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Example features: Polynomial features}{
+
+\small
+
+\item Linear: $\phi(x) = (1,x_1,..,x_d)~ \in\RRR^{1+d}$
+
+\item Quadratic: $\phi(x) = (1,x_1,..,x_d,x_1^2,x_1x_2,x_1x_3,..,x_d^2)~ \in\RRR^{1 + d + \frac{d(d\po)}{2}}$
+
+\item Cubic: $\phi(x) =
+   (..,x_1^3,x_1^2x_2,x_1^2x_3,..,x_d^3)~ \in\RRR^{1 + d + \frac{d(d\po)}{2} + \frac{d(d\po)(d\pt)}{6}}$
+
+~
+
+\show[.35]{features}
+
+~
+
+\hfill\tiny\texttt{./x.exe -mode 1 -dataFeatureType 1 -modelFeatureType 1}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Example: Piece-wise features (in 1D)}{
+
+\small
+
+\item Piece-wise constant: $\phi_j(x) = [\xi_j < x \le \xi_{j\po}]$
+
+\item Piece-wise linear: $\phi_j(x) = (1, x)^\T~ [\xi_j < x \le \xi_{j\po}]$
+
+\item Continuous piece-wise linear: $\phi_j(x) = [x-\xi_j]_+$ \quad
+(and $\phi_0(x)=x$)
+
+~
+
+\show[.35]{pieceWiseLinear}
+{\tiny\vspace*{-5mm}\hfill [Hastie et al.]}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Example: Radial Basis Functions (RBF)}{
+
+\small
+
+\item Given a set of centers $\{c_j\}_{j=1}^h$, define
+$$\phi_j(x) = b(x,c_j) = e^{-\half \norm{x-c_j}^2/l^2} ~\in[0,1]$$
+Each $\phi_j(x)$ measures similarity with the center $c_j$
+
+~
+
+\item Special case:
+
+\centerline{\emph{use all training inputs $\{x_i\}_{i=1}^n$ as
+centers}}
+
+~
+
+\cen{$\phi(x) = \mat{c}{1\\b(x,x_1)\\\vdots\\b(x,x_n)} \quad \in \RRR^{n+1}$}
+
+%% $\To$ \quad $X_{ij} = K(x_i,x_j)$ and $\hat \b^{\text{ls}} = (\vec K^\T \vec K)^\1 \vec K^\T y$
+~
+
+{\small This is related to ``kernel methods'' and Gaussian Processes, but not quite
+        the same.}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{Non-linear Features}{
+
+%% \item Polynomial
+
+%% \item Piece-wise
+
+%% \item Radial basis functions (RBF)
+
+%% \item Splines (see Hastie Ch. 5)
+
+%% ~
+
+%% \item Linear regression on top of rich features is extremely powerful!
+
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Classification with Linear Models}{
+
+\item Similar solution for binary classification, where $y_i \in \{0,1\}$, and loss
+
+$l(y,y') = - y_i \log p_\t(x_i) - (1-y_i) \log (1-p_\t(x_i))$ with $p_\t(x) = \frac{1}{e^{-f_\t(x)}+1}$
+
+{\footnotesize (This is called \textbf{logistic regression} with neg-log-likelihood (aka \textbf{cross-entropy}) loss.)}
+
+\item Similar solution for multi-class classification, where $y_i \in \{1,..,M\}$
+
+\item Examples with quadratic (left) and RBF (right) featurs:
+
+\medskip
+
+\cen{~
+\showh[.2]{codepics/quad3Class}
+\showh[.3]{codepics/quad3Class2}
+%% \showh[.2]{codepics/cubicClass}
+%% \showh[.2]{codepics/cubicClass2}
+\quad
+\showh[.2]{codepics/kernelRidgeClass}
+\showh[.3]{codepics/kernelRidgeClass2}
+}
+
+\cen{See ML script for details.}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\item Omitted in this lecture:
+\begin{items}
+\item Overfitting, generalization
+\item Regularization
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\sublecture{Neural Nets as ``Repeating Non-linear Features''}{
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Neural Nets as ``Repeating Non-linear Features''}{
+
+\newcommand{\nlin}{\underset{\rotatebox{-90}{\tiny $\leftarrow$nlin}}}
+\newcommand{\lin}{\underset{\rotatebox{-90}{\tiny $\leftarrow$lin}}}
+
+\item Linear model (i.e., a model linear in parameters $\b$):
+$$f_\t(x) = \underbrace{\b~{}^\T}_{\rotatebox{-90}{\tiny $\leftarrow$lin}}\nlin{\phi}(x)$$
+
+\pause
+
+\item Model that repeats non-linear and linear parts:
+$$f_\b(x) = \lin{W_3}~ \nlin\s\[~ \lin {W_2}~\nlin\s[~ \lin {W_1} ~\nlin\s(x) ~] ~\] $$
+
+{\tiny Where the matrices $W_l$ are the parameter $\t=(W_1,W_2,W_3)$. The model is not linear in $\t$ anymore.}
+
+\pause
+
+\item Neural Nets also have bias parameters, and skip first $\s$. Def. of a \textbf{3-layer NN}:
+$$f_\b(x) = \lin{W_3}~ \nlin\s\[~ \lin {W_2}~\nlin\s[~ \lin {W_1} ~x + b_1 ~] + b_2 ~\] + b_3 $$
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Linear Regression vs.\ Neural Nets}{
+
+~
+
+\twocol{.45}{.45}{
+\showh[1]{NeuralNet-new-regression}
+}{
+%\only<2>{\show{NeuralNet-new-classification}}
+\showh[1]{NeuralNet-new-NN}
+}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\item In neural nets, one uses $\s(x)$ instead of $\phi(x)$ to denote non-linearities. Typical:
+\begin{items}
+\item rectified linear unit (ReLU): $\s(x) = [x]_+ = \max\{0,x\}$ % = x [x\ge 0]$
+\item leaky ReLU: $\s(x) = \max\{0.01x, x\}$ % =  \begin{cases} 0.01 x & x<0 \\ x & x\ge 0\end{cases}$
+\item sigmoid, logistic: $\s(x) = 1/(1+e^{-x})$
+%tanh & $\s(x) = \tanh(x)$
+\item max-pooling, soft-max, layer-norm
+\end{items}
+
+\item \textbf{Lecture 09 will dive deeper} into Computation Graph, AutoDiff, and Neural Nets
+
+~\pause
+
+\item Wrapup of Neural Networks for now:
+\begin{items}
+\item We defined ML as decision problem
+\item We defined the function model $f_\t(x)$ as neural net
+\item We defined the objectives. (Regression: squared error loss, Classification: cross-entropy loss.)
+\item \textbf{All there is left to do is solve}
+$$\argmin_\t \sum_{i=1}^n l(f_\t(x_i), y_i) $$
+
+$\to$ Doing this is called ``Neural Network training'', and done with gradient-based optimization.
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\sublecture{Applying ML to Continuous Bandits}{
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Recap: Multi-Armed Bandit Setting}{
+
+\item Decision variable: $a \in \{1,..,K\}$ ~ (choice between $K$ bandits)
+\item Outcome: $y \sim P(y|a)$ ~ (with $P(y|a)$ initially unknown for each $a$)
+\item No model, no data initially -- interactively collect your own data
+
+~\pause
+
+\item UCB: Choose based on a tradeoff \emph{``estimated mean plus confidence interval''}
+$$a^* = \argmax_a \hat \mu_a + \beta \sqrt{\frac{2 \ln n}{n_a}}$$
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Continuous Bandits}{
+
+\item Instead, consider $a \in \RRR$ is a real number! I.e., there exist infinitely many bandits $a$
+
+~\pause
+
+\item Why is this interesting?
+\begin{items}
+\item We only changed a ``small detail:'' Instead of finite $a\in\{1,..,K\}$ we have infinite $a\in\RRR$.
+\item We cannot estimate $\hat \mu_a$ \emph{independently} for infinitely many points $a\in\RRR$.
+\item We need to assume that means can be estimated more efficiently: \emph{as a smooth function $f(a)$} (cf.\ No Free Lunch Theorem).
+\item Once we estimated the mean function $\hat f(a)$, we still need to estimate confidence bounds if we want to apply UCB
+
+\item \textbf{How can we estimate the confidence interval of an ML prediction?}
+
+\item As a byproduct, we'll learn what \textbf{Active Learning} and \textbf{Uncertainty Sampling} is: the pure exploration case
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Continuous Bandits}{
+
+\item Problem setting:
+\begin{items}
+\item Decision variable: $x\in [l,u] \subset\RRR$ \qquad {\footnotesize (we renamed from $a$ to $x$)}
+\item Outcome $y \sim \NN(y \| f(x),\s)$, assuming smooth underlying (unknown) \textbf{mean function} $f(x)$
+\item No model, no data initially -- interactively collect your own data
+\end{items}
+
+~\pause
+
+\item UCB applied to the continuous case:
+\begin{enumerate}
+\item Given data $D=\{(x_i, y_i)\}_{i=1}^n$ of previous queries, estimate the function $\hat f(x)$ using \textbf{supervised ML}
+\item Given $\hat f(x)$, choose the next query at
+$$\argmax_x \hat f(x) + \beta \hat\s(x) ~,$$
+where $\hat\s(x)$ is a confidence bound for your learned function $f(x)$
+\end{enumerate}
+
+\item \textbf{How can we estimate the confidence bound $\hat\s(x)$ of an ML prediction??}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\sublecture{Confidence Intervals for ML}{
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Confidence Intervals for ML}{
+
+\item Assume you have a black-box algorithm $ML$ that computes a function $f: x \mapsto f(x)$ from data $D$
+$$ML:~ D \mapsto f$$
+
+%% ~
+
+%% \show[.3]{blackboxAlg}
+
+\pause
+
+\item How can you estimate a confidence interval of a prediction $f(x)$?
+
+~\pause
+
+\cen{\textbf{Simulate the randomness of $D$!}}
+
+~\pause
+
+\item More precisely, compute an \textbf{ensemble} $\{\hat f_j\}_{j=1}^k$ of functions, instead of only one $\hat f$:
+\begin{items}
+\item Generate $k$ random versions $\tilde D_j$ of $D$, $j=1,..,k$
+\item Compute $k$ optimal parameters $\t_k$ for each $\tilde D_j$
+
+This defines an \textbf{ensemble} of $k$ function $\{\hat f_j\}_{j=1}^k$
+\item Compute $k$ alternative prictions $y_j = f_{\t_j}(x)$ for some $x$
+
+$\to$ estimate mean $\hat \m(x)$ and variance $\hat\s^2(x)$
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Random versions $\tilde D$ of $D$}{
+
+\item Possible random versions $\tilde D$ of $D$:
+\begin{items}
+\item \textbf{Bootstrapping:} $\tilde D \gets \texttt{ResampleWithReplacement}(D)$
+\item \textbf{$k$-fold cross validation:} $\tilde D$ is $D$ but with $\frac{1}{k}$ of the data missing
+%\begin{items}
+%\item Systematically vary which $\frac{1}{10}$ of the data is missing:
+
+\show[.4]{crossValidation}
+%\end{items}
+\end{items}
+
+\pause\small
+
+\item For instance, when using linear regression:\\
+\begin{algo}
+\Require data $D$, integer $k$, query point $x$
+\For{$j=1..k$}
+\State $\tilde D_j \gets \texttt{ResampleWithReplacement}(D)$
+%\State OR $\tilde D \gets \texttt{LeaveKOut}(D,k,i)$ \Comment{removes $i$th block of data}
+\State Use linear regression to compute $\b_j$ from $\tilde D_j$
+\EndFor
+\State initialize $Y=\{\}$
+\For{$j=1..k$}
+\State $Y \gets Y \cup \{ \phi(x)^\T \b_j \}$ \Comment{collect all predictions in set $Y$}
+\EndFor
+\State return mean, sdv, and mean's-sdv of $Y$
+\end{algo}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{UCB for Continuous Bandit Setting}{
+
+\item Putting everything together:
+\begin{items}
+\item We already collected data $D$, and want to choose the next query $x\in\RRR$
+\item Using bootstrapping or $k$-fold, we compute an ensemble $\{f_j\}_{j=1}^k$ of functions (i.e., an ensemble of parameters $\{\b_j\}_{j=1}^k$) using our ML method
+\item For each $x$ in a grid of candidates $x\in[l,u]$, we compute the $k$ ensemble predictions $\{f_j(x)\}_{j=1}^k$, and the mean $\hat \mu_x$ and variance $\hat \s^2_x$ of these predictions
+\item \textbf{UCB:} We choose
+$$x^* = \argmax_{x\in\text{grid}} \hat\mu_x + \beta \hat \s_x$$
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Active Learning}
+\key{Uncertainty Sampling}
+\slide{Active Learning \& Uncertainty Sampling}{
+
+\item Recall: The pure exploration case is to choose
+$$\argmax_a \s(a)$$
+
+~
+
+\item In ML, this is called \textbf{Active Learning} or \textbf{Uncertainty Sampling}
+\begin{items}
+\item It chooses the next query point where the current ML prediction is very uncertain
+\item Conversely, this usually means that you ``expect to learn most'' from this point (cf.\ theory of uncertainty sampling for Gaussian Processes)
+\item I.e., you choose query to maximize your own learning progress
+\item Related keywords: curiosity, intrinsic motivation, maximizing surprise.
+\end{items}
+
+
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Continue Learning about ML}{\label{lastpage}
+
+\small
+
+\item We introduced ML in a rather fundamental way, but only scratched the breadth of ML. Here pointers to continue learning about it:
+\begin{items}
+\item Classical book, that I still find important to know as background: Hastie et al:\emph{The Elements of Statistical Learning: Data Mining, Inference, and Prediction} Springer, 2009.
+\item Classical discussion of overfitting, still important to know as background: Pedro Domingos: \emph{A Few Useful Things to Know about Machine
+Learning}
+\item We'll learn about Computation Graphs, Auto-Differentiation and NN architectures in a later lecture.
+\item Concerning stochastic gradient descent, have a look at Part 3 of the optimization course:
+{\tiny\url{https://www.user.tu-berlin.de/mtoussai/teaching/Lecture-Optimization.pdf}}
+\end{items}
+
+}
+
+\slidesfoot

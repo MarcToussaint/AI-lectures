@@ -14,6 +14,11 @@
   \scripthead
 }
 
+\providecommand{\paper}{
+  \input{../latex/style-paper}
+  \paperhead
+}
+
 \providecommand{\note}{
   \input{../latex/style-note}
   \notehead{10}{1.1}
@@ -35,14 +40,14 @@
   \usepackage{amsthm}
   \usepackage{eucal}
   \usepackage{graphicx}
-  \usepackage{color}
+%  \usepackage{color}
   \usepackage{geometry}
   \usepackage{framed}
-%  \usecolor{xcolor}
+  \usepackage{xcolor}
   \definecolor{shadecolor}{gray}{0.9}
   \setlength{\FrameSep}{3pt}
   \usepackage{fancyvrb}
-  \fvset{numbers=none,xleftmargin=5ex}
+  \fvset{numbers=none,xleftmargin=5ex,fontsize=\small}
 
   \usepackage{pdfpages}
 

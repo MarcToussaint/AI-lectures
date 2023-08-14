@@ -1,0 +1,266 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Artificial Intelligence}
+\renewcommand{\coursepicture}{course_ai}
+\renewcommand{\coursedate}{Summer 2023}
+
+\renewcommand{\exnum}{Exercise 4}
+
+\exercises
+\excludecomment{solution}
+\exercisestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Happy ever after}
+
+Consider a mini mini MDP with just three states $s\in\{0,1,2\}$, where there agent receives reward $R(0,a)=R(1,a)=0$ in state $0$ and $1$, and reward $R(2,a)=1$ in state $2$ (independent of $a$). For simplicity we assume everything is deterministic and the policy $\pi$ deterministically walks from state $0$ to $1$ to $2$ and then stays in state $2$ happily forever. (No need to define actions explicitly; the resulting state sequence when initialized in $s_0=0$ is always $(s_0=0, s_1=1, s_2=2, s_3=2, ...)$.
+
+We have some discount factor $\g\in[0,1)$.
+
+What are the values $V^\pi(s=2)$ and $V^\pi(s=1)$ and $V^\pi(s=0)$? Derive this analytically by the definition $V^\pi(s) = \Exp{ \tsum_t \g^t r_t \| s_0\=s; \pi }$ and knowing about convergence of the geometric series.
+
+\begin{solution}
+    We use the given definition, and the knowledge that the process and the policy is deterministic. Thus
+    $V^\pi(s) = \Exp{ \tsum_t \g^t r_t \| s_0 = s ; \pi } = \tsum_t \g^t r_t$, and we can plug in the values:
+
+    \begin{itemize}
+        \item $V^\pi(s=2) = \tsum_t \g^t \cdot 1 = 1 + \g + \g^2 + ... = \frac{1}{1 - \g}$.
+        \item $V^\pi(s=1) = \tsum_t \g^t \cdot 1 = 0 + \g + \g^2 + ... = \g(1 + \g + \g^2 + ...) = \frac{\g}{1 - \g}$.
+        \item $V^\pi(s=0) = \tsum_t \g^t \cdot 1 = 0 + 0 + \g^2 + ... = \g^2(1 + \g + \g^2 + ...) = \frac{\g^2}{1 - \g}$.
+    \end{itemize}
+\end{solution}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Value Iteration}
+
+\show[.3]{../pics/Maze}
+
+Consider the circle of states above, which depicts the 8 states $s\in\{1,..,8\}$ of an
+MDP. The following describes the MDP informally. Your first exercise will let you write down explicitly the probability \& reward tables $P(s_0), P(s'|s,a), R(s,a)$. Consider a discounting of $\g=1/2$.
+
+Description of $P(s'|s,a)$:\NewParNoBreak
+\begin{itemize}
+\item The agent can choose between two actions $a\in\{-1,+1\}$: going one step clock-wise ($a=+1$) or one step counter-clock-wise ($a=-1$).
+\item With probability $3/4$ the agent will transition to the desired state,
+  with probability $1/4$ to the state in the opposite direction.
+\item Exception: When $s=1$ (the green state) the next state will always be
+$s'=4$, independent of $a$. The Markov Decision Process never ends.
+\end{itemize}
+
+Description of $R(s,a)$:\NewParNoBreak
+\begin{itemize}
+\item The agent receives a reward of $r=4096$ when $s=1$ (the green state).
+\item The agent receives a reward of $r=-512$ when $s=2$ (the red state).
+\item The agent receives zero reward otherwise.
+\end{itemize}
+
+Description of $P(s_0)$:\NewParNoBreak
+\begin{itemize}
+\item The agent deterministically starts in $s_0=4$
+\end{itemize}
+
+Exercise:
+\begin{enumerate}
+\item Explicitly provide the probability/reward tables $P(s_0), P(s'|s,a), R(s,a)$ that define this MDP.
+
+\item Perform three steps of Value Iteration to approximate the optimal value function $V^*$: Initialize $V_{k=0}(s)=0$, what is
+  $V_{k=1}(s)$, $V_{k=2}(s)$, $V_{k=3}(s)$?
+
+{\small Tip: Write the value functions explicitly as tables on paper, starting with $V_0 = [0 ~ 0 ~ 0 ~ 0 ~ 0 ~ 0 ~ 0 ~ 0]$, and then $V_1$ below (which is still easy since only immediate rewards enter), and then $V_2$ below, etc.
+
+}
+  
+%% \item How can you compute the value function $V^\pi(s)$ for
+%% a GIVEN policy (e.g., always walk clock-wise) in closed form? Provide
+%% an explicit matrix equation.
+
+\item Assume you are given $V^*(s)$. How can you compute the optimal $Q^*(s,a)$
+  form this? And assume $Q^*(s,a)$ is given, how can you compute the optimal
+  $V^*(s)$ from this? Just recall the provided equations.
+
+\item What is $Q_{k=3}(s,a)$ for the example above? (Write this on paper as an 8x2 table, or 2x8 if you like.) What is the
+  ``optimal'' policy given $Q_{k=3}$?
+\end{enumerate}
+
+\begin{solution}
+    \begin{enumerate}
+        \item The probability table for the initial state is 
+
+\begin{tabular}{l|l}
+$s_0$ & $P(s_0)$ \\ \hline
+1    & 0       \\
+2    & 0       \\
+3    & 0       \\
+4    & 1       \\
+5    & 0       \\
+6    & 0       \\
+7    & 0       \\
+8    & 0      
+\end{tabular}
+
+The reward table is
+
+\begin{tabular}{l|ll}
+$s$ / $a$ & -1   & 1    \\ \hline
+1 & 4096 & 4096 \\
+2 & -512 & -512 \\
+3 & 0    & 0    \\
+4 & 0    & 0    \\
+5 & 0    & 0    \\
+6 & 0    & 0    \\
+7 & 0    & 0    \\
+8 & 0    & 0
+\end{tabular}
+
+and finally, the transition probability table is 
+
+\begin{tabular}{l|llllllll}
+    $(s,a)$ / $s'$ & 1   & 2 & 3 & 4 & 5 & 6 & 7 & 8    \\ \hline
+    (1, -1) & 0 & 0 & 0 & 1 & 0 & 0 & 0 & 0 \\
+    (1, 1) & 0 & 0 & 0 & 1 & 0 & 0 & 0 & 0 \\ \hline
+    (2, -1) & $\frac{3}{4}$ & 0 & $\frac{1}{4}$ & 0 & 0 & 0 & 0 & 0 \\
+    (2, 1) & $\frac{1}{4}$ & 0 & $\frac{3}{4}$ & 0 & 0 & 0 & 0 & 0 \\ \hline
+    (3, -1) & 0 & $\frac{3}{4}$ & 0 & $\frac{1}{4}$ & 0 & 0 & 0 & 0 \\
+    (3, 1) & 0 & $\frac{1}{4}$ & 0 & $\frac{3}{4}$ & 0 & 0 & 0 & 0  \\ \hline
+    (4, -1) & 0 & 0 & $\frac{3}{4}$ & 0 & $\frac{1}{4}$ & 0 & 0 & 0 \\
+    (4, 1) & 0 & 0 & $\frac{1}{4}$ & 0 & $\frac{3}{4}$ & 0 & 0 & 0  \\ \hline
+    (5, -1) &0 &0 & 0 & $\frac{3}{4}$ & 0 & $\frac{1}{4}$ & 0 & 0 \\
+    (5, 1) &0 & 0&0 & $\frac{1}{4}$ & 0 & $\frac{3}{4}$ & 0 & 0  \\ \hline
+    (6, -1) & 0& 0& 0&0 & $\frac{3}{4}$ & 0 & $\frac{1}{4}$ & 0\\
+    (6, 1) & 0& 0& 0&0 & $\frac{1}{4}$ & 0 & $\frac{3}{4}$ & 0  \\ \hline
+    (7, -1) & 0&0 &0 & 0&0 & $\frac{3}{4}$ & 0 & $\frac{1}{4}$\\
+    (7, 1) & 0&0 &0 &0 &0 & $\frac{1}{4}$ & 0 & $\frac{3}{4}$  \\ \hline
+    (8, -1)  & $\frac{1}{4}$& 0&0 &0 &0 &0 & $\frac{3}{4}$ & 0\\
+    (8, 1)  & $\frac{3}{4}$ &0 &0 &0 &0 &0 & $\frac{1}{4}$ & 0 
+\end{tabular}
+
+        \item The values are computed with $V_{k+1}(s) = \max_a \[R(s, a) + \g\sum_{s'}P(s'|s,a)V_k(s')\]$.
+            
+            The resulting table is
+
+\begin{tabular}{l|llllllll}
+     & 1   & 2 & 3 & 4 & 5 & 6 & 7 & 8    \\ \hline
+    $V_{k=0}(s)$ & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+    $V_{k=1}(s)$ & 4096 & -512 & 0 & 0 & 0 & 0 & 0 & 0 \\
+    $V_{k=2}(s)$ & 4096 & 1024 & -64 & 0 & 0 & 0 & 0 & 1536 \\
+    $V_{k=3}(s)$ & 4096 & 1016 & 384 & -8 & 0 & 0 & 576 & 1536 \\
+\end{tabular}
+
+We give two examples how the values are computed with the formula above:
+\begin{align*}
+    V_2(s=2) &= \max\[-512 + \g (P(1|2,1)V_1(1) + P(3|2,1)V_1(3)), -512 + \g (P(1|2,-1)V_1(1) + P(3|2,-1)V_1(3))\]\\
+             &= \max\[-512 + \frac{1}{2} \frac{3}{4}\cdot 4096, -512 +\frac{1}{2} \frac{1}{4}\cdot 4096\]\\
+             &= 1024
+\end{align*}
+%
+\begin{align*}
+    V_3(s=2) &= \max\[-512 + \g (P(1|2,1)V_2(1) + P(3|2,1)V_2(3)), -512 + \g (P(1|2,-1)V_2(1) + P(3|2,-1)V_2(3))\]\\
+             &= \max\[-512 + \frac{1}{2} \cdot\frac{3}{4}\cdot 4096 + \frac{1}{2}\cdot\frac{1}{4}\cdot(-64),-512 + \frac{1}{2} \cdot\frac{1}{4}\cdot 4096 + \frac{1}{2}\cdot\frac{3}{4}\cdot(-64)\]\\
+             &= 1016
+\end{align*}
+
+        \item The relations are $V^*(s) = \max_a Q^*(s,a)$, and $Q^*(s,a) = R(s,a) + \g \Exp[s'\sim P(\cdot|s,a)]{V^*(s')}$
+        \item We can plug in the values in the relation 
+            %
+            \begin{equation}
+                Q_{k+1}(s,a) = R(s,a) + \g \sum_{s'}P(s'|s,a)V_{k+1}(s')
+            \end{equation}
+%
+            to obtain
+%
+
+\begin{tabular}{l|lll}
+    $s$ / $a$ & -1   & 1 & $\max_a$   \\ \hline
+    1 & 4092 & 4092 & $\{-1, 1\} $\\
+    2 & 1072 & 144 & -1 \\
+    3 & 380 & 124 & -1 \\
+    4 & 144 & 48 & -1\\
+    5 & -3 & -1 & 1\\
+    6 & 72  & 216 & 1\\
+    7 & 192 & 576  & 1\\
+    8 & 728 & 1608 & 1
+\end{tabular}
+    \end{enumerate}
+\end{solution}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Optional: Episodes \& terminal states}
+
+The formal MDP theory typically assumes that we talk about an infinite process\\ $s_0,a_0,r_0,s_1,a_1,r_1,...$ of states, actions and rewards. Consistent to that, the return is formally defined as the infinite sum $\sum_{t=0}^\infty \g^t r_t$.
+
+However, practical problems in the literature often involve ``terminal states'', and one speaks of ``episodes''. The following exercise clarifies how ``terminal states'' and ``episodes'' are meant in an infinite MDP.
+
+\begin{enumerate}
+\item Let us define that a terminal state as follows: Assume that in step $T$ the agent reaches a terminal state $s_T$. The agent can then make a very last action $a_T$, and gets a final reward with expectation $r_T = R(s_T, a_T)$, but after this ``there are no more states, actions, or rewards'', and the total return of the agent is $\sum_{t=0}^T \g^t r_t$.
+
+At first sight this is inconsistent to how MDPs are defined, because by definition they do not terminate. How can you construct a formal MDP to model such terminal states? (Tip: Extend the state space.)
+
+\begin{solution}
+We can add a `Nirvana' state to the MDP; informally, the nirvana state $s_N$ has the properties
+    \begin{itemize}
+        \item the terminal state transitions to the nirvana state for any action.
+        \item one cannot escape from the nirvana state
+        \item there is no reward in the nirvana state
+    \end{itemize}
+
+    The reward then becomes $\sum_{t=0}^\infty \g^t r_t = \sum_{t=0}^T \g^t r_t + \sum_{t=T+1}^\infty \g^t \cdot 0 = \sum_{t=0}^T \g^t r_t$
+\end{solution}
+
+\item In practise one never runs (or simulates) a process infinitely long. Instead, one typically aborts at some finite horizon $T$ (or when a terminal state is reached). One such aborted run is called \emph{episode}. One then typically repeats many episodes (to collect data for learning or estimation of values/performance).
+
+Consider an MDP where the goal state is a \emph{tunnel state}, which means that every choice of action in the goal state leads to a state transition back to a (maybe random) initial state $s\sim P(s_0)$.
+
+Is the optimal policy for the MDP with tunnel goal state the same as the optimal policy for an MDP where the goal state is a terminal state? Provide arguments (ideally a rough proof or counterexample) for your answer.
+
+\begin{solution}
+We want to answer the question if the optimal policy in the case above is the same as if we'd continue to run the MDP infintely long, i.e, we want to know if
+%
+    $$\pi^*_{\infty} = \argmax_\pi \Exp{\sum_{t=0}^T\g^tr_t| s_0\sim P_0, s_{t+1}\sim P(\cdot | s_t, a_t), a_t\sim \pi(s_t)}$$
+%
+    (where we assumed that the reward at the terminal state will be 0 for the rest of the episode, after the state is reached at time $T$) is equal to the policy that we obtain if we `tunnel' back to the (random) starting state.
+    We can compute the tunnel-policy as
+%
+    %$$\pi^*_{tunnel} = \argmax_\pi \sum_{i=0}^\infty \Exp{\sum_{t=0}^{T_0} \g^tr_t| s_0\sim P_0, s_{t+1}\sim P(\cdot | s_t, a_t)}$$
+%
+    $$\pi^*_{tunnel} = \argmax_\pi \sum_{i=0}^\infty \Exp{\sum_{t=\hat T_{i-1}}^{\hat T_i} \g^tr_t| s_0^i\sim P_0, s_{t+1}\sim P(\cdot | s_t, a_t), a_t\sim \pi(s_t), T_i\sim P_T(\pi)},$$
+%
+    where we introduced $T_i$, i.e., the time to reach the terminal state the $i$-th time, which follows the distribution $P_T(\pi)$. We use $\hat T_i = \sum_{j=0}^i T_j$.
+    This can be rewritten as 
+    $$\pi^*_{tunnel} = \argmax_\pi \sum_{i=0}^\infty \Exp{\g^{\hat T_i}\sum_{t=0}^{T_i} \g^tr_t| s_0^i\sim P_0, s_{t+1}\sim P(\cdot | s_t, a_t), a_t\sim \pi(s_t), T_i\sim P_T(\pi)}.$$
+%
+where we notice that we can factorize the terms:
+    $$\pi^*_{tunnel} = \argmax_\pi \sum_{i=0}^\infty \left(\Exp{\g^{\hat T_i}| T_i\sim P_T(\pi)}\Exp{\sum_{t=0}^{T_i} \g^tr_t| s_0^i\sim P_0, s_{t+1}\sim P(\cdot | s_t, a_t), a_t\sim \pi(s_t), T_i\sim P_T(\pi)}\right).$$
+which can again be rewritten as
+    $$\pi^*_{tunnel} = \argmax_\pi \sum_{i=0}^\infty \left(\Exp{\g^T| T\sim P_T(\pi)}^i\Exp{\sum_{t=0}^{T} \g^tr_t| s_0\sim P_0, s_{t+1}\sim P(\cdot | s_t, a_t), a_t\sim \pi(s_t), T\sim P_T(\pi)}\right),$$
+where we used that all $T_i$ are drawn from the same distribution $P_T$, i.e., the episode length is independent of how often the agent has tunneled before.
+Thus,
+    $$\pi^*_{tunnel} = \argmax_\pi \Exp{\sum_{t=0}^{T} \g^tr_t| s_0\sim P_0, s_{t+1}\sim P(\cdot | s_t, a_t), a_t\sim \pi(s_t), T\sim P_T(\pi)} \cdot \sum_{i=0}^\infty \left(\Exp{\g^T| T\sim P_T(\pi)}^i\right),$$
+and we see that the optimal policies are the same.
+
+In this proof-sketch, we used the fact that the ``tunnel state" is also a ``goal state".
+We say that a state is a goal state if the optimal policy actually tries to reach it. 
+
+Notice that the statement that was proven does not hold if the tunnel state is not a goal state, but just any state.
+To give an example, consider an MDP in which the tunnel state is some state close to the goal. The agent has to
+take a big detour in order to safely avoid the tunnel state and reach the goal, or it can decide to take the more
+direct path, risking to hit the tunnel state.
+
+In that case, the policies are not equal.
+\end{solution}
+
+Do the optimal values (the value functions of the optimal policies) differ? If yes, how?
+
+\begin{solution}
+They differ by the factor, computed above.
+\end{solution}
+
+\end{enumerate}
+   
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exerfoot

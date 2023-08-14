@@ -1,0 +1,503 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Artificial Intelligence}
+\renewcommand{\coursepicture}{course_ai}
+\renewcommand{\coursedate}{Summer 2023}
+
+\renewcommand{\topic}{Intro to Decision Making}
+\renewcommand{\keywords}{}
+
+\slides
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\story{
+AI research is about systems that make decisions. Decisions can be made on the basis of a known model (reasoning/planning), on the basis of given data (learning), or interactively by iteratively deciding and collecting data from the environment. But a core question is how the objective is defined, and there exist very interesting definitions of objectives within AI.
+
+AI typically is about systems that are \emph{optimal} under some objective, that is, some definition of cost, loss, utility, or return. Is it limiting that systems are always described as (approximately) optimal? Decision Theory provides the basic underlying formalism and theory on this. Utility functions can define a non-linear relation between outcomes and the objective, which can lead to risk seeking or risk averse behavior. We will also discuss, on a high-level, interesting objectives that relate to continuously seeking to learn or gain information, which are in constrast to objectives that are about a concrete pre-fixed task. Finally, decision theory also provides us with a useful notation for more structured (e.g., sequential) decision problems, called \emph{Decision Networks}.
+
+To find optimal decisions we need to optimize expectations, which can be hard for general objectives (e.g. a black-box utility function). Monte Carlo methods (essentially ``estimating by brute-force sampling'') are a very generic and useful approach, which we will discuss after a recap of probability basics.
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Outline}{
+
+\item Three decision examples (model-based, data-based, interaction-based)
+
+\item Decision Theory basics
+
+\item Probabilities recap
+
+\item Examples for Monte Carlo estimation, and Gaussian estimates
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\sublectureHide{Three Examples}{}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+How would you decide?
+
+~
+
+\show[.4]{decision-1gauss}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+How would you decide?
+
+~
+
+\show[.4]{decision-2data}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+How would you decide? \qquad {\tiny iteratively query (aka., Bandits)}
+
+~
+
+\show[.4]{decision-3none}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+The three examples are:
+
+~
+
+\item Model-based:
+\begin{items}
+\item Decision variable $a\in\{A,B,C\}$
+\item Outcome $y\in\RRR$, with \textbf{known model} $P(y|a) = \NN(y \| \mu_a, \s_a)$ and $\mu_a,\s_a$
+\end{items}
+\medskip
+
+\item Data-based:
+\begin{items}
+\item $P(y|a)$ unknown; but \textbf{data} $D=\{(a_i, y_i)\}_{i=1}^n$ \textbf{available}
+\end{items}
+
+\medskip
+
+\item ``Interaction-based'':
+\begin{items}
+\item Initially no model $P(y|a)$, no data $D$; but interactively \textbf{collect data} by iterative querying
+\end{items}
+
+~
+
+\item So far, problems are underspecified: \emph{No objective, utility, or loss defined yet.}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{Basic Decision Theory}{
+
+%% \item ``AI is research about systems that aim to take optimal decisions on the basis of all available information''
+
+%% Single-Step decision
+
+%% \begin{items}
+%% \item \textbf{Here: The decision process is fully known}
+
+%% (later in the lecture: Reinforcement Learning)
+%% \end{items}
+
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\sublecture{Decision Theory}{
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Basic Decision-Theoretic Formalism}{
+
+{\tiny [cf.\ Russel \& Norvig, Chapter 16]
+
+}
+
+~
+
+\item Decision variable $a \in \AA$
+
+\item Outcome variable $y \sim P(y|a)$
+
+\item Utility function $U: y \mapsto U(y) \in \RRR$
+
+\item ``Principle of maximal expected utility'': A \textbf{rational} agent should choose
+$$ \argmax_a \Exp[P(y|a)]{U(y)} $$
+
+~
+
+\item ``Decision Theory = combines Probabilities + Utilities of outcomes of choices''
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Classical Decision Theory}{
+
+{\tiny [esp. in Economics (von Neumann \& Morgenstern, 1944)]}
+
+~
+
+\item \emph{Is the assumtion that ``agents are rational'' limiting?}
+
+~\pause
+
+\item Assumption: Rational agents should have preferences $y\preceq y'$ over outcomes
+
+\item \textbf{Theorem:} If preferences are ``consistent'' (orderable, transitive, continuous, substitutable, monotone, decomposable) $\To$
+\begin{items}
+\item There exists a utility function $U$ such that the agent's preferences $y\preceq y'$ are consistent to $U(y) \le U(y')$
+\item The utility of a probabilistic outcome is the expected utility $\Exp{U(y)} = \sum_y P(y) U(y)$
+\end{items}
+
+~\tiny
+
+\item Note: There might exist many utility functions $U(y)$ that explain the same agent's preferenes.
+
+(Details: Russel \& Norvig, Chapter 16)
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Are Optimality Formulations Limiting?}{
+
+\item {\tiny A comment I once got from a cognitive scientist:\\}
+``Why are AI people so obsessed with optimization? Humans are not
+optimal!''
+
+\medskip\mypause
+
+\item That's a total misunderstanding of what ``being optimal'' means
+
+\item Optimization principles are a means to describe systems:
+\begin{items}
+\item Feynman's ``unworldliness measure'' objective function
+\item Everything can be cast optimal -- under \emph{some} objective
+\item Optimality principles are just a scientific means of formally describing
+systems and their behaviors (esp.\ in physics, economy, ... and AI)
+\end{items}
+
+\item Background reading: \cit{Toussaint, Ritter \& Brock}{The Optimization Route to
+Robotics -- and Alternatives}{K\"unstliche Intelligenz, 2015}
+
+%% \color{gray}
+%% \item Generally, I would roughly distinguish three basic types of problems:
+%% \begin{items}
+%% \item Optimization 
+%% \item Logical/categorial Inference ~ (CSP, find feasible solutions)
+%% \item Probabilistic Inference
+%% \end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Examples for interesting objectives}{
+
+\item Objectives that ``reward learning or information gain'' (rough notation):
+\begin{items}
+\item Minimize entropy $H(b_{t\po})$ of belief ~ (=agent's state of knowledge)
+\item Maximize expected surprize $\Exp{- \log P(y|a)}$
+\item Value of Information
+\item Learn to control all degrees of freedom of the environment that
+are controllable
+\begin{items}
+\item DOFs are mechanical/kinematics DOFs, objects, light/temperature,
+mood of humans
+\item This objective is generic: no preferences, not limits
+\item Implies to actively go exploring and finding controllable DOFs
+\end{items}
+\item Related notions in other fields: \emph{(Bayesian) Experimental
+Design}, \emph{Active Learning}, curiosity, intrinsic motivation
+\end{items}
+
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Examples for interesting objectives}{
+
+\item Non-linear relations between outcome and utility: \textbf{Risk averse and seeking}
+
+~\pause
+
+\item If $y\in\RRR$ is ``outcome/money'', a \textbf{utility} $U(y)$ assigns different \emph{value} to different amounts of money
+
+\twocol{.4}{.5}{
+
+\item Risk averse: concave $U(y)$
+\item Risk seeking: convex $U(y)$
+
+~
+
+~
+
+}{
+
+\show[.7]{utilityFunction}
+{\tiny\hfill [Russel \& Norvig, Ch.~16]}
+
+}
+\tiny
+
+\url{https://en.wikipedia.org/wiki/Expected_utility_hypothesis} and \url{https://en.wikipedia.org/wiki/Risk_aversion}.
+
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{More on objectives}{
+
+\item The value alignment dilemma
+
+\item What are objectives that describe things like ``creativity'', ``empathy'', ``morale'', etc?
+
+\item Coming up with objective functions that imply desired behavior is a core part of AI research
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Decision Networks -- representing structured decision problems}{
+
+{\tiny (aka.\ Influence Diagrams)}
+
+\item Computer Science formalism for general (sequential) decision making:
+
+\medskip
+
+\item A \defn{Decision Network} is a direct acyclig graph (DAG), where nodes are either
+\begin{items}
+\item a decision variable $a_i$ \anchor{10,-4}{\showh[.035]{decisionNet-a}}
+\item a random variable (outcome) $x_i$ or $y_i$ \anchor{10,-4}{\showh[.035]{decisionNet-x}}
+\item a utility $u_i$ ~ (or reward $r_i$) \anchor{10,-4}{\showh[.035]{decisionNet-r}}
+\end{items}
+and each variable is determined by a
+\begin{items}
+\item decision policy $\pi_i: \text{parents} \mapsto a_i$
+\item conditional probability $y_i \sim P(y_i \| \text{parents})$
+\item utility function $u_i = U_i(\text{parents})$
+\end{items}
+
+\medskip
+
+\item Example: Markov Decision Process with 3 steps:
+\anchor{0,0}{\showh[.35]{decisionNet-MDP}}
+
+\tiny
+
+(By default, the overall objective is $\sum_i u_i$. Some formalisms allow only one global utility node.)
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{}{
+
+%% \item Single-Step Decision Network:
+
+%% ~
+
+%% \show[.3]{decisionNet-single}
+
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \sublecture{Problem Setting}{
+%% }
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{Problem: Single-Step Decision Making}{
+
+%% \item Setting:
+%% \begin{items}
+%% \item Discrete choice $a\in\{1,..,A\}$, $A\in\ZZZ^+$
+%% \item Outcome $y\in\RRR$ depends on choice, with probability $P(y|a)$
+%% \begin{items}
+%% \item We assume $P(y|a) = \NN(y \| \mu_a, \s_a)$ Gaussian, with mean $\mu_a$ and standard deviation $\s_a$
+%% \end{items}
+%% \item Model-based: $(\mu_{1:A}, \s_{1:A})$ are assumed known.
+%% \end{items}
+
+%% ~
+
+%% \item Objective: Given $(\mu_{1:A}, \s_{1:A})$, make decision $a\in\{1,..,A\}$ 
+%% \begin{enumerate}
+%% \item to maximize $\Exp[P(y|a)]{y} = \mu_a$ ~ (yes, this is trivial to implement)
+%% \pause
+%% \item to mazimize $\mu_a + \b \s_a$ for $\b=1$,  the (optimistic) upper confidence bound
+%% \pause
+%% \item to maximize the expected utility $\Exp[P(y|a)]{U(y)} = \int P(y|a)~ U(y)~ dy$ for an \emph{arbitrary} utility function $U(y)$ (provided as black-box function)
+%% \end{enumerate}
+
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\sublecture{Background: Probabilities}{
+
+\item External Slides
+
+\item Relevant for this lecture:
+\begin{items}
+\item Basic definitions: Joint, marginal, conditional distributions (als for $>$2 variables!)
+\item Bayes' Theorem (also for $>$2 variables)
+\item Gauss distribution
+\item Monte Carlo
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Example for applying Monte Carlo: Estimate Expected Utility}{
+
+~
+
+\item Model-based with black-box utility:
+\begin{items}
+\item Decision variable $a\in\{1,..,A\}$, $A\in\ZZZ^+$
+
+\item Outcome $y\in\RRR$, with \textbf{known model} $P(y|a) = \NN(y \| \mu_a, \s_a)$ and $\mu_a,\s_a$
+\item Objective: Maximize the expected utility $\Exp[y|a]{U(y)} = \int P(y|a)~ U(y)~ dy$ for \textbf{black-box} utility function $U(y)$
+\end{items}
+
+~\pause
+
+\item $\to$ We need to estimate the expected utility numerically, using \textbf{Monte Carlo}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Monte Carlo methods}
+\slide{Monte Carlo recap}{
+
+\item Problem: We want to compute an expectation
+$$\Exp[p(x)]{f(x)} = \int_x p(x)~ f(x)~ dx$$
+but $p(x)$ or $f(x)$ are too complicated to compute $\Exp[p]{f(x)}$ analytically
+
+~\pause
+
+\item Monte Carlo approach: Approximate expectation by evaluating many samples:
+\begin{items}
+\item First generate $n$ samples $x_i\sim p(x)$
+\item Then approximate $\Exp[p]{f(x)} \approx \frac{1}{n} \sum_{i=1}^N f(x_i)$ as the average $f(x_i)$
+\end{items}
+\pause
+\item Is efficient, when \emph{simulating} $x_i\sim p(x)$ and evaluating $f(x_i)$ is efficient
+
+~\pause\tiny
+
+\item Naming: The method developed in the 40ies, where computers became
+faster. Fermi, Ulam and von Neumann initiated the idea. von Neumann
+called it ``Monte Carlo'' as a code name.
+
+\item Must read: \emph{An Introduction to MCMC for Machine
+  Learning:} \url{www.cs.ubc.ca/~nando/papers/mlintro.pdf}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{More Examples for Monte Carlo}{
+
+\item Given a solitair-playing policy $\pi:s\mapsto a$, what is its expectation to win?
+\begin{items}
+\item[$\to$] Simulate $n=10\,000$ and estimate!
+\end{items}
+
+~\pause
+
+\item Given $a\in\{1,..,5\}$ first-move choices, which one has best expectation to win if random policy follows?
+
+%% ~\pause
+
+%% \item Given $P(y|a) = \NN(y \| \mu_a, \s_a)$ is the outcome distribution for decision $a$, which $a$ has highest expected utility $\Exp[y|a]{U}$?
+%% \begin{items}
+%% \item[$\to$] For each $a$, draw $n=1\,000$ samples $y_i \sim\NN(y \| \mu_a, \s_a)$ and estimate $\Exp[y|a]{U} \approx \frac{1}{n}\sum_{i=1}^n U(y_i)$
+%% \end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{Variants of Monte Carlo methods}{
+
+%% \item Sometimes, generating samples $x_i \sim p(x_i)$ is itself hard, e.g.\ when $p(x) \propto l(x) q(x)$ is given as a product of two terms (e.g., a likelihood and a prior)
+%% \begin{items}
+%% \item \textbf{Rejection Sampling:}  First sample $x_i \sim q(x)$ from a \textbf{proposal} distribution $q(x)$, then accept only with probability $\propto \frac{p(x)}{q(x)}$.
+
+%% \item \textbf{Importance Sampling:} First sample $x_i \sim q(x)$ from a proposal distribution $q(x)$, then store a \textbf{weighted} sample $(x_i, w_i=\frac{p(x)}{q(x)})$.
+%% \end{items}
+
+%% \pause
+
+%% \item When we generated weighted samples $(x_i,w_i)$, with $\sum_{i=1}^n w_i = 1$, we approximate
+%% $$\Exp[p]{f(x)} = \textstyle\sum_{i=1}^N w_i f(x_i)$$
+
+%% \pause
+
+%% \item Instead of drawing i.i.d.\ samples $x_i\sim p(x_i)$, define a \textbf{Markov Chain} that has $p(x)$ as stationary distribution
+%% \begin{items}
+%% \item[$\to$] Markov Chain Monte Carlo (MCMC) methods (See \emph{An Introduction to MCMC for Machine
+%%   Learning:} \url{www.cs.ubc.ca/~nando/papers/mlintro.pdf})
+%% \end{items}
+
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Example for Gauss estimate: Data-based}{\label{lastpage}
+
+\item Data-based, with known model-class:
+\begin{items}
+\item Decision variable $a\in\{1,..,A\}$, $A\in\ZZZ^+$
+\item Outcome $y\in\RRR$, $P(y|a) = \NN(y \| \mu_a, \s_a)$, but $\mu_a,\s_a$ \textbf{unknown}
+\item We have \textbf{data} $D=\{(a_i, y_i)\}_{i=1}^n$ of previous decisions $a_i\in\{1,..,A\}$ and outcomes $y_i\in[0,1]$
+\item Objective: Maximize $\Exp[P(y|a)]{y} = \mu_a$, or $\mu_a + \b \s_a$ for $\b=1$
+\end{items}
+
+~\pause
+
+\item How can we estimate $\mu_a, \s_a$ from data $D$?
+\pause
+\begin{align*}
+\hat \mu_a &= \frac{1}{n_a} \sum_{i=1}^n [a_i=a]~ y_i\comma n_a = \sum_{i=1} [a_i=a] \\
+\hat\s_a^2 &= \frac{1}{n_a-1} \sum_{i=1}^n [a_i=a]~ (y_i - \hat\mu_a)^2
+\end{align*}
+
+{\tiny Notation: $[\textit{boolean}] \in \{0,1\}$ is the indicator function; $n_a = \sum_{i=1} [a_i=a]$ counts how often we have $a$ in $D$.
+
+}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slidesfoot

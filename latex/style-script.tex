@@ -2,7 +2,6 @@
   \documentclass[9pt,fleqn,twoside]{article}
   \stdpackages
 
-  \usepackage[envcountsect]{beamerarticle}
   \usepackage{makeidx}
   \makeindex
 
@@ -116,7 +115,7 @@
     \end{shaded}
   }
 
-  \graphicspath{{pics/}{../latex/pics/}}
+  \graphicspath{{pics/}{../pics/}{pics-local/}}
 
   \mytitle{\course\\Lecture Script}
   \myauthor{Marc Toussaint}
@@ -130,12 +129,6 @@
   \maketitle
   %\anchor{100,10}{\includegraphics[width=4cm]{optim}}
 %  \vspace*{1cm}
-
-  \emph{This is a direct concatenation and reformatting of all lecture
-    slides and exercises from this course, including indexing to help
-    prepare for exams.}
-
-  {\tableofcontents}
 }
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -150,7 +143,7 @@
 
 \renewcommand{\slides}[1][]{
   %  \clearpage
-  \section{\topic}
+  \subsection{\topic}
   \index{\topic}
   {\small #1}
   \setcounter{mypage}{0}
@@ -162,8 +155,12 @@
 }
 
 \newcommand{\sublecture}[2]{
-  \subsection{#1}
+  \phantomsection\addcontentsline{toc}{subsubsection}{#1}
   \index{#1}
+}
+
+\newcommand{\sublectureHide}[2]{
+  \renewcommand{\subtopic}{#1}
 }
 
 \newcommand{\key}[1]{
@@ -196,7 +193,8 @@
 
 \renewcommand{\exercises}{}
 \newcommand{\exercisestitle}{}
-\newcommand{\exsection}[1]{\subsection{#1}}
+\newcommand{\exsection}[1]{\subsubsection{#1}}
+\newcommand{\exsubsection}[1]{\paragraph{#1}}
 \newcommand{\exerfoot}{\bigskip}
 
 \newcommand{\story}[1]{
@@ -218,6 +216,15 @@
 \par\setlength{\unitlength}{1pt}\fontsize{#1}{#1}\linespread{1.2}\selectfont
 \begin{list}{--}{\leftmargin4ex \rightmargin0ex \labelsep1ex \labelwidth2ex
 \topsep0pt \parsep0ex \itemsep3pt}
+}{
+\end{list}
+}
+
+\newenvironment{itemS}[1][4ex]{
+\par
+\tiny
+\begin{list}{--}{\leftmargin#1 \rightmargin0ex \labelsep1ex
+  \labelwidth2ex \topsep0pt \parsep0ex \itemsep2pt}
 }{
 \end{list}
 }

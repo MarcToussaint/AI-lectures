@@ -31,7 +31,7 @@ sudo apt-get install \
 
 Generate the shared pdf pics (from fig-files)
 ```
-cd latex/pics
+cd pics
 ./compile.sh
 ```
 

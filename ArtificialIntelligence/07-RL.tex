@@ -1,0 +1,1772 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Artificial Intelligence}
+\renewcommand{\coursepicture}{course_ai}
+\renewcommand{\coursedate}{Summer 2023}
+
+\renewcommand{\topic}{Reinforcement Learning}
+\renewcommand{\keywords}{}
+
+%\newcommand{\liter}{\helvetica{8}{1.1}{m}{n}\parskip 1ex}
+\newcommand{\rmax}{{\textsc{R-max}}}
+\newcommand{\ignore}[1]{}
+
+\slides
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\sublectureHide{Intro}
+
+\story{
+Reinforcement Learning (RL) means to learn to perform well in an previously
+unknown environment. Is also assumes an underlying Markov Decision Process (MDP), but unlike in the previous lecture, the agent does not know the MDP and has to learn an optimal policy only on the basis of collected data. Therefore, value iteration cannot directly be applied.
+
+In this lecture we derive basic Reinforcement Learning methods, esp.\ Temporal Difference learning and Q-learning, as appoximating
+Bellman updates. The default implementations of these methods are not particularly efficient, and applying them in continuous domains in not straight-forward. However, a large number of improvement have been developed more recently, which eventually allows to train large scale neural networks to estimate value functions also in challenging and high-dimensional domains. We mention, e.g., replay buffers and $n$-step updates.
+
+We then discuss more broadly model-free vs.\ model-based RL methods, and some background in neuro- and cognitive science on whether these method could be models of animal behavior.
+
+We briefly also discuss the exploration problem---very much
+related to the exploration-exploitation problem represented by
+bandits---and RL in the case of partial observability (POMDPs).
+
+%% end with a brief illustration of policy search, imitation
+%% and inverse RL without going into the full details
+%% of these. Especially inverse RL is really worth knowing about: the
+%% problem is to learn the underlying reward function from example
+%% demonstrations. That is, the agent tries to ``understand'' (human)
+%% demonstrations by trying to find a reward function consistent with them.
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{}{
+
+%% ~
+
+%% \twocol{.5}{.4}{\center
+%%   \mov{\show[.7]{mov-balance}}{05-sethu-movies/DA_PoleLearn.avi}
+%% }{\center
+%%   \mov{\show[.7]{mov-juggle}}{05-sethu-movies/DB_juggle.avi}
+%% }
+
+%% ~
+
+%% {\hfill\tiny (around 2000, by Schaal, Atkeson, Vijayakumar)}
+
+%% ~
+
+%% \mov{\show[.3]{helicopter}}{07-andrew-ng/Aerobatic_rolls.wmv}
+
+%% {\hfill\tiny (2007, Andrew Ng et al.)}
+
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Recap}{
+
+\item We defined sequential decision processes, esp. MDPs ($P(s'\|s,a), R(s,a), P(s_0)$), but also POMDPs, and 2-player processes
+
+\medskip\pause
+
+\item We first learned about Monte Carlo Tree search to estimate values:
+\begin{items}
+\item Assumes a ``simulator of the domain'', grows tree to collect and represent data
+\pause
+\item (Would you call this model-based? data-based? interaction-based? ... kind of all)
+\end{items}
+
+\medskip\pause
+
+\item We then learned about Value (and Q-) Iteration to estimate values:
+\begin{items}
+\item Uses exact equations (with $P(s'\|s,a), R(s,a), P(s_0)$) to reduce Bellman error, convergence guarantee if exact, propagates backward instead of searching forward
+\pause
+\item (Would you call this model-based? ... yes, fully model-based)
+\end{items}
+
+\medskip\pause
+
+\item Next: How can we estimate values without model, based on interaction only?
+\begin{items}
+\item ``Reinforcement Learning''
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Classic view: From ``Dynamic Prog.'' to Reinforcement Learning}{
+
+~
+
+\item From Sutton \& Barto's \emph{Reinforcement Learning} (1998) book:
+
+\medskip
+
+{\tiny
+The term \textbf{dynamic programming (DP)} refers to a collection of algorithms
+that can be used to compute optimal policies given a perfect model of
+the environment as a Markov decision process (MDP). Classical DP
+algorithms are of limited utility in reinforcement learning both
+because of their \textbf{assumption of a perfect model} and because of their
+great computational expense, but they are still important
+theoretically. DP provides an essential foundation for the
+understanding of the methods presented in the rest of this book. In
+fact, all of these methods can be viewed as attempts to achieve much
+the same effect as DP, only with less computation and without assuming
+a perfect model of the environment. 
+
+}
+
+~\pause
+
+\item \textbf{Reinforcement Learning} refers to finding optimal values and policies only via interacting with the environment, without knowing $P(s'|s,a), R(s,a), P(s_0)$ a-priori.
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Lots of Terminology}{
+
+\item In RL, the following terminologies are important to distinguish:
+\begin{items}
+\item model-free RL vs.\ model-based RL vs.\ policy search
+\item on-policy vs.\ off-policy methods
+\item standard RL vs.\ batch RL vs.\ offline RL
+\end{items}
+
+~
+
+\item We'll summarize these later
+\begin{items}
+\item First learn the basics: model-free RL
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{Outline}{
+
+%% \item Learning
+
+%% {\small
+%% -- Temporal Difference \& Q-learning
+
+%% -- Limitations of the model-free view
+
+%% -- Model-based RL
+
+%% }\medskip
+
+%% \item Exploration
+
+%% \item Briefly
+
+%% {\small
+%% -- Imitation Learning \& Inverse RL
+
+%% -- Continuous states and actions (LSPI, Policy Gradients)
+
+%% }\medskip
+
+%% }
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{Five approaches to behavior learning}{
+
+%% ~
+
+%% ~
+
+%% \show[1.]{RLover2}
+
+%% }
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\sublecture{Model-Free RL}{
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Previous Lecture}{
+
+\item We assumed $P(s'\|s,a), R(s,a), P(s_0)$ known
+
+~
+
+\item Major insight: The value functions $V^*(s),Q^*(s,a), V^\pi(s), Q^\pi(s,a)$ fulfill:
+\begin{align*}
+Q^*(s,a)
+&= R(s,a) + \g \tsum_{s'} P(s'\|s,a)~ \max_a' Q^*(s', a') \\
+V^*(s)
+&= \textstyle\max_a \[R(s,a) + \g \tsum_{s'} P(s'\|s,a)~ V^*(s')\] 
+~= \textstyle\max_a Q^*(s,a) \\[2ex]
+Q^\pi(s,a)
+&= R(s,a) + \g \tsum_{s'} P(s'\|s,a)~ Q^\pi(s',\pi(s')) \\
+V^\pi(s)
+&= R(s,\pi(s)) + \g \tsum_{s'} P(s'\|s,\pi(s))~ V^\pi(s')
+~= Q^\pi(s,\pi(s))
+\end{align*}
+
+\begin{items}
+\item We can use these to define iterations to compute $V^*(s),Q^*(s,a), V^\pi(s), Q^\pi(s,a)$
+\item These iterations \textbf{reduce the Bellman error}
+\item Once we have $Q^*(s,a)$, we can read off $\pi^*(s) = \argmax_a Q(s,a)$
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Temporal difference (TD)}
+\slide{TD learning: Temporal difference (TD) learning of $V^\pi$}{
+
+\item Recall the recursive property of $V^\pi(s)$:
+$$
+V^\pi(s)
+ = {\color{red}R(s,\pi(s))} + \g {\color{greencol}\tsum_{s'} P(s'\|s,\pi(s))~ V^\pi(s')}
+$$
+
+\mypause
+
+\item \textbf{TD learning:} Given a \emph{single} experience $D=\{(s,a,r,s')\}$
+\begin{align*}
+V_\new(s)
+ &= (1-\a)~ V_\old(s)
+ + \a~ [{\color{red}r} + \g {\color{greencol}V_\old(s')} ] \\
+ &= V_\old(s) + \a~ \underbrace{[r + \g V_\old(s') - V_\old(s) ]}_\text{TD error}
+\end{align*}
+%% {\small(stochastic variant of Dynamic Programming, convergence with
+%%   probability 1)}
+
+~
+
+\item \textbf{Reinforcement:}
+\begin{items}
+\item more reward than expected ~ ($r
+> V_\old(s) - \g V_\old(s')$)\\ ~~ $\to$~ increase $V(s)$
+\item less reward than expected ~ ($r
+< V_\old(s) - \g V_\old(s')$)\\ ~~ $\to$~ decrease $V(s)$
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{TD Learning pseudo code}{
+
+%% \item We didn't discuss yet how experiences are collected:
+%% \begin{items}
+%% \item In basic RL: $\e$-greedy action selection
+%% \item Essential to ensure non-zero probability to ``explore'' whole state space
+%% \end{items}
+
+%% \medskip
+
+~
+
+\item \textbf{TD Learning:}\\ \small
+\begin{algo}
+\Require Learning rate $\a$, policy $\pi$
+\Ensure Value function $V^\pi(s)$
+\State Initialize $\forall_s:~ V(s)=0$
+\Repeat \Comment{loop over episodes}
+\State Initialize start state $s \sim P(s_0)$ \Comment{start of episode}
+\Repeat \Comment{loop over steps}
+\State Take action $a=\pi(s)$, observe $r, s'$
+\State $V(s) \gets V(s) + \a~ [r + \g V(s') - V(s)]$
+\State $s\gets s'$
+\Until end of episode
+\Until $V(s)$ converged
+\end{algo}
+
+%% \tiny
+%% $$a\approx_\e \argmax_a Q(s,a)
+%% \quad\iff\quad
+%% a = \begin{cases}
+%% \text{random} & \text{with prob.}~ \e \\
+%% \argmax_a Q(s,a) & \text{else}
+%% \end{cases}$$
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{model-free RL}
+\key{Temporal difference (TD)}
+%% \slide{Sarsa: Temporal difference (TD) learning of \protect$Q^\pi$}{
+
+%% \item Recall the recursive property of $Q(s,a)$:
+%% $$
+%% Q^\pi(s,a)
+%%   = {\color{red}R(s,a)} + \g {\color{green}\tsum_{s'}
+%%   P(s'|s,a)~ Q^*(s',\pi(s'))}
+%% $$
+
+%% \mypause
+
+%% \item \textbf{TD learning:} Given a new experience $(s,a,r,s',a'\=\pi(s'))$
+%% \begin{align*}
+%% Q_\new(s,a)
+%%  &= (1-\a)~ Q_\old(s,a) + \a~ [{\color{red}r} + \g {\color{green} Q_\old(s',a')} ]\\
+%%  &= Q_\old(s,a) + \a~ [r + \g Q_\old(s',a') - Q_\old(s,a)]
+%% \end{align*}
+
+%% ~
+
+%% \item \textbf{Reinforcement:}
+
+%% -- more reward than expected ~ ($r > Q_\old(s,a) - \g Q_\old(s',a')$)\\ ~~ $\to$~ increase $Q(s,a)$
+
+%% -- less reward than expected ~ ($r < Q_\old(s,a) - \g Q_\old(s',a')$)\\ ~~ $\to$~ decrease $Q(s,a)$
+
+
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Q-learning}
+\slide{Q-learning: Temporal-Difference (TD) learning of \protect$Q^*$}{
+
+\item Recall the Bellman optimality equation for the $Q$-function:
+$$
+Q^*(s,a)
+  = {\color{red}R(s,a)} + \g {\color{greencol}\tsum_{s'}
+  P(s'|s,a)~ \max_{a'} Q^*(s',a')}
+$$
+
+%\mypause
+
+\item \textbf{Q-learning} (Watkins, 1988) Given a \emph{single} experience $D=\{(s,a,r,s')\}$
+\begin{align*}
+Q_\new(s,a)
+ &= (1-\a)~ Q_\old(s,a) + \a~ [{\color{red}r} + \g {\color{greencol}\max_{a'} Q_\old(s',a')} ]\\
+ &= Q_\old(s,a) + \a~ [\underbrace{r + \g \max_{a'} Q_\old(s',a') - Q_\old(s,a)}_{\text{TD error}}]
+\end{align*}
+
+\item \textbf{Reinforcement:}
+\begin{items}
+\item more reward than expected ~ ($r > Q_\old(s,a) - \g \max_{a'} Q_\old(s',a')$)\\ ~~ $\to$~ increase $Q(s,a)$
+
+\item less reward than expected ~ ($r < Q_\old(s,a) - \g \max_{a'} Q_\old(s',a')$)\\ ~~ $\to$~ decrease $Q(s,a)$
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{TD error \& Bellman error}{
+
+\item The TD error of $Q^*(s,a)$ for a single experience $(s,a,r,s')$ is:
+
+$$r + \g \max_{a'} Q(s',a') - Q(s,a)$$
+
+\item The Bellman error of $Q^*$ at a single $(s,a)$ is:
+
+$$\BB^*(s,a) = R(s,a) + \g \sum_{s'} P(s'\|s,a)~ \max_{a'} Q(s',a') - Q(s,a)$$
+
+\pause
+
+\item We can generalize this to the empirical/batch Bellman error for data $D$:
+
+$$\BB_D^* = \sum_{(s,a,r,s')\in D} r + \g \max_{a'} Q(s',a') - Q(s,a)$$
+\begin{items}
+\item This is the key to later understand batch training of (neural) Q-functions
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Q-learning pseudo code}{
+
+\item We didn't discuss yet how experiences are collected:
+\begin{items}
+\item In basic Q-learning: $\e$-greedy action selection
+\item Essential to ensure non-zero probability to ``explore'' whole state space
+\end{items}
+
+\medskip
+
+\item \textbf{Q-learning:}\\ \small
+\begin{algo}
+\Require Learning rate $\a$
+\Ensure Optimal(!) Q-function $Q^*(s,a)$ (implicitly, optimal policy $\pi^*$)
+\State Initialize $\forall_{s,a}:~ Q(s,a)=0$
+\Repeat \Comment{loop over episodes}
+\State Initialize start state $s \sim P(s_0)$ \Comment{start of episode}
+\Repeat \Comment{loop over steps}
+\State {\color{blue} Choose $a=\argmax_a Q(s,a)$ with probability $1-\e$, and random otherwise}
+\State Take action $a$, observe $r, s'$
+\State $Q(s,a) \gets Q(s,a) + \a~ [r + \g \max_{a'} Q(s',a') - Q(s,a)]$
+\State $s\gets s'$
+\Until end of episode
+\Until $Q^*(s,a)$ converged
+\end{algo}
+
+%% \tiny
+%% $$a\approx_\e \argmax_a Q(s,a)
+%% \quad\iff\quad
+%% a = \begin{cases}
+%% \text{random} & \text{with prob.}~ \e \\
+%% \argmax_a Q(s,a) & \text{else}
+%% \end{cases}$$
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Proof of convergence of Q-learning}
+\slide{Q-learning convergence with prob 1}{
+
+\item \textbf{Theorem:} Q-learning (in discrete state/action space) converges to optimal policy
+
+~\small
+
+\item Q-learning is a stochastic approximation of Q-Iteration (Watkins, 1988):
+\begin{align*}
+\text{Q-learning:} &&
+Q_\new(s,a)
+&= (1-\a) Q_\old(s,a)
+ + \a [r + \g \max_{a'} Q_\old(s',a') ]\\
+ \text{Q-Iteration:} &&
+\forall_{s,a}:~
+  Q_{k+1}(s,a)
+  &= R(s,a) + \g \sum_{s'} P(s'|s,a)~ \max_{a'} Q_k(s',a')
+\end{align*}
+  
+
+~
+
+\item We've shown convergence of Q-Iteration to $Q^*$
+
+\item Convergence of Q-learning:
+\begin{items}
+\item Q-Iteration is a deterministic update: $Q_{k+1} = T(Q_k)$
+\item Q-learning is a stochastic version: $Q_{k+1} = (1-\a) Q_k + \a [ T(Q_k) + \eta_k ]$
+\item Watkins can show that $\eta_k$ is zero mean!
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Q-learning impact}{
+
+\item Q-Learning was the first provably convergent direct
+  adaptive optimal control algorithm
+
+~
+
+\item Great impact on the field of Reinforcement Learning in 80/90ies
+
+\begin{items}
+\item ``Smaller representation than models'' ~ (Sutton \& Barto book)
+
+\item ``Automatically focuses attention to where it is
+needed,''
+
+~~ i.e., no sweeps through state space
+
+%\item Can be made more efficient with eligibility traces
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{on-policy RL}
+\key{off-policy RL}
+\key{SARSA RL}
+\key{Temporal Difference RL}
+\slide{Variants of model-free RL: TD, Sarsa, Q-learning}{
+
+\small
+
+\item Temporal Difference learning (TD):
+
+\qquad$~~~ V(\tilde s) \gets V(\tilde s)
+ + \a~ [r + \g V_\old(s') - V_\old(s)]
+$
+
+\item Sarsa
+
+\qquad$Q(\tilde s,\tilde a) \gets Q(\tilde s,\tilde a)
+ + \a~ [r + \g Q_\old(s',a') - Q_\old(s,a)]$
+
+\item Q-learning
+
+\qquad$Q(\tilde s,\tilde a) \gets Q(\tilde s,\tilde a)
+ + \a~ [r + \g \max_{a'} Q_\old(s',a') - Q_\old(s,a)]$
+
+
+~
+
+{\tiny\textit{Meta note: Typical text books introduce TD and Sarsa first, then Q-learning. But TD and Sarsa are practically not as relevant as Q-learning.}
+
+}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\item These ``vanilla'' methods are rather inefficient!
+\begin{items}
+\item It takes very long for rewards to ``propagate back''
+\item It seems very wasteful to not remember any data at all
+\end{items}
+
+~
+
+\item In the following:
+\begin{items}
+\item Collect and remember data $D$, and reuse
+\item $n$-step updates
+\item (old-style: Eligibilities)
+\item Batch \& Replay Buffers
+\item Offline RL
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\sublecture{$n$-step updates, Batch \& Replay buffers}{
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{$n$-step updates}{
+
+\item In vanilla Q-learning, values propagate back very slowly, only 1 step...
+
+\medskip\pause
+
+\item Let us always store a sequence of $n$-steps $(s_t, a_t, r_t, .., s_{t+n})$
+\begin{items}
+\item Then we can retrospect estimate the return in state $s_t$ using
+$$R_t^n = r_t + \g r_{t+1} + \ldots + \g^{n\1} r_{t+n\1} + \g^n V(s_{t+n}) $$
+instead of the 1-step estimate $R_t^1 = r_t + \g V(s_{t+1})$
+\end{items}
+
+\item We can use this as \emph{retrospect} TD learning, updating the value of the state $t=\textit{now}-n$ steps ago:
+$$V(s_t) \gets V(s_t) + \a~ [R_t^n - V(s_t)]$$
+
+\pause
+\item Equally for Q-learning:
+\begin{align*}
+R_t^n &= r_t + \g r_{t+1} + \ldots + \g^{n\1} r_{t+n\1} + \g^n \max_a Q(s_{t+n},a) \\
+Q(s_t,a_t) &\gets Q(s_t,a_t) + \a~ [R_t^n - Q(s,a)]
+\end{align*}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{$n$-step updates}{
+
+\item The $n$-step return estimate
+$$R_t^n = r_t + \g r_{t+1} + \ldots + \g^{n\1} r_{t+n\1} + \g^n V(s_{t+n})$$
+\begin{items}
+\item uses more data than the 1-step return
+\item is less influenced by incorrect $V(s_{t+n})$ ~ (multiplied with $\g^n$)
+\item updates values $n$ steps ago if now an unexpected reward is received
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Eligibilities**}{
+
+\item Sutton \& Barto's book discussed eligibility traces extensively:
+\begin{items}
+\item They are an alternative to $n$-step updates
+\item They somehow ``remember'' all steps, and are equivalent to $n\to\infty$-step updates (for a parameter $\l=1$)
+\item No need to explicitly store the $n$ steps -- \textbf{but only reasonable for tabular value functions, i.e., discrete state space}
+\end{items}
+
+~
+
+\item As they are impractical in continuous domains and neural value functions, $n$-step methods are preferred
+
+\item We skip explicit discussion of eligibilities here
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Batch \& Experience Replay}{
+
+\item We can store all data $D=\{ (s_i,a_i,r_i,s_{i+1}) \}_{i=0}^t$ up to now, called the \textbf{replay buffer}
+
+~\pause
+
+\item Improving the Q-function for this data means to \emph{reduce the empirical Bellman error}
+$$\BB^*_D = \sum_{(s,a,r,s')\in D} [r + \g \max_{a'} Q(s',a') - Q(s,a)] $$
+
+\begin{items}
+\item If $Q(s,a)$ is a neural network, we compute the gradient of the error $\BB^*_D$ w.r.t.\ all weights, and update
+\item If $Q(s,a)$ is tabular, we can update directly with a small learning rate $\a$:
+$$\forall (s,a,r,s')\in D: ~ Q(s,a) \gets Q(s,a) + \a~ [r + \g \max_{a'} Q(s',a') - Q(s,a)] $$
+\end{items}
+
+\pause\small
+
+\item Going over the \emph{whole} data in each iteration is expensive $\to$ take a random \textbf{batch} $B\subset D$ (of constant size) and minimize $\BB^*_B$ on this batch only $\to$ stochastic gradient descent
+
+{\tiny (See paper ``A Deeper Look at Experience Replay'' (Zhang, Sutton, 2017))
+
+}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Reference}{
+
+\item Servey of combining such methods for Deep Q-Learning:
+
+Hessel et al: \emph{Rainbow: Combining Improvements in Deep Reinforcement Learning} (AAAI 2018)
+
+~
+
+\begin{items}
+\item Double Q-Learning ~ (maintaining 2 Q-functions $Q(s,a), \bar Q(s,a)$)
+\item Prioritized Replay ~ (pick replay data where Bellman error is largest)
+\item Dueling Networks ~ (decompose Q in value and advantage)
+\item Multi-Step Learning ~ ($n$-step updates)
+\item Distributional RL ~ (let Q-function predict return \emph{distribution}, not mean)
+\item Noisy Nets ~ (replace $\e$-greedy exploration by ``learnt noise'')
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Concrete Pointers to practical methods/code}{
+
+\item Stable Baselines\\ {\ttiny\url{https://stable-baselines3.readthedocs.io/en/master/}}
+
+\medskip
+
+\item Hessel et al: \emph{Rainbow: Combining Improvements in Deep Reinforcement Learning} (AAAI 2018) \\{\ttiny\url{https://arxiv.org/pdf/1710.02298.pdf}}
+
+\medskip
+
+\item Soft Actor Critic {\ttiny\url{https://arxiv.org/abs/1801.01290}}
+\begin{items}
+\item within stable baselines 3
+\item trains a Q-function, Value function, and stochastic policy jointly
+\end{items}
+
+\medskip
+
+\item And learn about reward shaping/engineering!
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Offline RL**}{
+
+\item Batch Q-learning, or training a Q-function on a given dataset $D$, corresponds to our ``data-based decision making''
+\begin{items}
+\item Where the data comes from, how the data was queried is not essential anymore
+\item Just consider fixed data $D$ and reduce the empirical Bellman error
+\end{items}
+
+~
+
+\item New ideas towards big-data RL:
+\begin{items}
+\item The data could come from anywhere: huge data sets of other observed agents, of human behavior, perhaps extracted from abundant video
+\item The data was never collected by ``our AI agent'' itself -- but can still be used to learn a $Q^*$-function and train our agent
+\end{items}
+\item Recently, this called \textbf{offline RL}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Off-policy Learning Danger Zone**}{
+
+\item Off-policy generally means: ``The data $D$ was/is collected by some policy $\pi_D$ \emph{different} to the policy $\pi^*(s)=\argmax_a Q(s,a)$ of the Q-function we are learning.''
+
+\item Many modern RL-algorithms are off-policy. Also Q-learning is off-policy because of the $\e$-noise in $\pi_D$.
+
+~\pause
+
+\item Off-policy can be fine, but \textbf{the data distribution under $\pi_D$ and $\pi^*$ are different}:
+\begin{items}
+\item $\pi^*$ might visit states that are not at all contained in $D$
+\item We train the Q-function minimizing $\BB^*_D$ on data $D$ -- \textbf{it might be inaccurate on states not visited by $\pi_D$}
+\end{items}
+
+\pause
+\item Modern offline RL research is exactly on ensuring that value functions trained on $D$ do not over-estimate values in states hardly seen
+
+\cit{Fujimoto et al}{Off-policy deep reinforcement learning without exploration}{ICML 2019}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\sublecture{Model-based RL vs.\ Model-free RL}{
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Model-based RL}{
+
+What can be learned from available data $D_t = \{ (s_i,a_i,r_i,s_{i\po}) \}_{i=0}^t$?
+
+~
+
+\shows[1.3]{RLoverview}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Model-based RL}{
+
+\item \textbf{Model learning:} Given data $D_t = \{
+(s_i,a_i,r_i,s_{i\po}) \}_{i=0}^t$ estimate $P(s'|s,a)$ and
+$R(s,a)$
+\item discrete state-action: ~  $\hat P(s'|s,a) = \frac{\#(s',s,a)}{\#(s,a)}$
+
+\pause
+
+\item continuous state-action:
+\begin{items}
+\item Use regression to learn approximate dynamics $s' \approx f_\t(s,a)$
+
+\item E.g., regression $f_\t(s,a) = \phi(s,a)^\T \t$ with features $\phi(s,a)$
+
+\item or train a neural net $f_\t(s,a)$
+\end{items}
+
+~\pause
+
+\item This approach makes full use of the available data $D_t$
+\begin{items}
+\item But given approximate dynamics $f_\t(s,a)$, you also have to find $\pi^*$ $\to$ also train/optimize $Q^*(s,a)$
+\item Typical critique: \emph{It might be simpler to directly learn $Q^*(s,a)$ rather than a general dynamics model $\hat P(s'|s,a)$.}
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{Model-based RL}{
+
+%% \item Given learned models $\hat P(s'|s,a)$ and $\hat R(s,a)$, compute optimal policies with the estimated model:
+
+%% \begin{items}
+%% \item discrete state-action: ~ \textbf{Dynamic Programming} such as Value Iteration or Q-Iteration
+
+%% \item continuous state-action: ~ Least Squares Value Iteration
+
+%% Stochastic Optimal Control (Riccati, Differential Dynamic Prog.)
+%% \end{items}
+
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{}{
+
+%% \mov{\show[.45]{mov-balance}}{05-sethu-movies/DA_PoleLearn.avi}
+
+%% {\hfill\tiny (around 2000, by Schaal, Atkeson, Vijayakumar)}
+
+%% ~
+
+%% \item Use a simple regression method (locally weighted Linear
+%% Regression) to estimate
+
+%% \cen{$P(\dot x|u,x) \stackrel{\text{local}}= \NN(\dot x \| Ax + Bu, \s)$}
+
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\item Remainder of this lecture: Brief discussions
+\begin{items}
+\item Goal-directed Behavior \& Behavioral PsychologyScience
+\item Model-based RL
+\item Exploration
+\item RL under partial observability
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\sublecture{Discussion}{
+
+\tiny
+\item RL \& goal-directed behavior
+\item model-based vs model-free
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Long history of RL in AI}{
+
+\helvetica{9}{1.5}{m}{n}
+
+Idea of programming a computer to learn by trial and error (Turing, 1954)
+
+SNARCs (Stochastic Neural-Analog Reinforcement Calculators) (Minsky, 54)
+
+Checkers playing program (Samuel, 59)
+
+Lots of RL in the 60s (e.g., Waltz \& Fu 65; Mendel 66; Fu 70)
+
+MENACE (Matchbox Educable Naughts and Crosses Engine (Mitchie, 63)
+
+RL based Tic Tac Toe learner (GLEE) (Mitchie 68)
+
+Classifier Systems (Holland, 75)
+
+Adaptive Critics (Barto \& Sutton, 81)
+
+Temporal Differences (Sutton, 88)
+
+~
+
+{\hfill\tiny from  Satinder Singh's \emph{Introduction to RL}, videolectures.com}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{TD-Gammon, by Gerald Tesauro (1991-1995)}{
+
+%% {\tiny (See section 11.1 in Sutton \& Barto's book.)}
+
+%% \small
+
+%% \item MLP (=multi-layer perceptron) to represent the value function $V(s)$
+
+%% ~
+
+%% \show[.35]{TDgammon}
+
+%% ~
+
+%% \begin{items}
+%% \item Only reward given at end of game for win.
+
+%% \item \textbf{Self-play}: use the current policy to sample moves on
+%%   \emph{both} sides!
+
+%% \item random policies $\to$ games take up to thousands of
+%%   steps. Skilled players $\sim 50-60$ steps.
+
+
+%% \item TD($\l$) learning (gradient-based update of NN weights)
+
+%% \end{items}
+
+%% }
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{TD-Gammon, by Gerald Tesauro (1991-1995)}{
+
+%% ~
+
+%% \item Choose features as raw position inputs (number of pieces at each place)
+
+%% $\to$ as good as previous computer programs
+
+%% \item Using previous computer program's expert features
+
+%% $\to$ world-class player
+
+%% ~
+
+%% \item Kit Woolsey was world-class player back then:
+
+%% \begin{items}
+%% \item TD-Gammon particularly good on vague positions
+%% \item not so good on calculable/special positions
+%% \item just the opposite to (old) computer programs
+%% \end{items}
+
+%% \item See anotated matches: \url{http://www.bkgm.com/matches/woba.html}
+
+%% %% ~
+
+%% %% \item Good example for
+
+%% %% \begin{items}
+%% %% %\item being creative in applying RL when it's supposed to work!
+%% %% \item value function approximation
+%% %% \item game theory, self-play
+%% %% \end{items}
+
+%% %~
+
+%% %\item perhaps backgammon is not too difficult after all?
+
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Dopamine}{
+
+\item Evidence for model-free RL in animals \& humans?
+
+~
+
+\show[.5]{dopamine}
+
+\small
+
+Montague, Dayan \& Sejnowski:
+\emph{A Framework for Mesencephalic Dopamine Systems based on Predictive
+Hebbian Learning.}
+Journal of Neuroscience, 16:1936-1947, 1996. 
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+So what does that mean?
+
+~
+
+\begin{items}
+\item We derived an algorithm from a general framework
+
+\item This algorithm involves a specific quantity: the TD error
+
+\item We find a neural correlate of this quantity
+\end{items}
+
+~
+
+\cen{\emph{Great!}}
+
+\mypause
+
+Devil's advocate:
+
+~
+
+\begin{items}
+\item Does not proof that TD learning is going on in the brain
+
+Only that an expected reward is compared with a experienced reward
+
+~
+
+\item Does not discriminate between model-based and model-free RL
+
+(Both can induce an expected reward)
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Limitations of the model-free view}{
+
+~\small
+
+\item Given learnt values, the behavior $\pi$ is a fixed state$\to$action mapping
+
+\item If the ``goal'' changes: need to re-learn values for every state in
+   the world! all previous values are obsolete
+
+\item No general ``knowledge'', only values
+
+\item No anticipation of general outcomes ($s'$), only of value
+
+\item No ``planning''
+  
+%\centerline{\color{blue}\it That cannot be the whole story!}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\item Evidence for model-based RL \& \emph{reasoning} in animals \& humans?
+
+~
+
+\center
+
+\twocol{.4}{.4}{
+\mov{\show[.6]{koehler-monkeys}
+}{10-goalDirectedBehavior/APigeonSolvesTheClassicBox-and-BananaProblem.flv}
+}{
+Wolfgang K\"ohler (1917)
+
+\emph{Intelligenzpr\"ufungen am\\Menschenaffen}
+
+\emph{The Mentality of Apes}
+
+~
+
+~
+
+\small
+Would he hard to explain \\
+this with model-free RL
+
+}
+
+%% ~
+
+
+%% ~%\mypause
+
+%% {\color{red}\it Goal-directed
+%%   Decision Making}\\
+%% What are computational principles for such behavior?
+
+%% %(model-based view)
+
+}
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{}{
+
+%% \center
+
+%% \twocol{.4}{.4}{
+%% \mov{\show[.6]{koehler-monkeys}
+%% }{10-goalDirectedBehavior/APigeonSolvesTheClassicBox-and-BananaProblem.flv}
+%% }{\center
+%% }
+
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Behavioral Psychology}{
+
+\twocol{.45}{.45}{
+{\center
+\showh[.3]{tolman}\\
+Edward Tolman (1886 - 1959)
+
+~
+
+\showh[.3]{koehler}\\
+Wolfgang K\"ohler (1887--1967)
+}
+
+{\helvetica{7}{1}{m}{n} learn facts about the world that they could subsequently
+    use in a flexible manner, rather than simply learning automatic
+    responses\\
+
+}
+
+}{
+
+%% {\center
+%% \showh[.3]{thorndike}\\
+%% Edward Thorndike (1874 – 1949)\\
+
+%% \emph{``Law of Effect''}\\
+
+%% }
+
+%% ~
+
+{\center
+\showh[.3]{hull}\\
+Clark Hull (1884 - 1952)\\
+
+\emph{Principles of Behavior} (1943)\\
+
+}
+
+~
+
+
+{\helvetica{7}{1}{m}{n} learn stimulus-response mappings based on
+  reinforcement\\
+
+}
+
+}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ 
+\slide{Goal-directed vs.\ habitual: Devaluation}{
+
+%\mov{[skinner]}{10-goalDirectedBehavior/SkinnerBox-Eddy-BellTraining.mp4}
+
+~
+
+\show[.5]{devaluation}
+
+~
+
+Niv, Joel \& Dayan:
+\emph{A normative perspective on motivation.}
+TICS, 10:375-381, 2006.
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Goal-directed vs.\ habitual: Devaluation}{
+
+~
+
+\show[.2]{devaluation2}
+
+~
+
+Niv, Joel \& Dayan:
+\emph{A normative perspective on motivation.}
+TICS, 10:375-381, 2006.
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+{\tiny
+By definition, goal-directed behavior is performed to obtain a desired
+goal. Although all instrumental behavior is \textbf{instrumental} in
+achieving its contingent goals, it is not necessarily purposively
+\textbf{goal-directed}. Dickinson and Balleine [1,11] proposed that
+behavior is goal-directed if: (i) it is sensitive to the contingency
+between action and outcome, and (ii) the outcome is desired. Based on
+the second condition, motivational manipulations have been used to
+distinguish between two systems of action control: if an instrumental
+outcome is no longer a valued goal (for instance, food for a sated
+animal) and the behavior persists, it must not be goaldirected.
+Indeed, after moderate amounts of training, outcome revaluation brings
+about an appropriate change in instrumental actions
+(e.g. leverpressing) [43,44], but this is no longer the case for
+extensively trained responses ([30,31], but see [45]). That extensive
+training can render an instrumental action independent of the value of
+its consequent outcome has been regarded as the experimental parallel
+of the folk psychology maxim that wellperformed actions become
+\textbf{habitual} [9] (see Figure I).
+
+%%   This distinction between two
+%% types of behavior is also paralleled by a distinction between two
+%% different neural pathways to action selection. Habitual behavior is
+%% thought to be dependent on the dorsolateral striatum [8,32] and its
+%% dopaminergic afferents, whereas goal-directed behavior is controlled
+%% more by circuitry involving frontal cortical areas and the dorsomedial
+%% striatum [8,20,21]. These two pathways have been suggested as
+%% subserving two action controllers with different computational
+%% characteristics, which operate in parallel during action selection
+%% [10].
+
+~}
+
+Niv, Joel \& Dayan:
+\emph{A normative perspective on motivation.}
+TICS, 10:375-381, 2006.
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{Eligibility Traces \& Replay Buffers}{
+
+%% \item The basic methods on the previous slide update only a \emph{single entry} of the $V$- or $Q$-function with each experience.
+
+%% \item This is not sample efficient ~ (requires many samples/experience til convergence)
+
+%% ~\pause
+
+%% \item The idea of eligibility traces and replay buffers is to (re)use the experiences for larger updates of the $V$- or $Q$-function
+
+%% }
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \key{Eligibility traces}
+%% \slide{Eligibility traces}{
+
+%% \small
+
+%% \item Standard Temporal Difference updates based on single experience $(s_0, r_0, s_1)$:
+%% \begin{align*}
+%% V_\new(s_0)
+%%  &= V_\old(s_0)
+%%  + \a [r_0 + \g V_\old(s_1) - V_\old(s_0) ]
+%% \end{align*}
+
+%% \pause
+
+%% \item Consider a longer experience sequence, for example: $(s_0, r_0, r_1, r_2, s_3)$
+ 
+%% \begin{items}
+%% \item \textbf{Temporal credit assignment:} Receiving later rewards
+%%   $r_{0:2}$ and ending up in $s_3$ also tells us something about $V(s_0)$
+%%   \item One option would be to update $s_0$ three steps later with more information:
+%% \begin{align*}
+%% V_\new(s_0)
+%%  &= V_\old(s_0)
+%%  + \a [r_0 + \g r_1 + \g^2 r_2 + \g^3 V_\old(s_3) - V_\old(s_0) ]
+%% \end{align*}
+%% \end{items}
+
+
+%% \pause
+
+%% \item Alternative: Remember where you've been recently (``eligibility trace'') and update those values as well:
+%% \begin{align*}
+%% &e(s_t) \gets e(s_t)+1 \\
+%% &\forall s:~ V_\new(s) = V_\old(s)
+%%  + \a~ e(s)~ [r_t + \g V_\old(s_{t\po}) - V_\old(s_t)] \\
+%% &\forall s:~ e(s) \gets \g \l e(s)
+%% \end{align*}
+
+%% \item This is a core topic of Sutton \& Barto book
+
+%% $\to$ great improvement of basic RL algorithms
+
+%% }
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{Eligibility Traces}{
+
+%% \item Eligibility trace $e(s)$ for a fixed state $s$ over time:
+
+%% \show[.3]{eligibilities}
+
+%% \begin{items}
+%% \item Top: event when state $s_t=s$ is visited
+%% \item Middle: Addition and decay (with decay rate $\l\g$) of standard eligibility traces
+%% \item Bottom: Variant when eligibilities are set to one, $e(s_t) \gets 1$, instead of added
+%% \end{items}
+%% \item The eligibility parameter $\l\in[0,1]$ determines decay.
+
+%% ~
+
+%% \item Elibility traces indicate, for each $s$, how much its value should be adapted with later rewards.
+
+%% }
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{Q(\protect{$\l$}) pseude code}{
+
+%% \small
+
+%% \item In Q-learning we maintain eligibilities $e(s,a)$ for state-action pairs:
+%% \begin{algo}
+%% \State Initialize $Q(s,a)=0$, $e(s,a)=0$
+%% \Repeat \Comment{for each episode}
+%% \State Initialize start state $s$
+%% \Repeat \Comment{for each step of episode}
+%% \State Choose action $a\approx_\e \argmax_a Q(s,a)$
+%% \State Update eligibility: \quad $e(s,a) \gets 1$ \quad or \quad $e(s,a) \gets e(s,a)+1$
+%% \State Take action $a$, observe $r, s'$
+%% \State Compute TD-error $D = [r + \g \max_{a'} Q(s',a') - Q(s,a)]$
+%% \State $\forall_{\tilde s,\tilde a}$ with $e(\tilde s,\tilde a)>0$: ~ $Q(\tilde s,\tilde a) \gets Q(\tilde s,\tilde a) + \a~ e(\tilde s,\tilde a)~ D$
+%% \State Discount all eligibilities $\forall_{\tilde s,\tilde a}:~ e(\tilde s,\tilde a) \gets \g \l e(\tilde s,\tilde a)$
+%% \State $s\gets s'$
+%% \Until end of episode
+%% \Until happy
+%% \end{algo}
+
+%% ~
+
+%% \item Analogously for TD($\l$) and SARSA($\l$)
+
+%% }
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \key{on-policy RL}
+%% \key{off-policy RL}
+%% \key{SARSA RL}
+%% \key{Temporal Difference RL}
+%% \slide{Variants: TD($\l$), Sarsa($\l$), $Q(\l)$}{
+
+%% \small
+
+%% \item TD($\l$):
+
+%% $\forall \tilde s:~ V(\tilde s) \gets V(\tilde s)
+%%  + \a~ e(\tilde s)~ [r + \g V_\old(s') - V_\old(s)]
+%% $
+
+%% \item Sarsa($\l$)
+
+%% $\forall_{\tilde s,\tilde a}:~ Q(\tilde s,\tilde a) \gets Q(\tilde s,\tilde a)
+%%  + \a~ e(\tilde s,\tilde a)~ [r + \g Q_\old(s',a') - Q_\old(s,a)]$
+
+%% \item $Q(\l)$
+
+%% $\forall_{\tilde s,\tilde a}:~ Q(\tilde s,\tilde a) \gets Q(\tilde s,\tilde a)
+%%  + \a~ e(\tilde s,\tilde a)~ [r + \g \max_{a'} Q_\old(s',a') - Q_\old(s,a)]$
+
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\sublecture{Terminology in RL -- Summary}{}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{model-free RL}
+\key{model-based RL}
+\slide{Model-based RL vs.\ Model-free RL vs.\ Policy Search}{
+
+~
+
+~
+
+\item \textbf{Model-based RL:}
+\begin{items}
+\item given data $D$, learn $P(s'|s,a)$ and $R(s,a)$, then compute $\pi^*$
+\anchor{20,-40}{\showh[.3]{RLoverview}}
+\end{items}
+
+~
+
+\item \textbf{Model-free RL:}
+\begin{items}
+\item given data $D$, learn $V^*(s),Q^*(s,a), V^\pi(s)$, or $Q^\pi(s,a)$, then improve $\pi$
+\end{items}
+
+~
+
+\item \textbf{Policy search:}
+\begin{items}
+\item given data $D$, estimate ``policy gradient'', or use black box
+(e.g.\ evolutionary) search to improve $\pi$
+\end{items}
+ 
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{On-Policy vs.\ Off-Policy Methods}{
+
+\item \textbf{On-policy:} estimate $V^\pi$ or $Q^\pi$ while executing $\pi$ ~ (e.g., TD, Sarsa)
+
+~
+
+\item \textbf{Off-policy:} estimate $Q^*$ while executing $\pi$ ~ (e.g., Q-learning)
+\begin{items}
+\item The actually executed (data-collecting) policy $\pi$ is also called ``behavioral policy''
+\item In contrast, values $Q^*$ are estimated for the optimal policy $\pi^*$
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Actor-Critic Methods}{
+
+\item \textbf{Actor:} the policy $\pi$,~ \textbf{Critic:} the value function $V^\pi(s)$
+
+~
+
+\item TD learning can be used to learn $V^\pi$
+
+\item We can (simultaneously or alternatingly) also adapt the policy using the policy gradient $\na_\t J^{\pi_\t}$ of
+$$J^{\pi_\t} = \Exp[p(s_t) \pi_\t(a_t|s_t) p(s_{t\po}|s_t,a_t)] { r_t + \g V^\pi(s_{t\po}) }~,$$
+
+{\tiny The policy gradient has a simple expression if $\pi$ is probabilistic, and expectations w.r.t.\ $p(s_t), p(s_{t\po}|s_t,a_t)$ are replaced by data.
+
+}
+
+%% {\small\begin{align*}
+%% \hspace*{-5mm}
+%% &\frac{\del V(\b)}{\del \b}
+%% =
+%% \frac{\del}{\del \b}
+%% \int P(\xi|\b)~ R(\xi)~ d\xi
+%% = \int P(\xi|\b) \frac{\del}{\del \b} \log P(\xi|\b) R(\xi) d\xi \\
+%% \hspace*{-5mm}
+%% &=
+%% \Exp[\xi|\b]{\frac{\del}{\del \b} \log P(\xi|\b) R(\xi)}
+%%  = \Exp[\xi|\b]{\sum_{t=0}^H \g^t \frac{\del \log\pi(a_t|s_t)}{\del \b}
+%%  \underbrace{\sum_{t'=t}^H \g^{t'-t} r_{t'}}_{Q^\pi(s_t,a_t,t)}}
+%% \end{align*}}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Standard RL vs.\ Batch RL vs.\ Offline RL}{
+
+~
+
+\item \textbf{Standard RL} assumes an agent learning\\
+in interaction with the environment
+\anchor{50,-30}{\showh[.3]{RLagenAndEnvironment}}
+
+~
+
+{\hfill\tiny [Satinder Singh]}
+
+
+\item \textbf{Batch RL:}
+\begin{items}
+\item First collect a batch of data $D$, then improve $\pi$, then perhaps iterate collecting a next batch of data
+\end{items}
+
+~
+
+\item \textbf{Offline (Batch) RL:}
+\begin{items}
+\item Assume fixed given data $D$; no interactive collection of further data at all
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\sublecture{Exploration}{}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Epsilon-greedy exploration in Q-learning}
+\slide{\protect$\e$-greedy exploration in Q-learning}{
+
+~
+
+\begin{algo}
+\State Initialize $Q(s,a)=0$
+\Repeat \Comment{for each episode}
+\State Initialize start state $s$
+\Repeat \Comment{for each step of episode}
+\State {\color{blue} Choose action
+$a = \begin{cases}
+{\color{blue} \text{random}} & {\color{blue} \text{with prob.}~ \e}\\
+\argmax_a Q(s,a) & \text{else}
+\end{cases}
+$}
+\State Take action $a$, observe $r, s'$
+\State $Q_\new(s,a) \gets Q_\old(s,a) + \a~ [r + \g \max_{a'} 
+Q_\old(s',a' ) - Q_\old(s,a)]$
+\State $s\gets s'$
+\Until end of episode
+\Until happy
+\end{algo}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Optimistic value initialization \& UCB}{
+
+\item Generally, we need better ways to explore than $\e$-greedy!
+\begin{items}
+\item Our discussion of bandits emphasized the need for a principled approach to exploration-exploitation problems
+\end{items}
+
+~\pause
+
+\item UCB: If you can estimate a confidence bound $\s(s,a)$ for your Q-function (e.g., using bootstrap estimates when using function approximation), choose your action based on $Q(s,a) + \b \s(s,a)$
+\begin{items}
+\item Confidence intervals for $V$-/$Q$-function (Kealbling '93, Dearden et al.\ '99)
+\end{items}
+
+~
+
+\item Initialize the Q function optimistically! E.g., if you know $R_\text{max}$, $Q(s,a) = 1/(1-\g) R_\text{max}$ ~ (in practise, this is often much too large)
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\item Really ``clever'' exploration is hard in a model-free setting
+\begin{items}
+\item Even if we can estimate confidence values for $Q(s,a)$, we need to \emph{visit states $\tilde s$} with high uncertainty
+\item Visiting such states is a \textbf{planning problem}
+\item Need a plan/policy to travel to $\tilde s$ -- how?
+\end{items}
+
+
+~\pause
+
+\item In model-based RL, ``planned exploration'' is much easier
+\begin{items}
+\item In the following, two classical methods that proved \textbf{polynomial sample complexity} to learn near-optimal policies
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{R-Max}
+\slide{\rmax**}{
+
+\small
+(Brafman and Tennenholtz, 2002)
+
+~
+
+\item Assume discrete state-action space
+
+\item Model-based RL: We estimate $R(s,a)$ and $P(s'|s,a)$ on the fly
+
+\item We count $c(s,a)$ how often we visit a $(s,a)$
+
+\item Use a strictly \emph{optimistic} reward function:
+\begin{align}
+\nonumber
+R^{\rmax}(s,a) =
+\left\{
+\begin{array}{ll}
+R(s,a) & \! c(s,a) \!\ge\! m ~ \text{($s,a$ known)} \\
+R_\text{max} & \! c(s,a) \!<\! m ~ \text{($s,a$ unknown)}
+\end{array}
+\right.
+\end{align}
+
+\item Is PAC-MDP (\emph{probably approximately correct-MDP}) efficient
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{KWIK-\rmax**}{
+
+(Li, Littman, Walsh, Strehl, 2011)
+
+~
+
+\item Extension of \rmax\ to \emph{more general
+representations}
+
+\textbf{(KWIK = Knows-what-it-knows framework)}
+
+~
+
+\item Let's say the transition model $P(s' \| s,a)$ is defined by $n$
+parameters
+\begin{items}
+\item Typically, \emph{$n \ll$ number of states}
+\end{items}
+
+\item Efficient KWIK-learner $L$ requires a number of samples which
+is polynomial in $n$ to estimate approximately correct $\hat{P}(s' \|
+s,a)$
+
+
+\item KWIK-\rmax\ using $L$ is \emph{PAC-MDP efficient in $n$}
+\begin{items}
+\item[$\to$] polynomial in number of parameters of transition model
+\item[$\to$] more efficient than plain \rmax\ by several orders of magnitude
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \key{Bayesian RL}
+%% \slide{Bayesian RL}{
+
+%% \item There exists an optimal solution to the exploration-exploitation
+%%   trade-off: belief planning (see my tutorial ``Bandits, Global
+%%   Optimization, Active Learning, and Bayesian RL -- understanding the
+%%   common ground'')
+
+
+%% $$
+%% V^\pi(b,s)
+%%  = R(s,\pi(b,s)) 
+%%  + \int_{b',s'} P(b',s' \|b,s,\pi(b,s))~ V^\pi(b',s')
+%% $$
+
+%% \begin{items}
+%% \item Agent maintains a \emph{distribution (belief) $b(m)$ over
+%% MDP models $m$}
+
+%% \item typically, MDP structure is fixed; belief over the parameters
+
+%% \item belief updated after each observation $(s,a,r,s')$: $b \to b'$
+
+%% \item only tractable for very simple problems
+%% \end{items}
+
+%% ~
+
+%% \item \emph{Bayes-optimal policy} $\pi^*=\argmax_\pi V^\pi(b,s)$
+%% \begin{items}
+%% \item no other policy leads to more rewards in expectation w.r.t.~prior
+%% distribution over MDPs
+
+%% \item solves the exploration-exploitation tradeoff
+%% %\item is \emph{not} PAC-MDP efficient!
+%% \end{items}
+
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \key{Optimistic heuristics}
+%% \slide{General View: Optimistic heuristics}{
+
+%% \item As with UCB, choose estimators for $R^*$, $P^*$ that are optimistic/over-confident
+%% $$V_t(s)
+%% = \max_a\[ R^* + \Sum_{s'} P^*(s'|s,a)~ V_{t\po}(s') \]$$
+
+%% \item Rmax:
+%% \begin{items}
+%% \item $R^*(s,a)=\begin{cases} R_{\text{max}} & \text{if
+%% $\#_{s,a}<n$} \\ \hat\t_{rsa} & \text{otherwise} \end{cases}$
+%% \comma $P^*(s'|s,a)=\begin{cases} \d_{s's^*} & \text{if
+%% $\#_{s,a}<n$} \\ \hat\t_{s'sa} & \text{otherwise} \end{cases}$
+%% \item Guarantees over-estimation of values, polynomial PAC results!
+%% \item Read about ``KWIK-Rmax''! (Li, Littman, Walsh, Strehl, 2011)
+%% \end{items}
+
+%% \item Bayesian Exploration Bonus (BEB), Kolter \& Ng (ICML 2009)
+%% \begin{items}
+%% \item Choose $P^*(s'|s,a) = P(s'|s,a,b)$ integrating over the current belief
+%% $b(\t)$ (non-over-confident)
+%% \item But choose $R^*(s,a) = \hat\t_{rsa} + \frac{\b}{1+\a_0(s,a)}$
+%% with a hyperparameter $\a_0(s,a)$, over-estimating return
+%% \end{items}
+
+%% \item Confidence intervals for $V$-/$Q$-function
+%% (Kealbling '93, Dearden et al.\ '99)
+
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{More ideas about exploration}{
+
+\item \textbf{Intrinsic rewards} for \emph{learning progress}
+
+\begin{items}
+\item ``fun'', ``curiousity''
+
+\item in addition to the external ``standard'' reward of the MDP
+
+\item \textit{``Curious agents are interested in learnable but yet
+unknown regularities, and get bored by both predictable and inherently
+unpredictable things.''} (J.~Schmidhuber)
+
+\item Use of a meta-learning system which learns to predict the error that
+the
+learning machine makes in its predictions; meta-predictions measure the
+\emph{potential interestingness of situations} (Oudeyer et al.)
+\end{items}
+
+\cit{Lopes, Lang, Toussaint, Oudeyer}{Exploration in model-based reinforcement learning by empirically estimating learning progress}{NeurIPS 2012}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{More ideas about exploration}{
+
+%% \item Exploration to reduce uncertainty of a belief $p(x)$
+
+%% \begin{items}
+%% \item In robotics, $p(x)$ might be the belief about the robot position $x$
+
+%% \item \emph{Entropy}: a probabilistic measure of information
+
+%% \hspace{0.5cm} $H(p(x)) = - \int p(x) \log p(x) dx$
+
+%% \hspace{0.5cm} $H_p(x)$ is maximal if $p$ is uniform,
+
+%% \hspace{0.5cm} and minimal if $p$ is a point mass distribution
+
+%% \item \emph{Information gain} of action $a$:
+
+%% \hspace{0.5cm} $I(a) = H(p(x)) - E_z[H(p(x' \| z, a))]$
+
+%% \hspace{0.5cm} ($z$ is the potential observation)
+
+%% \hspace{0.5cm} expected change of entropy when executing an action
+
+%% \item \emph{maximizing information gain = minimizing uncertainty
+%% in belief}
+%% \end{items}
+
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\sublecture{RL under Partial Observability}{
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Partial Observability}{
+
+\item In general, the agent may only receive an observation $y_t$ and does not know the ``true'' world state $s_t$
+\begin{items}
+\item See Lecture 5, slide 7
+\end{items}
+
+~
+
+\item The agent needs to maintain some \textbf{memory/internal state}, which can be
+\begin{items}
+\item A window of recent observations $(y_{t-k:t},a_{t-k:t\1})$
+\item Some internal state $n_t$ as in a finite state machine
+\item Some learnt internal state, esp. \textbf{neural state} in a recurrent neural net
+\item The exact belief $b_t(s_t)$ over state ~ (practical only in very small discrete domains)
+\end{items}
+
+~
+
+\item Core reference in case of Deep Q-Learning:
+
+Hausknecht \& Stone: \emph{Deep Recurrent Q-Learning for Partially Observable MDPs} (AAAI 2015)
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{\label{lastpage}
+
+\item Example \emph{Deep Recurrent Q-Network} that takes an image (screen) as input:
+
+\medskip
+
+\show[.35]{DRQN}
+
+\cit{Hausknecht \& Stone}{Deep Recurrent Q-Learning for Partially Observable MDPs}{AAAI 2015}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slidesfoot

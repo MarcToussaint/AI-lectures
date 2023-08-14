@@ -1,0 +1,1199 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Artificial Intelligence}
+\renewcommand{\coursepicture}{course_ai}
+\renewcommand{\coursedate}{Summer 2023}
+
+\renewcommand{\topic}{Sequential Decisions \& Monte-Carlo Tree Search}
+\renewcommand{\keywords}{}
+
+\slides
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\story{
+The previous lectures were all about single-step decision making, without explicitly accounting for long horizon effects of decision making or planning. (In the bandit setting, decisions do have long term effects; but our strategy UCB1 just looked 1 step ahead.)
+
+A core part of AI is \emph{sequential} decision making, where the agent iteratively interacts with an environment and has to account for long term effects of its decisions. This is the first lecture to introduce the core formalism for such decision making problems.
+
+The notion of \emph{state} is central in such formalisms: One assumes
+that there is a `world state' and decisions of the agent change the
+state. This process is formalized as Markov Decision Process (MDP),
+stating that a new state may only depend the previous state and
+decision.
+
+After introducing MDPs, we first discuss how to use Monte-Carlo to estimate the long-term effects, also called the total return. As the sequence of decisions spans a tree, this leads to Monte-Carlo Tree Search (MCTS). However, where in this tree to collect samples is a major decision in itself -- we should focus on collecting samples in those areas of the tree that reflect likely futures. Using UCB1 for these sampling decisions leads to standard MCTS methods.
+
+Basic MCTS is very generally applicable to games and POMDPs, not particularly efficient. However, given extensive data we can estimate also a value function. Combining MCTS with a trained value function can lead to highly efficiently methods, e.g.\ AlphaGo.
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\sublecture{Sequential Decision Making}{}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{Recap: Single-Step Discrete Decisions}{
+
+%% \item Problem setting:
+%% \begin{items}
+%% \item Discrete choice $a\in\{1,..,A\}$, $A\in\ZZZ^+$
+%% \item Outcome $y\in\RRR$ depends on choice, with probability $P(y|a)$
+%% \item Some utility or reward associated with $y$
+%% \end{items}
+
+%% \medskip
+
+%% \show[.2]{decisionNet-single}
+
+%% ~\pause
+
+%% \twocol{.6}{.3}{
+
+%% \item What will change in the following:
+%% \begin{items}
+%% \item There is a \textbf{state} $s$, decisions should depend on state
+%% \item The \textbf{outcome} of a decision is a \textbf{change of state}
+%% \item The \textbf{objective} relates to reaching goal states (or states of high reward)
+%% \end{items}
+
+%% }{
+%% \show[.9]{decisionNet-MDP}
+%% }
+
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Sequential Decisions: Interacting with an Environment}{
+
+~
+
+\show[.35]{RLagenAndEnvironment}
+{\hfill\tiny [Satinder Singh]}
+
+~
+
+\item The agent \emph{interacts} with a domain:
+\begin{items}
+\item The world is in a state $s_t\in\SS$ ~ (see below on what that
+means)
+\item The agent observes the state $s_t$ ~ (see below for partial observability)
+\item The agent decides on an action $a_t\in\AA$
+\item The world transitions to a new state $s_{t\po}$
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Markov Decision Process}{
+
+Formal problem definition for a single agent:
+
+~
+
+\twocol{.6}{.4}{
+
+\item A \textbf{Markov Decision Process} (MDP) is defined by
+\begin{items}
+\item world's initial state distribution $P(s_0)$
+\item world's transition probabilities $P(s_{t\po} \| s_t,a_t)$
+\item world's reward probabilities $P(r_t \| s_t,a_t)$
+\end{items}
+
+}{
+
+%\show[.7]{mdp1}
+\show[.7]{decisionNet-MDP}
+
+}
+
+\item The objective is to find an
+\begin{items}
+\item agent \defn{policy} $\pi(a_t \| s_t) = P(a_t|s_t;\pi)$ ~ (or deterministic $a_t = \pi(s_t)$)
+\item that maximizes the \defn{expected return} $\Exp{R}$
+
+\medskip
+
+\tiny
+where the return $R\in\RRR$ could be accumulated reward $R = \sum_t r_t$, or discounted reward $R = \sum_t \g^t r_t$
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{``Markov'' and the notion of \emph{State}}{
+
+\item The notion of \emph{state} is often used imprecisely
+
+\item At any time $t$, we assume the world is in a state $s_t \in \SS$
+
+\item \textbf{Markov property:} $s_t$ is a \emph{state description} of a domain iff the future $s_{t^+}, t^+>t$ is conditionally independent of the past observations $s_{t^-}, t^-<t$ given $s_t$.
+
+~
+
+\show[.7]{markov1}
+
+~
+
+\item Intuitively, $s_t$ describes everything about the world that is ``relevant''
+\begin{items}
+\item Worlds do not have additional latent (hidden) variables next to the
+state $s_t$
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Examples}{
+
+\item What is a sufficient definition of \emph{state} of a computer
+that you interact with?
+
+~
+
+\item What is a sufficient definition of \emph{state} for a thermostat
+scenario?
+
+(First, assume the 'room' is an isolated chamber.)
+
+~
+
+\item What is a sufficient definition of \emph{state} in an autonomous
+car case?
+
+~
+
+~\mypause
+
+$\to$ in real worlds, the exact \emph{state} is practically not
+representable
+
+$\to$ all models of domains will have to make approximating
+assumptions (e.g., about independencies)
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Fully and Partially Observability}{
+
+\item Full Observability:~ \small (Markov Decision Process, MPD)
+
+The agent can sense the true state $s_t$, and its policy is a function of state:
+$$\text{deterministic:}\quad \pi: s_t \mapsto a_t \qquad \text{or stochastic:}\quad \pi(s_t\|a_t)$$
+
+~\pause
+
+\normalsize
+
+\item Partial Observability:~ \small (Partially Observable Markov Decision Process, POMDP)
+
+\medskip
+
+\twocol{.35}{.5}{
+
+\show[.7]{RLagenAndEnvironment}
+
+}{
+
+\small
+
+\item Then agent only receives an \defn{observation} $y_t$ (sensor signals)
+
+\item The agent does not know the true state $s_t$, and decisions cannot be a function of state
+
+\item How can we formalize a policy then?
+
+}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Fully and Partially Observability}{
+
+\item The agent in general needs to \emph{process} observations (including memory) to make decisions
+\show[.35]{markov}
+
+~\pause
+
+\item Formally, the agent is described as an \defn{agent function}:
+$$\pi:~ (y_{0:t},a_{0:t\1}) \mapsto a_t$$
+
+{\small where the agent memorizes all previous observations and taken actions}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Fully and Partially Observability}{
+
+\item However, in practise the agent is some machine with its own \textbf{internal state} $z_t$
+
+e.g., a computer, a {recurrent neural network}, a brain...
+
+\twocol{.45}{.45}{
+\item The agent is defined by:
+
+\quad $\text{update:}\quad (z_{t\1},y_t)\mapsto z_t$
+
+\quad $\text{policy:}\quad z_t \mapsto a_t$
+
+}{
+
+\show[.7]{pomdp_fsm}
+
+}
+
+~\pause
+
+\item There can be different types of internal states
+\begin{items}
+\item A neural representation in a recurrent neural network
+\item A finite state in a finite state machine
+\item The internal state can simply be the recent history $z_t=(y_{t-k:t},a_{t-k:t\1})$
+
+\item The internal state can be a so-called
+\textbf{belief} $b_t(s_t)$, which is a probability distribution over the state. The internal state update is the Bayesian belief update
+$(b_{t\1},y_t) \mapsto b_t$.
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\small
+
+For completeness: Markov property in POMDPs:
+
+~
+
+$s_t$ is a \emph{state description} of a domain iff future
+observations $y_{t^+}, t^+>t$ are conditionally independent of all
+history observations $y_{t^-}, t^-<t$ given $s_t$ and future
+actions $a_{t:t^+}$:
+
+\medskip
+
+\show[.4]{markov}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Summary}{
+
+\item In (fully observable) MDPs, the objective is to find an
+\begin{items}
+\item agent \defn{policy} $\pi(a_t \| s_t) = P(a_t|s_t;\pi)$ ~ (or deterministic $a_t = \pi(s_t)$)
+\item that maximizes the \defn{expected return} $\Exp{R}$
+\end{items}
+
+~
+
+\item in POMDPs, the objective is to find an
+\begin{items}
+\item an agent update function $(z_{t\1},y_t)\mapsto z_t$ and policy $z_t \mapsto a_t$
+\item that maximizes the \defn{expected return} $\Exp{R}$
+\end{items}
+
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\sublecture{Decision Trees}{
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Decision Trees for Deterministic Fully Observable Domains}{
+
+~
+
+\hspace*{-10mm}\twocol{.55}{.5}{
+
+\show[.9]{russell/romania-distances.pdf}
+%{\tiny\hfill [Russell \& Norvig]}
+
+}{
+
+\show[.9]{russell/search-map3c}
+
+{\hfill\tiny [Russell \& Norvig]}
+
+}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \key{Example: Romania}
+%% \slide{Example: Romania}{
+
+%% \item states: various cities,~ $\SS = \{ \text{Arad, Timisoara,}\dots \}$
+
+%% \item decisions: drive between cities, $\AA(s) = \{ \text{outgoing edges from state $s$} \}$
+
+%% \item initial state: $s_0=$Arad
+
+%% \item goal: be in Bucharest,~ $\SS_{\text{goal}} = \{\text{Bucharest}\}$
+
+%% \item problem: find sequence of cities, e.g., Arad, Sibiu, Fagaras, Bucharest
+%% to minimize costs with cost function $c(s,a)$
+
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \key{Problem Definition: Deterministic, fully observable}
+%% \slide{Deterministic, fully observable search problem}{
+
+
+%% \item A \defn{deterministic, fully observable search problem} is defined by:
+%% \begin{items}
+%% \item \textbf{state space} $\SS$
+
+%% \item \textbf{decision space}~ {$\AA(s) \subseteq \SS$} for each $s\in\SS$:
+%% \begin{items}
+%% \item Decisions in state $s$ need to be $a \in \AA(s)$
+%% \item A decision $a$ in state $s_t$ leads to deterministic \textbf{transition} to $s_{t\po} = a$
+%% \end{items}
+
+%% \pause
+
+%% \item \textbf{initial state}~ {$s_0\in\SS$} \quad e.g., {$s_0=\text{Arad}$}
+
+%% \item \textbf{goal states}~ {$\SS_\text{goal}\subseteq\SS$}
+
+%% \item \textbf{step cost function}~ {$c(s,s')$}, assumed to be {$\geq 0$}
+
+%% e.g., traveled distance, number of actions executed, etc.
+%% \end{items}
+
+%% ~
+
+%% \item A \defn{solution} is a sequence of decisions leading from $s_0$ to a goal
+
+%% \item An \defn{optimal solution} is a solution with minimal path costs
+
+%% }
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{Solution: Tree Search}{
+
+%% \item We consider the \textbf{decision tree} for this domain
+
+%% ~
+
+%% \show[.8]{russell/search-map3c}
+
+%% {\hfill\tiny [Russell \& Norvig]}
+
+%% ~
+
+%% \begin{items}
+%% \item Branchings corresponds to decisions
+%% \item \textbf{Each node represents a sequences of decisions $a_0,..,a_t$} and their outcome
+%% \item Not to be confused with a state graph or alike
+%% \end{items}
+
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{Recap: Classical Tree Search}{
+
+%% \twocol{.7}{.3}{
+
+%% \begin{algorithmic}[1]\tiny
+%% \Procedure {TreeSearch}{$s_0$, $\SS_\text{goal}$, succ, cost}
+%% \State root $\gets$ Node(state=$s_0$, parent=nil, cost=0, depth=0)
+%% \State fringe $\gets \langle$root$\rangle$
+%% \While {fringe is not empty}
+%% \State $n \gets$ fringe.pop() \Comment{pop node from fringe}
+%% \State if($n$.state$\in\SS_\text{goal}$) \textbf{return} $n$ \Comment{goal check}
+%% \State fringe.insert(~ \textsc{Expand}($n$, succ, cost) ~) \Comment{expand}
+%% \State optional: if $n$.children=$\{\}$, destroy it and childless ancestors
+%% \EndWhile
+%% \State \textbf{return} nil
+%% \EndProcedure
+%% \Statex
+%% \Procedure {Expand}{$n$, succ, cost}
+%% \State successors $\gets \{\}$
+%% \For{$s\in$ succ($n$.state)}
+%% \State $n'\gets$ Node(state=$s$, parent=$n$, cost=$n$.cost+c($n$.state, $s$), depth=$n$.depth+1)
+%% \State successors.append($n'$)
+%% \EndFor
+%% \State \textbf{return} successors
+%% \EndProcedure
+%% \end{algorithmic}
+
+%% }{
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Decision Trees for Deterministic Fully Observable Domains}{
+
+\item The decision tree has only one kind of branching: the state transition
+
+~\pause
+
+\item The result of planning is a sequence of states, \emph{not} a reactive policy
+
+~\pause
+
+\item How is the situation different in MDPs, POMDPs, 2-player games?
+
+
+%% \begin{items}
+%% \
+%% \item Breadth-first: fringe is a FIFO
+%% \item Depth-first: finge is a LIFO
+%% \item Iterative deepening search: repeat depth-first for increasing depth limit
+%% \item Uniform-cost: sort fringe by cost-so-far $g$
+%% \item \Astar: sort fringe by $f=g+h$ with admissible heuristic $h$
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{Example A* Tree for the Romania Example}{
+
+%% \show[.8]{russell/astar-progress06c}
+
+%% {\hfill\tiny [Russell \& Norvig]}
+
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Decision Tree for an MDP}{
+
+\twocol{.45}{.45}{
+
+\item Markov Decision Process (MDP):
+
+~
+
+\show[.6]{decisionNet-MDP}
+
+\small
+The state outcomes $P(s'|s,a)$ are stochastic
+
+}{
+
+\item Represented as Decision Tree:
+
+\show[.5]{state-action-tree}
+
+{\tiny\hfill[David Silver]}
+
+
+}
+
+~
+
+\item In the decision tree representation, we have \textbf{two branchings}:
+\begin{items}
+\item The agent takes a decision $a_t$
+\item The environment ``decides'' (stochastically) on a state transition $s_{t\po}$
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Decision Tree for a POMDP}{
+
+\twocol{.45}{.45}{
+
+\item POMDP:
+
+~
+
+\show[.7]{pomdp_fsm}
+
+\small
+Observations $y_t$ are stochastic
+
+}{
+
+\item Represented as Decision Tree:
+
+\show[.5]{POMCP}
+
+{\tiny\hfill[David Silver]}
+
+
+}
+
+~
+
+\item In the decision tree representation, we have \textbf{two branchings}:
+\begin{items}
+\item The agent takes a decision $a$ 
+\item The environment provides a stochastic observation $y$ (noted $o$ in the diagram)
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Decision Tree for a 2-player game}{
+
+~
+
+\show[.6]{russell/minimax.pdf}
+
+{\hfill\tiny [Russell \& Norvig]}
+
+~
+
+\item In the decision tree representation, we have \textbf{two branchings}:
+\begin{items}
+\item The agent takes a decision $a$, leading to state $s'$
+\item The opponent takes a (potentially stochastic) decision $b$, leading to state $s''$
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Types of Decision Trees on which MCTS is applicable}{
+
+\item Various decision trees with branchings of different semantics:
+
+\medskip
+
+\small
+\newcolumntype{C}[1]{>{\centering\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+
+\begin{tabular}{|C{.2\columnwidth}|C{.2\columnwidth}|C{.2\columnwidth}|C{.2\columnwidth}|}
+\hline
+deterministic &
+MDP &
+2-player game &
+POMDP** \\
+\hline
+state transition
+&
+{\color{green}action} \newline
+{\color{blue}state transition}
+&
+{\color{green}my-action} \newline
+{\color{green}opponent-action}
+&
+{\color{green}action} \newline
+{\color{blue}observation}
+\\
+\hline
+\show[.2]{russell/search-map3c}
+&
+\show[.2]{state-action-tree}
+&
+\show[.2]{russell/minimax.pdf}
+&
+\vspace*{-3mm}
+\show[.2]{POMCP}
+\\
+\hline
+\end{tabular}
+
+\item 2nd row describes the (alternating) branchings, which can be deterministic, {\color{blue}stochastic}, or (potentially randomized) {\color{green}policies}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Decision Trees}{
+
+\item In general, the decision tree represents \emph{all situations} the agent could reach. A node in this tree represents the history of ``signals'', e.g. the full history $(y_{0:t},a_{0:t\1})$ of previous actions and observations (input to the general agent function!), the history of previously visited states and actions, the history of previous self and opponent decisions in a game.
+
+~
+
+\item To find optimal decision policies, we need to \emph{estimate the expected return} in each possible situation (at each node of this tree).
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\sublecture{Monte Carlo Tree Search}{
+
+(or: Estimating Expected Returns (=Value) in Decision Trees)
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Monte Carlo Tree Search (MCTS)}
+\slide{Monte Carlo Tree Search (MCTS)}{
+
+\item MCTS is a standard approach to address all these cases
+\item MCTS is very successful on Computer Go and other games
+\item MCTS is rather simple to implement
+\item MCTS is very general: applicable on many discrete-decision domains
+
+~
+
+\item Literature:
+\begin{items}
+\item Key reference: Kocsis \& Szepesv{\'a}ri: \emph{Bandit based Monte-Carlo
+Planning}, ECML 2006.
+\item Good Introduction: Browne et al.: \emph{A Survey of Monte Carlo Tree Search Methods}, 2012.
+\item Tutorial:
+{\tiny \url{http://web.engr.oregonstate.edu/~afern/icaps10-MCP-tutorial.ppt}}
+\end{items}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Estimating Expected Return (=Value)}{
+
+\item We want to estimate the \textbf{expected return (=Value)} for each possible first decision $a$, called \textbf{Q-function}
+$$Q(s_0,a) = \Exp{R \| s_0, a}$$
+\tiny
+where the return $R\in\RRR$ is the final win, or accumulated reward $R = \sum_t r_t$, or discounted reward $R = \sum_t \g^t r_t$, and expectation is taken with w.r.t.\ the probabilistic future (including a potential opponent)
+
+~\pause
+\small
+
+\item \textbf{Recall Monte Carlo:} We want to compute an expectation
+$$\Exp[p(x)]{f(x)} = \int_x p(x)~ f(x)~ dx$$
+but $p(x)$ or $f(x)$ are too complicated to compute $\Exp[p]{f(x)}$ analytically
+
+\item Monte Carlo approach: Approximate expectation by evaluating many samples:
+\begin{items}
+\item First generate $n$ samples $x_i\sim p(x)$
+\item Then approximate $\Exp[p]{f(x)} \approx \frac{1}{n} \sum_{i=1}^N f(x_i)$ as the average $f(x_i)$
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{``Flat'' Monte Carlo estimate of $Q(s_0,a)$}{
+
+\item ``Flat'' means that we only consider the first decision and treat the rest as ``noisy blackbox''
+
+\pause
+
+\begin{algo}
+\State Initialize $Q_a, n_a \gets 0$ for all first decisions $a$
+\For{$i=1..n$}
+\State Reset the simulation to start state $s_0$
+\State Choose random decision $a$ (in SIMULATION)
+\State \textbf{Random Rollout:} Continue to end of game with random decisions
+\State Receive total return $R$
+\State Update $n_a \gets n_a + 1$
+\State Update $Q_a \gets Q_a + R$
+\EndFor
+\State Estimate the Q-function as $Q(s_0,a) \approx \frac{Q_a}{n_a}$
+\State Take/execute the decision $\argmax_a Q(s_0,a)$ in ``REAL''
+\end{algo}
+\anchor{-50,-50}{\showh[.2]{mcts-flat}}
+
+\begin{items}
+\item Monte Carlo methods first collect data ``in simulation'' to estimate $Q$, then take the actual decision
+\item For the second REAL decision Monte Carlo estimation is repeated
+\end{items}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{1-Step UCB}{
+
+\item But we can do better than this! $\to$ We learnt about Bandits \& UCB
+
+~\pause
+
+\begin{algo}
+\State Initialize $Q_a, n_a \gets 0$ for all first decisions $a$
+\For{$i=1..n$}
+\State Reset the simulation to start state $s_0$
+\State Use \textbf{UCB} (based on $Q_a, n_a$) to choose the $a$ (in SIMULATION)
+\State \textbf{Random Rollout:} Continue to end of the game with random decisions
+\State Receive total return $R$
+\State Update $n_a \gets n_a + 1$
+\State Update $Q_a \gets Q_a + R$
+\EndFor
+\State Estimate the Q-function as $Q(s_0,a) \approx \frac{Q_a}{n_a}$
+\State Take the decision $\argmax_a Q(s_0,a)$ in ``REAL''
+\end{algo}
+\anchor{-50,-50}{\showh[.2]{mcts-flat}}
+
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Sequential UCB}{
+
+\item But we can do better than this! $\to$ Also later decisions should not be random, but informed by what are promising decisions
+
+\item Use UCB also for later decisions in some way...
+
+~\pause
+
+\item But how exactly do this?
+\begin{items}
+\item 1-step UCB only ``represents'' the first decision $a$, and collects data $(Q_a,n_a)$ for the first decision $a$
+\item We need to represent more and more future decisions as well, and collect data for them as well
+\item To store this data, we incrementally build a tree
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Generic MCTS scheme}{
+
+\item We represent a ``growing'' decision tree, which includes those nodes for which we started collecting UCB data $Q_v,n_v$
+
+~
+
+\show[.5]{MCTS}
+{\vspace*{-5mm}\hfill\tiny [Browne et al.]}
+
+~
+
+\begin{items}
+\item We'll speak of \textbf{nodes} $v$ instead of states and decisions, in the following -- recall the semantics of nodes can vary
+
+\item We initialize the decision tree as $V=\{v_0\}$, where the root $v_0$ simply represents ``no decisions yet'' (the reset of the domain; which could have stochastic $s_0$)
+
+\item then we expand the tree \emph{where promising}
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Generic MCTS scheme}{
+
+\twocol{.7}{.3}{
+\show[.6]{MCTS}
+{\vspace*{-5mm}\hfill\tiny [Browne et al.]}
+}{
+\ttiny
+
+``Selection:'' tree policy
+
+``Expansion:'' add leaf node
+
+``Simulation:'' rollout policy
+
+``Backprop:'' store data $n_v,Q_v$
+}
+
+\small
+\begin{algo}
+\State start decision tree $V=\{v_0\}$
+\While{within computational budget}
+\State Reset the simulation to $v_0$
+\State Use $\textsc{TreePolicy}(V)$ (usually UCB) to simulate from $v_0$ until a not-yet-expanded decision
+\State Create a new leaf node $v_l$ for that decision and append to $V$
+\State Use $\textsc{RolloutPolicy}$ to roll out the simulation until termination, receiving return $R$
+\State $\textsc{Backup}(v_l,R)$ updates the values $n_v,Q_v$ of all parents of
+$v_l$
+\EndWhile 
+\State return best child $\argmax_v \frac{Q_v}{n_v}$ of children $v\in\del v_0$
+\end{algo}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Generic MCTS scheme}{
+
+\item Within the represented tree, we have data $Q_v,n_v$ for child nodes and can take \emph{informed decisions} rather than random. This is called the \textsc{TreePolicy}.
+
+\item At some point, a child decision will never have been selected before, no node or data exists yet for this child. This child is added as new leaf node $v_l$ to the tree.
+
+\item From this leaf on, we do not have data stored and need to use a pre-defined \textsc{RolloutPolicy} to finish the rollout. It
+typically is a random policy; at least a randomized policy.
+
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\key{Upper Confidence Tree (UCT)}
+\slide{Upper Confidence Tree (UCT)}{%\label{lastpage}
+
+\item UCT uses UCB to realize the {\sc
+TreePolicy}, i.e.\ to decide where to expand the tree
+
+~
+
+\item \textsc{Backup} updates all parents of $v_l$ as
+
+$n_v \gets n_v+1$ ~ (count how often has it been played)
+
+$Q_v \gets Q_v + R$ ~ (sum of returns received)
+
+~
+
+\item \textsc{TreePolicy} at $v$ chooses child node $v'$ based on UCB:
+$$\argmax_{v' \in \del(v)} \frac{Q_{v'}}{n_{v'}} + \b \sqrt{\frac{2\ln n_v}{n_{v'}}}$$
+or choose $v'$ if $n_{v'}=0$ (which will create a new leaf node)
+
+%~
+
+%% \item In games use a ``negamax'' backup: While iterating upward, flip
+%% sign $R \gets -R$ in each iteration
+
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Does it converge to optimal decisions?}{
+
+~
+
+\item Flat Monte Carlo estimates $Q(v_0,a)$ ``correctly'' \emph{under the assumption of a random rollout after $a_0=a$.}
+
+\item But UCT converges to choosing optimal actions on all levels, so that the estimated $Q(v_0,a)$ accounts for \emph{acting optimally also in the future} $\to$ optimal sequential decision making
+
+
+~\pause
+
+\item Kocsis \& Szepesv{\'a}ri extended the \emph{bounded regret} property of UCB from bandits to MCTS:
+
+ Kocsis \& Szepesv{\'a}ri: \emph{Bandit based Monte-Carlo
+Planning}, ECML 2006.
+
+~
+
+(But may still require many many rollouts.)
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\sublecture{UCT for Game Playing}{}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Minimax in Zero-Sum Games}{
+
+\item Zero-sum 2-player games defines a classical deterministic decision tree, but
+\begin{items}
+\item Agent decisions aim to maximize return R
+\item Opponent decisions aim to minimize return R
+\end{items}
+
+\twocol{.5}{.45}{
+
+\item Classical approaches:
+\begin{items}
+\item Minimax Tree Search
+\item $\alpha$--$\beta$ pruning
+\end{items}
+
+}{
+
+\show[.65]{russell/tictactoe.pdf}
+{\vspace*{-5mm}\hfill\tiny[Russell \& Norvig]}
+
+}
+
+~
+
+
+~\pause
+
+\item In UCT: Simple modification to account for 2-player zero-sum games:
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% \slide{Games vs.~search problems}{
+
+%% ``Unpredictable'' opponent $\Rightarrow$ solution is a \emph{strategy}\\
+%% specifying a move for every possible opponent reply
+
+%% Time limits $\Rightarrow$ unlikely to find goal, must approximate
+
+%% Plan of attack:
+%% \begin{itemize}
+%% \item Computer considers possible lines of play (Babbage, 1846)
+%% \item Algorithm for perfect play (Zermelo, 1912; Von Neumann, 1944)
+%% \item Finite horizon, approximate evaluation (Zuse, 1945; Wiener, 1948; \\
+%%       Shannon, 1950)
+%% \item First chess program (Turing, 1951)
+%% \item Machine learning to improve evaluation accuracy (Samuel, 1952--57)
+%% \item Pruning to allow deeper search (McCarthy, 1956)
+%% \end{itemize}
+
+
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% \slide{Types of games}{
+
+%% \vspace*{0.3in}
+
+%% \show[1.05]
+%% \show{russell/game-types.pdf}
+
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{Minimax algorithm}{
+
+%% \item Computation by direct recursive function calls, which effectively does DFS
+
+%% \item Is an instance of \emph{Dynamic Programming}
+
+%% ~
+
+%% %\input{russell/minimax-algorithm}
+
+
+%% }
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% \slide{Properties of minimax}{
+
+%% \emph{Complete} \pause -- Yes, if tree is finite (chess has specific rules for this)
+
+%% \emph{Optimal} \pause -- Yes, against an optimal opponent. Otherwise??
+
+%% \emph{Time complexity} \pause -- $O(b^m)$
+
+%% \emph{Space complexity} \pause -- $O(bm)$ (depth-first exploration)
+
+%% For chess, $b\approx 35$, $m \approx 100$ for ``reasonable'' games\\
+%% $\Rightarrow$ exact solution completely infeasible
+
+%% But do we need to explore every path?
+
+%% }
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{$\alpha$--$\beta$ pruning}{
+
+%% \show[.25]{russell/alpha-beta-general.pdf}
+
+%% \item {$\alpha$} is the best value (to {\sc max}) found so far off the current path
+
+%% \item If {$V$} is worse than {$\alpha$}, {\sc max} will avoid it
+%% $\Rightarrow$ prune that branch
+
+%% \item Define {$\beta$} similarly for {\sc min}
+
+%% \item This is an instance of branch-and-bound
+
+%% }
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \key{Alpha-Beta Pruning}
+%% \slide{$\alpha$--$\beta$ pruning example}{
+
+%% ~
+
+%% \only<+>{ \showh[.7]{russell/alpha-beta-progress1c}}
+%% \only<+>{ \showh[.7]{russell/alpha-beta-progress2c}}
+%% \only<+>{ \showh[.7]{russell/alpha-beta-progress3c}}
+%% \only<+>{ \showh[.7]{russell/alpha-beta-progress4c}}
+%% \only<+>{ \showh[.7]{russell/alpha-beta-progress5c}}
+
+%% }
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{The $\alpha$--$\beta$ algorithm}{
+
+%% %\input{russell/alpha-beta-algorithm}
+
+
+
+%% }
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% \slide{Properties of $\alpha$--$\beta$}{
+
+%% \item Pruning \emph{does not} affect final result
+
+%% \item Good move ordering improves effectiveness of pruning!
+
+%% %% With ``perfect ordering,'' time complexity = {$O(b^{m/2})$}\\
+%% %% $\Rightarrow$ \emph{doubles} solvable depth
+
+%% \item A simple example of the value of reasoning about which 
+%% computations are relevant (a form of \emph{metareasoning})
+
+%% %Unfortunately, {$35^{50}$} is still impossible!
+
+
+
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\key{UCT for games}
+\slide{Upper Confidence Tree (UCT) for games}{
+
+\item Standard backup updates all parents of $v_l$ as
+
+$n_v \gets n_v+1$
+
+$Q_v \gets Q_v + \Delta$ ~ (where $\Delta = R$)
+
+~
+
+\item In games use a ``negamax'' backup: While iterating upward, flip
+sign $\Delta = \pm R$ depending on agent/opponent
+
+~
+
+\item Survey of MCTS applications:
+
+Browne et al.: A Survey of Monte Carlo Tree Search Methods, 2012.
+
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\centering
+\showh[.37]{browne1}
+\showh[.37]{browne2}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\sublecture{Evaluation Functions}{
+
+Don't estimate from scratch each time $\to$ use \emph{learned} value estimates
+
+model-based decision making $\to$ data-based decision making
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Evaluation Functions}{
+
+\item The rollouts aim to estimate $\Exp{R \| s} =: V(s)$ when continuing from state $s$. This is also called the \textbf{Value} of state $s$. Recall:
+\begin{align*}
+\textbf{Q-function} && Q(s_0,a) &= \Exp{R \| s_0, a} \\
+\textbf{Value-function} && V(s) &= \Exp{R \| s}
+\end{align*}
+
+\pause
+
+\item Maybe we have other means to estimate the value of a state, rather than performing a random rollout $\to$ Evaluation functions $\tilde V(s)$.
+
+\pause
+
+\item Imagine we have massive data $D=\{(s_i,R_i)\}$ of states and eventual returns:
+\begin{items}
+\item All chess games digitally stored: what was the eventual return $R_i$ when white was in state $s_i$
+\item Same for go
+\item Let random or mediocre agents play millions of games and store the data
+\item Co-evolution of better and better agents generating better and better data.
+\end{items}
+
+Use Machine Learning to find a regression $s \mapsto \tilde V(s)$.
+
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Evaluation Functions}{
+
+\item Use $\tilde V(s)$ instead of (or in combination with) random rollouts to compute a ``quasi-return'' $\tilde R = \tilde V(s)$
+
+~\pause
+
+%% \item Practical consideration in case of chess (from Russell \& Norvig):
+%% \begin{items}
+%% \item Suppose we have $100$ seconds per move, and can explore $10^4$ nodes/second $\to$ $10^6$ nodes per move $\approx$ $35^{8/2}$
+%% \item We can roughly cover decisions up to depth 8 (using $\alpha$--$\beta$)
+%% \end{items}
+
+\item Typical approach: ~ {\tiny (Sliver et al, nature 2016)}
+\begin{items}
+\item After Tree policy, evaluate twice: random rollout generates $R$, value estimate $\tilde V(s)$
+\item Integrate both in a mixed estimate $R \gets (1-\l) \tilde V(s) + \l R$
+%% \item Prefix a maximal depth $d$
+%% \item Use UCT and random rollouts up to depth $d$, but then stop and return $\tilde R = \tilde V(s)$ using an evaluation function
+\end{items}
+
+%% \item Potential Caveat:
+%% \begin{items}
+%% \item If evaluation function too simple, depth limit too short, the agent does not ``see'' long-term payoffs
+%% \end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Old-style evaluation functions in Chess}{
+
+%% \item MCTS can drastically be improved by
+%% \begin{items}
+%% \item \textbf{limit depth:} stop the rollout at a depth limit, instead of finishing game
+%% \item \textbf{evaluation functions:} Use a clever function $V(s)$ to evaluate the stopping (non-terminal) state $s$
+%% \end{items}
+
+~
+
+\show[.5]{russell/chess-evaluation-bc.pdf}
+{\tiny\hfill[Russell \& Norvig]}
+
+\item For chess, typically \emph{linear} weighted sum of \defn{features}
+$$
+\tilde V(s) = w_1 f_1(s) + w_2 f_2(s) + \ldots + w_n f_n(s)
+$$
+e.g., $w_1 = 9$ with $f_1(s)$ = (number of white queens) -- (number of black queens),\ \ etc.
+
+%% \item Alpha-Go: \textbf{Learn the evaluation function} $V(s)$ with board as ``input image'' from self-play data.
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{AlphaGo}{\label{lastpage}
+
+\item From Wikipedia (can we now follow everything?)
+
+{\tiny
+
+``
+As of 2016, AlphaGo's algorithm uses a combination of machine learning and tree search techniques, combined with extensive training, both from human and computer play. It uses Monte Carlo tree search, guided by a "value network" and a "policy network," both implemented using deep neural network technology.[5][4] A limited amount of game-specific feature detection pre-processing (for example, to highlight whether a move matches a nakade pattern) is applied to the input before it is sent to the neural networks.[4] The networks are convolutional neural networks with 12 layers, trained by reinforcement learning.[64]
+
+The system's neural networks were initially bootstrapped from human gameplay expertise. AlphaGo was initially trained to mimic human play by attempting to match the moves of expert players from recorded historical games, using a database of around 30 million moves.[21] Once it had reached a certain degree of proficiency, it was trained further by being set to play large numbers of games against other instances of itself, using reinforcement learning to improve its play.[5] ...
+''
+
+}
+
+\small
+
+\item Value Network: $s \mapsto \tilde V(s)$
+
+Policy Network: $s \mapsto a \approx \argmax_a \tilde Q(s,a)$
+
+\item Not covered by our lectures yet: What's the role of RL? (Answer: Use also ``Bellman consistency'' to train $V$...)
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\slidesfoot

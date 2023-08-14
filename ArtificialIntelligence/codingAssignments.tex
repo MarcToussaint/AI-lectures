@@ -1,0 +1,546 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Artificial Intelligence}
+\renewcommand{\coursepicture}{course_ai}
+\renewcommand{\coursedate}{Summer 2023}
+\renewcommand{\exnum}{Plan of Coding Assignments}
+\renewcommand{\teacher}{Marc Toussaint}
+
+\exercises
+
+\excludecomment{solution}
+\newcommand{\notes}[1]{\medskip{\scriptsize #1}\medskip}
+
+\exercisestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{quote}
+\emph{These nodes are a conceptual plan of coding exercises for the AI course. Please see \url{https://git.tu-berlin.de/lis-public/ai-student-workspace} for the actual exercises we selected and the details of the interfaces.}
+\end{quote}
+
+~
+
+As part of the AI course you should complete a series of coding assignments, implementing basic AI methods in Python. These follow the course concept of addressing first single-step decision then sequential decision making, each in model-based, data-based and interaction-based settings. In that way we cover problem settings and solutions such as Monte-Carlo estimation, Bandits, ML regression, MCTS, Value Iteration, and eventually Reinforcement Learning.
+
+{\small\tableofcontents}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Single-Step Discrete Decisions}
+
+\exsubsection{Model-based}
+
+The following information is available:
+\begin{itemize}
+\item There are $K$ discrete choices.
+\item Depending on your choice $a\in\{1,..,K\}$, the outcome $y\in\RRR$ will be Gaussian distributed with mean $\mu_a$ and standard deviation $\s_a$.
+\item All $\mu_a,\s_a$ are known.
+\end{itemize}
+
+Implement a method that takes $(\mu_{1:K}, \s_{1:K})$ as input, and outputs a decision $a\in\{1,..,K\}$,
+\begin{enumerate}
+\item which maximizes the mean outcome $\Exp[P(y|a)]{y} = \mu_a$ ~ (yes, this is trivial to implement),
+\item which maximizes $\mu_a + \b \s_a$ for $\b=1$, which is the (optimistic) upper confidence bound,
+\item which maximizes the expected utility $\Exp[P(y|a)]{U(y)} = \int P(y|a)~ U(y)~ dy$ for an \emph{arbitrary} utility function $U(y)$ (provided as black-box function).
+\end{enumerate}
+
+Notes on the interface:
+\begin{items}
+\item The decision method gets $(K,\mu_{1:K}, \s_{1:K})$ as input, where $K$ is an integer, $\mu_{1:K}$ is an array (or list) of $K$ real numbers, and $\s_{1:K}$ equally is a list of $K$ numbers.
+\item The method should output an integer in $\{1,..,K\}$.
+\item In case (c), the decision method additionally gets a function @U@ as input, which takes a real number $y$ as input and outputs another real number $u$. The function internally counts how often it is evaluated and throws an error if evaluated too often.
+\item In case (c), the method is expected to use Monte-Carlo sampling (e.g., with $n\approx 1000$) to estimate the integral.
+\end{items}
+
+Rationale: The problem exemplifies basic model-based decision making with uncertain outcomes, and motivates learning about Gaussians, Decision Theory, and Monte Carlo methods.
+
+\exsubsection{Data-based}\label{secDiscreteData}
+
+The following information is available:
+\begin{itemize}
+\item There are $K$ discrete choices.
+\item Outcomes $y\in[0,1]$ are strictly in the interval $[0,1]$, but their form of distribution $P(y|a)$ is not known.
+\item You have a data set $D=\{(a_i, y_i)\}_{i=1}^n$ of previous decisions $a_i\in\{1,..,K\}$ and outcomes $y_i\in[0,1]$.
+\end{itemize}
+
+Implement a method that takes $D$ as input, and outputs a decision $a\in\{1,..,K\}$, for the same three objectives (maximal mean, maximal UCB, maximal expected utility) as in the previous exercise.
+
+Notes on the interface:
+\begin{items}
+\item The decision methods gets $(K,n,a,y)$ as input, with $K$ an integer, $n$ an integer, $a$ an $n$-array of integer decisions, and $y$ an $n$-array of outcomes.
+\item The rest is a previously.
+\end{items}
+
+Rationale: The problem is a minimalistic data-based decision making example, and motivates learning about UCB${}_1$, and reconsidering Monte Carlo if samples are already available.
+
+Variant: Outcomes could also be Gaussian; instead of UCB${}_1$, one has to estimate the Gaussian variance for each choice.
+
+
+\exsubsection{Bandits (``interaction-based'')}\label{secBandits}
+
+(By ``interaction-based'' we mean that the agent \emph{collects data} interactively by iteratively deciding on queries. Therefore, the data collection itself requires decisions and this can be viewed as a first case of sequential decision making. However, in contrast to general sequential decision making, these data-collecting decisions do not alter the external world state. But they do alter the agent's state of knowledge!)
+
+The following is available:
+\begin{itemize}
+\item There are $K$ discrete choices.
+\item Outcomes $y\in[0,1]$ are strictly in the interval $[0,1]$, but their form of distribution $P(y|a)$ is not known.
+\item A stochastic simulation is available that the agent can query $n$ times: The agent makes $n$ data-collecting decisions to collect data $D=\{(a_i, y_i)\}_{i=1}^n$, with outcomes $y_i\in[0,1]$.
+\end{itemize}
+
+Implement a method that queries the simulator $n$ times by making data-collecting decisions $a_i$. Then, based on the collected data, the method outputs a single decision $a\in\{1,..,K\}$ that maximizes the expected mean outcome.
+
+Notes on the interface:
+\begin{items}
+\item The decision method gets a $(K, n, $@B@$)$ as input, where $K$ and $n$ are integers, and @B@ is a class with a method @B.simulate@$(a)$ that takes a decision $a$ as input and returns a real number $y$.
+\item The class @B@ internally counts the number of queries and throws an error if called $>n$.
+\item The method should eventually return a single final decision $a$.
+\end{items}
+
+Side exercise: Draw the decision diagram. 
+
+Rationale: The problem shows how the need to collect own data implies
+an exploration-exploitation problem, the concepts of
+deciding-for-learning vs.\ deciding-for-payoff, the concept of active
+learning. The problem motivates learning about bandits -- THE
+prototype for exploration-exploitation problems, where sequential
+decisions influence both, the state of knowledge of the agent as well
+as the returns.
+
+Variants: The above gives a fixed budget of data-collecting queries, and then aims at a single optimal decision. Here alternatives:
+\begin{items}
+\item 1. Alternative: The agent can also decide on $n$, i.e., query the simulation as often as it likes, before taking the final decision -- however, each query costs a small amount $c\in\RRR$. The overall objective is to maximize $\Exp{y} - nc$, where $y$ is the outcome of the final decision and $n$ the number of data-collecting queries before that.
+\item 2. Alternative: The agent endlessly makes decisions $a_i, i=1,..,\infty$ to learn and maximize outcomes at the same time. The overall objective is to maximize $\sum_{i=1}^\infty \Exp{y_i}$. This is the standard bandit setting.
+\end{items}
+
+\exsection{Single-Step Continuous Decisions}
+
+\exsubsection{Regression \& Optimization (data-based)}
+
+The following information is available:
+\begin{itemize}
+\item The decision variable $x\in[l,u]\subset\RRR$ is a continuous number in the interval $[l,u]$.
+\item Outcomes $y\in\RRR$ depend on the decision $x$ in some unknown way: There is an underlying function $f:\RRR\to\RRR$ unknown to you, and observations are Gauss distributed around this function, $y \sim \NN(f(x), \s^2)$, with observation noise $\s=0.1$. You can assume that $f$ is smooth.
+\item You have a data set $D=\{(x_i, y_i)\}_{i=1}^n$ of previous decisions $x_i\in\RRR$ and outcomes $y_i\in\RRR$.
+\end{itemize}
+
+Implement a method that takes $D$ as input, uses some regression method get an estimator $\hat f$ of $f$, and outputs a decision
+$x\in[l,u]$ that maximizes the expected outcome $\hat f(x)$.
+
+Note: The problem involves two steps: 1) Using a regression method to
+get $\hat f$ based on $D$. And 2), optimizing the estimated function
+$\hat f(x)$. The optimization can be done trivially by querying $\hat f(x)$ densely and
+return the optimal $x$.
+
+Notes on the interface:
+\begin{items}
+\item The method gets $(l,u,X,Y)$ as input, where $[l,u]$ defines the interval, $X$ is an $n$-array of continuous decisions, $Y$ is an $n$-array of outcomes of these decisions.
+\item The method returns a single decision $x$ to maximize $\hat f(x)$.
+%\item Further the given class @R@ has two public methods: @estimate@$(a,y)$ computes optimal weights of an estimated function $\hat f$ from the data $(a,y)$, and @predict@$(x)$ evaluates $\hat f(x)$ for a single (or list of?) decisions $a$.
+%\item Internally, the class @R@ has a @features@$(x)$ method, which gets a vector of $n$ inputs, and returns a $n\times h$ matrix of features $X = \phi(x)$. In that way, @estimate@ only needs to compute $w = (X^\T X)^\1 X^\T y$, and @predict@ returns $y = \phi(x)^\T w$.
+\end{items}
+
+Rationale: The only difference to problem \ref{secDiscreteData} is that our decision variable $x$ is continuous instead of discrete. This shows how data-based decision making naturally runs into Machine Learning problems. Here, the continuous regression $\hat f(x)$ replaces the independent mean estimates $\mu_a$ we used in \ref{secDiscreteData}. The fact that $f$ is assumed smooth motivates that we use a smooth mean function $\hat f(x)$ instead of independent mean estimates $\mu_x$ for each $x\in\RRR$ (which would run into No Free Lunch).
+
+Underlying problem implementation: To generate the hidden test
+problem, assume polynomial features of degree 2, 3, or 4, including a
+constant bias feature.  To generate the given data $D$, sample model
+parameters $w\sim\NN(0,1)$, sample $a\sim[l,u]^n$ uniform and
+evalutate to generate $D$.
+
+%% Assume RBF features with kernels $\exp\{-(x-c_i)^2/l^2\}$ of fixed
+%% width $l=1/2$ and centers $c_i$ at a grid over $[-1,+1]=[l,u]$ with 10 knots,
+%% plus the $1$ feature for bias. 
+
+\exsubsection{Active Learning / Infinite Bandits (interaction-based)}
+
+Setting as above, except that you do not have data but:
+\begin{itemize}
+\item A black-box of the underlying function $f$ is available that the agent can query $n$ times. Observations are noisy samples $y_i \sim \NN(f(x_i), \s^2)$.
+\end{itemize}
+
+Implement a method that queries the black-box $n$ times and, based on the collected data, outputs a single decision $x\in[l,u]$ that maximizes the expected outcome. Try to use UCB principles (or otherwise ``intelligent querying'') to implement the data collection.
+
+Notes on the interface:
+\begin{items}
+\item The agent gets $(l,u,n,$@F@$)$ as input, where $[l,u]$ defines the interval, $n$ is an integer.
+\item The black-box class @F@ has a single method @F.eval@$(x)$ which returns an outcome $y$ for $x\in[l,u]$. The class internally counts how often it is evaluated and throws an error if evaluated $>n$.
+\end{items}
+
+Rationale: The only difference to problem \ref{secBandits} is that our decision variable $x$ is continuous instead of discrete. With this simple problem setting we already run into ML, active learning, variance estimation, and optimization problems. The issue of estimating the variance of a model (for upper confidence) becomes apparent, and bootstrapping as a basic approach is learnt.
+
+This shows how data-based decision making naturally runs into Machine Learning problems. Here, the continuous regression $\hat f(x)$ replaces the independent mean estimates $\mu_a$ we used in \ref{secDiscreteData}. The fact that $f$ is assumed smooth motivates that we use a smooth mean function $\hat f(x)$ instead of independent mean estimates $\mu_x$ for each $x\in\RRR$ (which would run into No Free Lunch).
+
+Tip: To estimate not only the predicted mean $\hat f(x)$ but also its deviation $\hat\s(x)$, you can call the regression method multiple times: Generate 10 bootstrap resamples $\tilde D$ of the given data $D$, call @R.estimate@$(\tilde D)$ and $y=$@R.predict@$(x)$ for each. This gives 10 different predictions $y$ for the same $x$. The largest of these 10 is optimistic and a fair representative of the upper confidence bound.
+
+\exsubsection{Classification (conditional decisions; skipped)}
+
+The following information is available:
+\begin{itemize}
+\item There are 3 discrete classes: $y\in\{$cat, dog, dont-know$\}$.
+\item The decision is made conditional to an \emph{input} $x\in\RRR^d$ -- this could be a compact (auto-encoder) code for an image or other input.
+\item The outcome is a loss $l\in\RRR$ and depends not only on the decision but also the input $x$: $l=0$ if the decision is cat or dog and $x$ really encodes a cat or dog image, respectively, $l=10$ if the decision is cat or dog but wrong, and $l=1$ if the decision is dont-know.
+\item A data set $D=\{ (x_i, y_i) \}_{i=1}^n$ with correct cat/dog decisions is available.
+\end{itemize}
+
+Implement a method that takes $D$ and a new $x$ as input, and outputs a decision $y\in\{$cat, dog, dont-know$\}$ to minimize the expected loss $\Exp{l| x,y}$.
+
+Side exercise: Draw the decision diagram. 
+
+Rationale: A core concept to introduce here is the $Q$-function $Q(x,y)$, which is the expected loss when deciding for $y$ at input $x$. If we learn a probabilistic classifier $P(y|x)$ from data, this $Q$-function can directly be approximated. So the problem decomposes in training a correct probabilistic classifier and then applying decision theory.
+
+
+\exsection{Sequential Decisions -- Decision Tree based}
+
+\exsubsection{Classical Tree Search: Full knowledge, deterministic, discrete decisions -- Skipped}
+
+Skipped in this course. This would include exercises about classical tree search, e.g.\ a path from city to city on a graph, using A* or other tree search methods. Also logical planning (solving a PDDL problem) or CSP (sequentializing the full assignment problem) would be settings for exercises.
+
+\exsubsection{Monte-Carlo Estimation of a $Q$-function}
+
+The default test environment for this exercise is the \emph{Integer Domain} (state $s_t\in\ZZZ$ and actions $a_t\in\{-1,+1\}$) we introduced in other exercises. However, the method you are to implement should be general, i.e., applicable to any domain with the following interface:
+
+The following is available:
+\begin{itemize}
+\item A black-box simulator, defined by the methods:
+\begin{items}
+\item @reset@$()$, which resets the simulator to a start state $s_0$.
+\item @getNumActions@$()\mapsto K$, which returns the number $K$ of discrete decisions $a_t$ possible in the current state $s_t$.
+\item @step@$(a) \mapsto (r,y, \emph{done})$, which executes decision $a_t$, leading to a new internal state $s_{t\po}$, and returns a reward $r_t\in\RRR$ and observation $y_{t\po}$ (potentially $y_{t\po}=s_{t\po}$). The \emph{done} boolean indicates whether the new state is terminal.
+\end{items}
+\item In this exercise, $y=0$ is constant and not relevant as transitions are also deterministic.
+\item In this exercise, $r=0$ except for the last step into a terminal state. (E.g., win/loose.) This last reward determines the return of the episode.
+\end{itemize}
+
+Implement a method that takes the black-box simulator as input, queries the simulator 10000 times (simulating 10000 action executions), and then outputs the $Q$-values $Q(a) = \Exp{r | a_0=a}$ for the
+ \emph{first} decision $a_0$ in this domain, assuming that all following decisions are taken randomly (random rollouts).
+
+%% In this exercise, let the method generate random rollouts, i.e., when querying the simulator during data collection, always choose random actions. Based on this data, estimate the $Q$-function $Q(a) = \Exp{r | a_0=a}$ under the random policy for each possible first decision $a_0=a$.
+
+Rationale: First experience with estimating $Q$-values using Monte-Carlo estimates. Also, this exercise clearifies to distinguish between all the queries to the simulator to estimate values, versus actually taking the first decision.
+
+\exsubsection{Monte-Carlo Tree Search (MCTS, UCT)}
+
+Exactly as above, but use UCT this time.
+
+Rationale: Understand taht what we learnt about Bandits now transfers to sequential decision making -- UCT can be understood as the generalization of UCB to sequential decision making.
+
+\exsection{Sequential Decisions -- Bellman based}
+
+\exsubsection{Value Iteration}
+
+[We skip Value Iteration and directly do Q-learning]
+
+\exsubsection{Vanilla Q-learning}
+
+Very similar to before, the black-box simulator is defined by the methods:
+\begin{items}
+\item @getNumStates@$()\mapsto S$ returns the number $S$ of states.
+\item @getNumActions@$()\mapsto A$ returns the const number $A$ of action (same for for all states).
+\item @reset@$() \mapsto y$, which resets the simulator to a start state $s_0$, \textbf{and returns $y=s_0$ as observation}.
+\item @step@$(a) \mapsto (r,y, \emph{done})$, which executes decision $a_t$, leading to a new internal state $s_{t\po}$, and returns a reward $r_t\in\RRR$ \textbf{and observation $y_{t\po}=s_{t\po}$}. The \emph{done} boolean indicates whether the new state is terminal, i.e., the episode ended.
+\end{items}
+
+Implement standard Q-learning (for now without $n$-step updates, eligbilities, or replay) as described in the pseudo code (slide 12) of the lecture. 
+
+You have at max $n=10\,000$ queries (calls of @step@()), and need to
+terminate the learning loop after $n$ queries even in the middle of an
+episode. Choose $\e=0.1$ and $\a=0.1$. After $n$ queries your method
+should return the Q-function $Q(s,a)$ as an $S\times{}A$-array.
+
+The tests will check the whether the returned Q-values at selected states
+(esp.\ the start state) are indeed close to the optimal values. In
+addition, please plot the learning curve, namely the average value
+$\hat J = \frac{1}{S}~ \sum_s V(s)$, with $V(s)=\max_a Q(s,a)$, over
+$n$: Every 100th step, compute the number $\hat J$, append it to an
+array, and plot this array.
+
+The default test domain will be FrozenLake
+{\tiny\url{https://www.gymlibrary.ml/environments/toy_text/frozen_lake/}}
+
+
+\exsubsection{$n$-step Q-learning}
+
+On slide 18, $n$-step updates are explained. To this end, implement a
+``data buffer'' of fixed size $n$, $D = \{ (s_\t, r_\t, a_\t,
+s_{t\po}) \}_{\t=t-(n\1)}^t$, where in each step you drop the oldest
+entry of the buffer and append the newest experience
+$(s_t,a_t,r_t,s_{t\po})$. In the beginning, when $D$ is yet smaller
+than $n$, just append experiences.
+
+Based on this data you have two options:
+\begin{items}
+\item The $n$-step update: In each iteration, only update the Q-value $Q(s_\t,a_\t)$ of the oldest data entry using the $n$-step return (see slide 18)
+\item Replay: In each iteration, loop (e.g.\ backward) over all entries in $D$ and perform a vanilla Q-learning update.
+\end{items}
+
+Implement both variants and for $n=10$ compare the learning curve to the one of the previous exercise.
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\end{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%\exsubsection{Full blown Neural Q-Learning?}
+
+%% \exsubsection{perhaps not}
+
+%% Naive Bayes?
+
+%% POMDPs?
+
+%% Active Learning?
+
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \exsection{From Old AI Course}
+
+%% \exsubsection{[from old] Tree Search}
+
+%% (The deadline for handing in your solution is Monday 2pm in the week of the tutorials)
+
+%% In the repository you will find the directory @e01_graphsearch@ with a
+%% couple of files. First there is @ex_graphsearch.py@ with the
+%% boilerplate code for the exercise. The comments in the code define
+%% what each function is supposed to do. Implement each function and you
+%% are done with the exercise.
+
+%% The second file you will find is @tests.py@. It consists of tests that
+%% check whether your functions do what they should. You don't have to
+%% care about this file, but you can have a look in it to understand the
+%% exercise better.
+
+%% The next file is @data.py@. It consists of a very small graph and the S-Bahn net
+%% of Stuttgart as graph structure. It will be used by the test. If you like you
+%% can play around with the data in it.
+
+%% The last file is @run_tests.sh@. It runs the tests, so that you can
+%% use the test to check whether you are doing right. Note that our test
+%% suite will be different from the one we hand to you. So just mocking
+%% each function with the desired output without actually computing it
+%% will not work. You can run the tests by executing:
+
+%% {\small \verb+$ sh run_tests.sh+}
+
+%% If you are done implementing the exercise simply commit your implementation and
+%% push it to our server.
+
+%% {\small 
+%% \verb+$ git add ex_graphsearch.py+\\
+%% \verb+$ git commit+\\
+%% \verb+$ git push+}
+
+%% \textbf{Task:} Implement breadth-first search, uniform-cost search,
+%% limited-depth search, iterative deepening search and A-star as
+%% described in the lecture. All methods get as an input a graph, a start
+%% state, and a list of goal states. Your methods should return two things: the
+%% path from start to goal, and the fringe at the moment when the goal
+%% state is found (that latter allows us to check correctness of the
+%% implementation). The first return value should be the found @Node@
+%% (which has the path implicitly included through the parent links) and
+%% a @Queue@ (one of the following: @Queue@, @LifoQueue@, @PriorityQueue@
+%% and @NodePriorityQueue@) object holding the fringe. You also have to
+%% fill in the priority computation at the @put()@ method of the
+%% @NodePriorityQueue@.
+
+%% Iterative Deepening and Depth-limited search are a bit different in that they do
+%% not explicitly have a fringe. You don't have to return a fringe in those cases,
+%% of course. Depth-limited search additionally gets a depth limit as input. A-star
+%% gets a heuristic function as input, which you can call like this:
+
+%% {\small
+%% \verb+ def a_star_search(graph, start, goal, heuristic):+\\
+%% \verb+    # ... +\\
+%% \verb+    h = heuristic(node.state, goal)+\\
+%% \verb+    # ...  +\\
+%% }
+
+%% \textbf{Tips:}
+%% \begin{items}
+%% \item For those used to IDEs like Visual Studio or Eclipse: Install PyCharm (Community Edition). Start it in the git directory. Perhaps set the Keymap to 'Visual Studio' (which sets exactly the same keys for running and stepping in the debugger). That's helping a lot.
+%% \item Use the data structure @Node@ that is provided. It has exactly the attributes mentioned on slide 26.
+%% \item Maybe you don't have to implement the 'Tree-Search' and 'Expand' methods separately; you might want to put them in one little routine.
+%% \end{items}
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \exsubsection{[from old] Naive Bayes}
+
+%% Sie haben in der Vorlesung grafische Modelle und Inferenz in ihnen
+%% kennengelernt. Auf dieser Grundlage basiert der viel verwendete \emph{Naive
+%% Bayes} Klassifikator. Der Bayes Klassifikator wird zum Beispiel dafür verwandet,
+%% Spam Emails automatisch zu erkennen. Dafür werden Trainings-Emails untersucht
+%% und die Wahrscheinlichkeit des Auftreten eines Wortes bestimmt, abhängig davon, ob es eine Spam- oder Ham-Email ist.
+
+%% Sei $c \in \{\text{Spam, Ham}\}$ die binäre Zufallsvariable, die angibt, ob es sich bei einer Email um Spam oder Ham handelt. Sei $x_i$ das $i$te Wort einer Email $\mathbf{X}$. Sei $p(x|c)$ die Wahrscheinlichkeit, dass ein Wort $x$ in einer Spam- bzw. Ham-Email vorkommt, die während des Trainings für jedes mögliche Wort bestimmt wurde. Dann berechnet der Naive-Bayes-Klassifikator
+%% \begin{align*}
+%%   p(c, \mathbf{X}) &= p(c) \prod_{i=1}^{D} p(x_i | c) \\
+%%   p(c \| \mathbf{X}) &= \frac{p(c, \mathbf{X})}{p(\mathbf{X})}
+%%   = \frac{p(c, \mathbf{X})}{\sum_c p(c,\mathbf{X})}
+%% \end{align*}
+%% als die Wahrscheinlichkeit, dass die Email $\mathbf{X}$ Spam oder Ham ist, wobei $D$ die Zahl der Wörter $x_i$ in der Email $\mathbf{X}$ ist.
+
+%% (In praktischen Implementierungen werden häufig nur Wörter
+%% berücksichtigt, bei denen $p(x|\text{Spam})$ und $p(x|\text{Ham})$
+%% nicht Null sind.)
+
+%% %% Nun kann man für eine neue eintreffende Email die vorkommenden Wörter
+%% %% $\mathbf{x}^*$
+%% %% analysieren und mit Hilfe von Bayes Formel die
+%% %% Wahrscheinlichkeit berechnen, ob diese Email Spam oder Ham ist.
+
+%% %% \begin{equation}
+%% %%   p(c | \mathbf{x}^*) = \frac{p(\mathbf{x}^*| c) p(c)}{p(\mathbf{x}^*)} =
+%% %%   \frac{p(\mathbf{x}^*|c) p(c)}{\sum_c p(\mathbf{x}^*|c) p(c)}
+%% %% \end{equation}
+
+%% \textbf{Aufgabe:} Implementieren Sie einen Naive Bayes Klassifikator für die
+%% Spam-Emails. Sie finden Trainingsdaten und Python-Code, der mit diesen umgehen
+%% kann, in Ihrem Repository.
+
+%% Ihre Implementierung sollte zwei Funktionen enthalten:
+
+%% \begin{verbatim}
+%% class NaiveBayes(object):
+%%     def train(self, database):
+%%         ''' Train the classificator with the given database. '''
+%%         pass
+
+%%     def spam_prob(self, email):
+%%         ''' Compute the probability for the given email that it is spam. '''
+%%         return 0.
+
+%% \end{verbatim}
+    
+
+%% \textbf{Tip:} David Barber gibt ein seinem Buch ``Bayesian Reasoning and Machine Learning''
+%% eine sehr gute Einführung in den Naive Bayes Klassifikator (Seite 243 ff., bzw.
+%% Seite 233 ff. in der kostenlosen Online Version des Buches, die man unter 
+%% \url{http://www.cs.ucl.ac.uk/staff/d.barber/brml/} herunterladen kann). Zudem: Log-Wahrscheinlichkeiten zu addieren ist eine numerisch stabile Alternative zum Multiplizieren von Wahrscheinlichkeiten.
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \exsubsection{[from old] Value Iteration}
+
+
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \exsubsection{[from old] Chess}
+
+%% Implementieren Sie ein Schach spielendes Programm. Der grundlegende
+%% Python code ist dafür in Ihren Repositories. Wir haben auch bereits
+%% die Grundstruktur eines UCT Algorithmus implementiert, so dass Sie
+%% nur die einzelnen Funktionen implementieren müssen. Die Implementierung von möglichen Erweiterungen steht Ihnen frei. 
+%% \begin{description}
+%% % \item[Modifiziertes Spielende] Zur Vereinfachung wird das Spiel nach
+%% % spätestens 50 Zügen abgebrochen. Der Gewinn ist dann der Wert der
+%% % beiliegenden Evaluations-Funktion (positiv, wenn man gut steht,
+%% % negative, wenn man schlecht steht). Dies veringert die Suchtiefe
+%% % deutlich und gibt ein viel detaillierteres Signal als nur $\{+1/-1\}$
+%% % für gewonnen/verloren.
+
+%% \item[Evaluations-Funktion statt Random Rollouts:] 
+%% Letztes Jahr stellte sich heraus, dass der Erfolg naiver UCT Algorithmen
+%% bescheiden ist.  Um die Baumsuche deutlich zu vereinfachen kann man die
+%% Evaluations-Funktion nutzen, um neue Blätter des Baums zu evaluieren (und
+%%     den backup zu machen), statt eines random rollouts. Aber: Die
+%%     Evaluations-Funktion ist deterministisch, und könnte die Suche
+%%     fehlleiten. Als nächsten Schritt kann man deshalb sehr kurze random
+%%     rollouts nehmen, die schon nach wenigen Schritten enden und mit der
+%%     Evaluations-Funktion bewertet werden.
+
+%% \item[Ziel:] Wir 'be-punkten' diese Aufgabe automatisiert
+%%     indem wir den Schach-Agenten 10 mal gegen einen Random-Spieler
+%%     antreten lassen. Ziel ist es nach Punkten zu gewinnern. (Sieg - 1 Punkt, Unentschieden - 0.5 Punkte, Niederlage - 0 Punkte).
+
+
+%% \item[Turnier:] Außerdem planen wir alle Schach-Agenten in einem Turnier gegeneinander antreten zu lassen. Das Gewinnerteam darf sich über eine kleine Belohnung freuen!
+
+%% % \item[Ziel: Besser als zufällig] Wir 'be-punkten' diese Aufgaben nicht
+%% % automatisch mit einem Unit-Test. Stattdessen werden die Tutoren die in
+%% % git eingecheckten Lösungen während der Übung auschecken; Sie müssen
+%% % dann den Code beschreiben und live demonstrieren, dass Ihr Algorithmus im
+%% % Mittel einen random Spieler schlägt.
+%% \end{description}
+
+%% Ihr Algorithmus soll auf  folgendes Interface zugreifen:
+%% {\small
+%% \begin{verbatim}
+
+%% class ChessPlayer(object):
+%%     def __init__(self, board, player):
+%%         # The game board is the board at the beginning, player is
+%%         # either chess.WHITE or chess.BLACK.
+%%         pass
+
+%%     def inform_move(self, move):
+%%         # after each move (also your own) this function is called to inform 
+%%         # the player of the move played (which can be a different one than you
+%%         # chose, if you chose a illegal one.
+%%         pass
+
+%%     def get_next_move(self):
+%%         # yields the move that you want to play next.
+%%         pass
+
+%% \end{verbatim}
+%% }
+
+%% Sie können Ihre Implementierung testen mit
+
+%% {\small\verb+$ python2 interface.py --human --white --secs 2+}
+
+%% um als Mensch gegen Ihren Spieler zu spielen. Oder mit
+
+%% {\small\verb+$ python2 interface.py --random --white --secs 2+}
+
+%% um einen zufällig spielenden Spieler gegen ihr Programm antreten zu lassen.
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \exsubsection{[from old] Constrained Satisfaction Problems}
+
+%% Pull the current exercise from our server to your local repository.
+
+%% \textbf{Task 1:} Implement backtracking for the constrained satisfaction problem
+%% definition you find in @csp.py@. Make three different versions of it 1) without
+%% any heuristic 2) with minimal remaining value as heuristic but without
+%% tie-breaker (take the first best solution) 3) with minimal remaining value and
+%% the degree heuristic as tie-breaker.
+
+%% \textbf{Optional:} Implement AC-3 or any approximate form of
+%% constraint propagation and activate it if the according
+%% parameter is set.
+
+%% \textbf{Task 2:} Implement a method to convert a Sudoku into a
+%% @csp.ConstrainedSatisfactionProblem@, and then use this to solve the sudoku given as a numpy array. Every empty field is set to
+%% @0@. The CSP you create should cover all rules of a Sudoku, which are
+%% (from
+%% \url{http://en.wikipedia.org/wiki/Sudoku}): 
+%% \begin{quote}
+%% \emph{Fill a $9 \times 9$ grid with digits so that each column, each row,
+%% and each of the nine $3 \times 3$ sub-grids that compose the grid
+%% (also called 'blocks') contains all of the digits from 1 to 9.}
+%% \end{quote}
+%% In the lecture we mentioned the \emph{all\_different} constraint for
+%% columns, rows, and blocks. As the\\ @csp.ConstrainedSatisfactionProblem@
+%% only allows you to represent pair-wise \emph{unequal} constraints (to
+%% facilitate constraint propagation) you need to convert this.
+
+%% ~
+%% %The blocks are depicted by the bold lines in the picture.
+
+%% \begin{center}
+%% \includegraphics[width=5cm]{sudoku.png}
+%% \end{center}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exerfoot

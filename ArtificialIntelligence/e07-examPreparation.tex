@@ -1,0 +1,156 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Artificial Intelligence}
+\renewcommand{\coursepicture}{course_ai}
+\renewcommand{\coursedate}{Summer 2023}
+
+\renewcommand{\exnum}{Exercise 7 -- Exam Preparation}
+
+\newcommand{\BOX}[3][]{\fbox{\begin{minipage}[c]{#2}\vspace{#3}\centerline{#1}\vspace{#3}\end{minipage}}}
+
+\exercises
+\excludecomment{solution}
+\exercisestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Notes on exam and previous exercises}
+
+There will be about 6 questions (say, 5 to 7 questions). Questions will be  similar to those in the tutorial exercise sheets.
+
+The rules will be: ``You may only use your pen and the given
+paper. Don't use pencil or red colour. No other materials or devices
+(no textbook, script, calculator, or mobile) are allowed.''
+
+For preparation you should go through all tutorial exercises again. Let me comment on them:
+\begin{itemize}
+\item Ex 1.1 (Marginals \& Conditionals) and Ex 1.2 (Bayes' Theorem) are typical small questions in the exam -- you should be able to compute such marginals, conditionals, posteriors.
+\item Ex 1.3 -- you should know the definitions of mean and variance
+
+\item Ex 2.1 b) and c) are typical bandit question also for the exam. Since you can't use a book, you should memorize UCB1. (If necessary, we provide a table of approximate log values.)
+
+\item No pure linear algebra questions (Ex 2.2) in the exam.
+
+\item Ex 3.1, 3.2, 4.1, 4.2 are typical major questions, where from a text description of a decision process you have to formulate the model (decision tree or MDP), and then compute some values. There will definitely be questions like this.
+
+\item Similarly Ex 5.1 is a typical example for a RL question: Simulate value updates (of Q-learning or TD-learning) in a very small maze for a few given transitions, and then report on the resulting state values. Optionally also how $n$-step updates or replay change this.
+
+\item Ex 3.3 (Linear Regression) and the questions in Ex 6.1 are also typical questions that relate to ML or computation graphs. Applying chain rules and deriving the solution to a (very simple) ML problem are example questions.
+\end{itemize}
+
+The provided test exam gives explicit examples of questions and the format of the exam. The test exam (with only 5 questions) is probably slightly shorter than a real one.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \exsection{Q-Iteration}
+
+%% Consider the following maze:\vspace{.5em}
+
+%% \show[.5]{mouseMaze3}
+
+%% We distinguish 7 states $s_1,..,s_7$ in the maze. 
+%% In the states $s_1, s_2, s_3$, the mouse can choose between two actions: left or right.
+%% With probability 3/4 the mouse will transition to the desired state, with probability 1/4 to the state in opposite direction.
+%% The remaining four states are terminal states and the mouse can not choose an action (denoted as \textit{nil}).
+%% The rewards are defined as follows: 
+
+%% $$R(s_1, \mbox{left})=R(s_1, \mbox{right})=R(s_2, \mbox{left})=R(s_2, \mbox{right})=R(s_3, \mbox{left})=R(s_3, \mbox{right})=0$$
+%% $$R(s_4, \mbox{nil})=16 \comma R(s_5, \mbox{nil})=0 \comma R(s_6, \mbox{nil})=1 \comma R(s_7, \mbox{nil})=5$$
+
+%% The discount factor is $\gamma=0.5$.
+
+%% \begin{enumerate}
+%% \item How many iterations of \textit{Q-Iteration} are required to reach the optimal values $Q^*$? \BOX{5ex}{3ex}
+
+%% \item Perform 3 iterations of \textit{Q-Iteration}:
+%% \end{enumerate}
+
+%% \renewcommand{\arraystretch}{1.5}
+
+%% 0. iteration: $Q_0$ = \BOX[
+%% \large{
+%% \begin{tabular}{ c|c|c|c| }
+%%  & $s_1$ & $s_2$ & $s_3$ \\
+%%  \hline
+%%  left & 0 & 0 & 0 \\
+%%  \hline
+%%  right & 0 & 0 & 0 \\
+%%  \hline
+%% \end{tabular}\hspace{3ex}
+%% \begin{tabular}{ c|c|c|c|c| }
+%%  & $s_4$ & $s_5$ & $s_6$ & $s_7$\\
+%%  \hline
+%%  nil & 0 & 0 & 0 & 0\\
+%%  \hline
+%% \end{tabular}}
+%% ]{80ex}{1ex}
+
+%% 1. iteration: $Q_1$ = \BOX[
+%% ] {80ex}{7ex}
+
+%% 2. iteration: $Q_2$ = \BOX{80ex}{7ex}
+
+%% 3. iteration: $Q_3$ = \BOX{80ex}{7ex}
+%% }
+
+%% \begin{solution}
+%% \large{
+%% \begin{tabular}{ c|c|c|c| }
+%%  & $s_1$ & $s_2$ & $s_3$ \\
+%%  \hline
+%%  left & 2.5 & 6 & 1 \\
+%%  \hline
+%%  right & 1.5 & 2 & 2 \\
+%%  \hline
+%% \end{tabular}\hspace{3ex}
+%% \begin{tabular}{ c|c|c|c|c| }
+%%  & $s_4$ & $s_5$ & $s_6$ & $s_7$\\
+%%  \hline
+%%  nil & 16 & 0 & 1 & 5\\
+%%  \hline
+%% \end{tabular}}
+%% \end{solution}
+
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \exsection{Upper Confidence Bound for Bandits}
+
+%% Assume you have 3 bandits. You have already collected a few data points
+%% from these bandits:
+%% \begin{itemize}
+%% \item From bandit 1: ~ 1 5 5 1
+%% \item From bandit 2: ~ 2 3 2 3
+%% \item From bandit 3: ~ 1 4 3 2 2 1 4 3
+%% \end{itemize}
+
+%% \begin{enumerate}
+%% \item Provide the UCB1 scores for each of the three bandits. Replace the
+%% $\ln$ by $\log_2$ for simpler calculation by hand and use
+%% $\b=1$. Write the solution in the box (expressions with $\sqrt{~}$ are OK):
+%% \begin{itemize}
+%%     \item UCB1 score for bandit 1:  \BOX{20ex}{4ex}
+%%     \item UCB1 score for bandit 2:  \BOX{20ex}{4ex}
+%%     \item UCB1 score for bandit 3:  \BOX{20ex}{4ex}
+%% \end{itemize}
+
+%% \item Which bandit should be played next if you can play \textbf{infinitely often} and
+%% the goal is to maximize the expected reward. Explain your decision.\\
+%%     \BOX{110ex}{10ex}
+
+%% \item Which bandit should be played next if you can only play \textbf{once more}
+%%  and the goal is to maximize the expected reward. Explain your decision.\\
+%%     \BOX{110ex}{10ex}
+%% \end{enumerate}
+
+%% \begin{solution}
+%% \begin{itemize}
+%%     \item UCB1-B1: $3 + \sqrt{2}$
+%%     \item UCB1-B2: $2.5 + \sqrt{2}$
+%%     \item UCB1-B3: $2.5 + \sqrt{1}$
+%% \end{itemize}
+%% \end{solution}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exerfoot

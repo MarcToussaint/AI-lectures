@@ -1,0 +1,185 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Artificial Intelligence}
+\renewcommand{\coursepicture}{course_ai}
+\renewcommand{\coursedate}{Summer 2023}
+
+\renewcommand{\exnum}{Exercise 5}
+
+\exercises
+\excludecomment{solution}
+\exercisestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{TD-Learning (1pt)}
+
+\show[.3]{../pics/Maze}
+
+We consider again the same maze as discussed in the last exercise---please refer to the definitions in the last exercise for details, and again consider $\g=1/2$.
+
+In this exercise we consider TD-learning for a given policy $\pi$, which
+is a RL method that updates the value function $V^\pi(s)$. (Q-learning
+is practically more relevant, but on paper it is easier to simulate
+TD-learning.) The pseudo code for TD-learning is:\\
+\begin{algo}
+\State Initialize $V(s)=0$, and $t=0$
+\State Initialize start state $s$
+\Repeat \Comment{for each step of the episode}
+\State Choose action $a = \pi(s)$ with the given policy
+\State Take action $a$, observe $r, s'$
+\State Update $V(s) \gets V(s) + \a~ [r + \g V(s') - V(s)]$ \label{stepUp}
+\State $t\gets t+1$ (count time, only to clarify the meaning of $t$ in the exercise)
+\State $s\gets s'$
+\Until end of the episode
+\end{algo}
+
+Additional assumptions:
+\begin{itemize}
+\item Assume the agent starts at $s_0=4$ and always chooses the \emph{clock-wise} action.
+
+\item For simplicity, assume that there is \emph{no stochasticity} in the transitions. Instead, the agent deterministically moves clock-wise, with the exception that when $s_t=1$ (the green state), the next state will be $s_{t\po}=4$. Therefore, the agent cycles forever through states 4,5,6,7,8,1,4,5,6,7,8,1,4,...
+
+\item To clarify again what we discussed in the lecture:
+The agent receives a reward of $r=4096$ when \emph{leaving} $s=1$ and transitioning into $s'=4$. This is consistent with our definition of $R(s,a)$ being the reward when action $a$ is executed in $s$ and leads to a transition to $s'$.
+
+\item Assume a learning rate $\a=0.5$.
+\end{itemize}
+
+Exercise:
+\begin{enumerate}
+\item At which point in time $t$ will, for the first time, the value function $V$ be updated to become non-zero? What is the value function after this update? (Write the value function as a table over the 8 states, as in the previous exercise sheet.)
+
+\item At which point in time $t$ will, for the first time, the value $V(s=7)$ be non-zero? What is the $V$-function after this update?
+
+\item As you can see, in TD-learning (without eligibility traces) the agent has to make many steps to learn the value function. As an alternative, assume the agent stores all experiences in a data set, so that $D_t={(s_\tau,a_\tau,r_\tau,s_{\tau\po})}_{\tau=0}^t$ is the data available at time $t$. Further, assume that line \ref{stepUp} of the pseudo code is replaced by:
+
+6:\quad for $\tau=t,..,0$ update $V(s_\tau) \gets V(s_\tau) + \a~ [r_\tau + \g V(s_{\tau\po}) - V(s_\tau)]$
+
+This line \emph{reversely} goes through the data set (also called \textbf{replay buffer}) and updates the value $V(s_\tau)$ of all previously visited states. Analogous to question a), what is the value function after the first non-zero update (after the agent received a reward for the first time)?
+
+\item Is the replay buffer just described the same or related to the $n$-step updates we discussed in the lecture (of June 21)? How?
+\end{enumerate}
+
+\begin{solution}
+Here is a table of the algorithm running for 20 steps:
+\begin{center}
+    \begin{tabular}{c|cccc|cccccccc}
+        & & & & & \multicolumn{8}{c}{ $V(s)$ after step } \\
+        Time $t$ & State $s$ & Action $a$ & Reward $r$ & Next State $s'$ & $s=1$ & $s=2$ & $s=3$ & $s=4$ & $s=5$ & $s=6$ & $s=7$ & $s=8$ \\
+        \hline
+        & & & & & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+        0 & 4 & CW & 0 & 5 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+        1 & 5 & CW & 0 & 6 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+        2 & 6 & CW & 0 & 7 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+        3 & 7 & CW & 0 & 8 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+        4 & 8 & CW & 0 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+        5 & 1 & CW & 4096 & 4 & 2048 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+        6 & 4 & CW & 0 & 5 & 2048 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+        7 & 5 & CW & 0 & 6 & 2048 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+        8 & 6 & CW & 0 & 7 & 2048 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+        9 & 7 & CW & 0 & 8 & 2048 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+        10 & 8 & CW & 0 & 1 & 2048 & 0 & 0 & 0 & 0 & 0 & 0 & 512 \\
+        11 & 1 & CW & 4096 & 4 & 3072 & 0 & 0 & 0 & 0 & 0 & 0 & 512 \\
+        12 & 4 & CW & 0 & 5 & 3072 & 0 & 0 & 0 & 0 & 0 & 0 & 512 \\
+        13 & 5 & CW & 0 & 6 & 3072 & 0 & 0 & 0 & 0 & 0 & 0 & 512 \\
+        14 & 6 & CW & 0 & 7 & 3072 & 0 & 0 & 0 & 0 & 0 & 0 & 512 \\
+        15 & 7 & CW & 0 & 8 & 3072 & 0 & 0 & 0 & 0 & 0 & 128 & 512 \\
+        16 & 8 & CW & 0 & 1 & 3072 & 0 & 0 & 0 & 0 & 0 & 128 & 1024 \\
+        17 & 1 & CW & 4096 & 4 & 3584 & 0 & 0 & 0 & 0 & 0 & 128 & 1024 \\
+        18 & 4 & CW & 0 & 5 & 3584 & 0 & 0 & 0 & 0 & 0 & 128 & 1024 \\
+        19 & 5 & CW & 0 & 6 & 3584 & 0 & 0 & 0 & 0 & 0 & 128 & 1024 \\
+        20 & 6 & CW & 0 & 7 & 3584 & 0 & 0 & 0 & 0 & 32 & 128 & 1024 \\
+    \end{tabular}
+\end{center}
+
+\begin{enumerate}
+\item
+As we can see from the table, $V(s)$ becomes non-zero for the first time during the update after step $t=5$.
+
+\item
+The "propagation" of the nonzero reward signal that was received at $s=1$ to the other states is quite slow, since each state's $V(s)$ is only updated if it is visited (the algorithm does not re-use past transition data).
+
+As we can see from the table, $V(s=7)$ becomes non-zero for the first time during the update after step $t=15$.
+
+\item
+Up to step $t=5$, no nonzero reward is received. Since the value function is initialized with $V(s)=0$, the value function remains $V(s)=0$ until this point.
+For the update after $t=5$, the data set $D_{t=5}$ and the corresponding updates look as follows. We loop through the collected transition in reversed order and update the value function as shown below.
+\begin{center}
+    \begin{tabular}{ccccc|cccccccc}
+        \multicolumn{5}{c}{ $D_{t=5}$ (Replay Buffer at $t=5$) } & \multicolumn{8}{c}{ $V(s)$ after update } \\
+        Index $\tau$ & $s_\tau$ & $a_\tau$ & $r_\tau$ & $s_{\tau+1}$ & $s=1$ & $s=2$ & $s=3$ & $s=4$ & $s=5$ & $s=6$ & $s=7$ & $s=8$ \\
+        \hline
+        & & & & & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+        $\tau = 5$ & 1 & CW & 4096 & 4 & 2048 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+        $\tau = 4$ & 8 & CW & 0 & 1 & 2048 & 0 & 0 & 0 & 0 & 0 & 0 & 512 \\
+        $\tau = 3$ & 7 & CW & 0 & 8 & 2048 & 0 & 0 & 0 & 0 & 0 & 128 & 512 \\
+        $\tau = 2$ & 6 & CW & 0 & 7 & 2048 & 0 & 0 & 0 & 0 & 32 & 128 & 512 \\
+        $\tau = 1$ & 5 & CW & 0 & 6 & 2048 & 0 & 0 & 0 & 8 & 32 & 128 & 512 \\
+        $\tau = 0$ & 4 & CW & 0 & 5 & 2048 & 0 & 0 & 2 & 8 & 32 & 128 & 512 \\
+    \end{tabular}        
+\end{center}
+As we can see, the nonzero reward collected at $t=5$ is propagated all the way back to the state $s=4$ at which we started at $t=0$. Comparing this to parts a) and b), obviously the value function is much more informative at $t=5$ already.
+
+In other words, the replay buffer allows us to make more efficient use of the collected transition data.
+
+\item
+If we choose $\alpha=1$, the update for $\tau$ reads:
+\begin{align}
+    V(s_\tau) \leftarrow r_\tau + \gamma V(s_{\tau + 1})
+\end{align}
+During the update after time step $t$, we then go reversely through the data set, and obtain for all $k\leq t$
+\begin{align}
+    V(s_k) \leftarrow \sum_{\tau=k}^t \gamma^{\tau-k} r_\tau + \gamma^{t-k+1} V(s_{\tau + 1}) \quad \text{.}
+\end{align}
+In other words, we replace $V(s_k)$ by the $(t-k+1)$-step return estimate. For example, we replace $V(s_0)$ by the $(t+1)$-step return estimate.
+
+\end{enumerate}
+\end{solution}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Exercises from Sutton \& Barto (1pt)}
+
+\emph{(Purpose of this exercise is also to make you look into the book.)}
+
+~
+
+Please get a pdf copy of Sutton \& Barto's RL book.\footnote{
+\url{}http://incompleteideas.net/book/RLbook2020.pdf -- also found in our literature list.} %Figures 6.6 and 6.7 (page 150) show results from Example 6.2.
+
+\begin{enumerate}
+    \item Please read Example 6.2 (page 125) and explain the ``true values'' they provide for the states A through E.
+\item Please read Exercise 6.4 and try to answer. (Exercises in the book are mostly ``discussions''.)
+\end{enumerate}
+
+\begin{solution}
+\begin{enumerate}
+\item
+Reason for true value: There are no discounts and the agent can get at most one nonzero reward. Therefore, the 
+return is equal to the probability of getting that nonzero reward (of ending up in state E)
+
+From the Bellmann equation, we then get the following recursion:
+\begin{align}
+    P(\text{Get reward}|s) = \sum_{s'}P(s'|s)P(\text{Get reward}|s') \quad \text{,}
+\end{align}
+and we know that $P(s'|s)=1/2$ for neighbors and otherwise zero. In other words, each state's return is the arithmetic mean of the return of its 2 neighbors.
+
+We can also use that it is equally likely to end up with reward $0$ when starting in C as ending up with reward $1$, therefore $P(\text{Get reward}|s) = 1/2$
+
+Now we have the following $2$ equations for A and B:
+\begin{align}
+    P(\text{Get reward}|A) &= \frac{0 + P(\text{Get reward}|B)}{2} \\
+    P(\text{Get reward}|B) &= \frac{1/2 + P(\text{Get reward}|A)}{2}
+\end{align}
+This system is solved by $P(\text{Get reward}|A) = 1/6$ and $P(\text{Get reward}|B) = 2/6$. Analogously we can calculate the values of D and E.
+
+\item
+The larger $\alpha$, the longer it takes for the TD-update to find a self-consistent solution for $V$. Initially wrong values of $V$ propagate longer through state space, and since the right side of the equation in the TD update is "wrong", this means that this error is propagated too before it is eventually cut off by $\alpha$. This propagation is not unlike an oscillating motion, which is what we see in the MSE. For smaller $\alpha$, this cut-off happens faster (or, to use the analogy: the oscillator's dampening is stronger).
+
+The initialization of $V$ is like the initial amplitude of the oscillator - Close-to-correct values mean small amplitude, and no "oscillation" of the MSE.
+
+\end{enumerate}
+\end{solution}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exerfoot

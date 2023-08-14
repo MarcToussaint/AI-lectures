@@ -3,17 +3,13 @@ do
     echo '-----------------------------------'
     echo 'compiling' ${input}
     pdflatex -interaction=nonstopmode ${input} > /dev/null
+    grep "Warning" ${input%.*}.log
     grep "Missing" ${input%.*}.log
-    grep "Undefined control sequence" ${input%.*}.log
-    grep "Error" ${input%.*}.log
+    grep -A2 "Undefined control sequence" ${input%.*}.log
+    grep -A2 "Error" ${input%.*}.log
 done
 
-input='script.tex'
 echo '-----------------------------------'
-echo 'compiling' ${input}
-makeindex ${input%.*}.idx 2> /dev/null
-bibtex ${input%.*} > /dev/null
-pdflatex -interaction=nonstopmode ${input} > /dev/null
-grep "Missing" ${input%.*}.log
-grep "Undefined control sequence" ${input%.*}.log
-grep "Error" ${input%.*}.log
+echo 'compiling script'
+makeindex script.idx
+pdflatex -interaction=nonstopmode script.tex > /dev/null

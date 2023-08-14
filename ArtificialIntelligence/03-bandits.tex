@@ -1,0 +1,318 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Artificial Intelligence}
+\renewcommand{\coursepicture}{course_ai}
+\renewcommand{\coursedate}{Summer 2023}
+
+\renewcommand{\topic}{Bandits \& UCB1}
+\renewcommand{\keywords}{}
+
+\slides
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\story{
+Multi-armed bandits are \emph{the} prototype for so-called
+exploration-exploitation problems. More precisely, for problems where
+sequential decisions influence both, the state of knowledge of the
+agent as well as the returns/rewards the agent gets. Therefore there
+is some tradeoff between choosing decisions for the sake of learning
+(influencing the state of knowledge in a positive way) versus for the
+sake of returns---while clearly, learning might also enable you to
+better collect returns later.
+
+Bandits are a kind of minimalistic problem setting of this kind, and
+the methods and algorithms developed for Bandits translate to other
+exploration-exploitation kind of problems within Reinforcement
+Learning, Machine Learning, and optimization.
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Outline}{
+
+\item Bandit Problem
+\item Upper Confidence Bound
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%\renewcommand{\subtopic}{Prelim}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Multi-armed Bandits}
+\slide{Problem: Multi-armed Bandits}{
+
+\show[.3]{bandits}
+
+\item Setting:
+\begin{items}
+\item There are $K$ bandits (slot machines)
+
+\item Each bandit $a$ returns a reward $y\sim P(y | a)$, but $P(y | a)$ is unknown!
+
+\item Your objective could be to find out the best bandit, or to maximize $\sum_{t=1}^n y_t$ over the first $n$ trials
+
+\item No model, no data initially!
+
+\cen{\textbf{You have to collect your own data}
+($\sim$ \textbf{``interaction-based''}, ``trial-and-error'') }
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Bandits -- applications}{
+
+~
+
+\item Recommender Systems\anchor{30,-20}{\showh[.15]{google}}
+
+~
+
+~
+
+\item Clinical trials, robotic scientist
+\anchor{30,-90}{\showh[.2]{robotScientist}}
+
+~
+
+~
+
+\item Efficient optimization
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Exploration, Exploitation}
+\slide{Bandits -- Exploration, Exploitation}{
+
+\item ``Two effects'' of choosing a machine:
+\begin{items}
+\item You collect more data about the machine $\to$ knowledge
+\item You collect reward
+\end{items}
+
+~
+
+\item For example
+\begin{items}
+\item Pure Exploration: ~ Choose the next action $a_t$ to
+$\min \Exp{H(b_t)}$ ~ (expected entropy of next belief)
+
+\item Pure Exploitation: ~ Choose the next action $a_t$ to
+$\max \Exp{ y_t }$
+\end{items}
+
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Bandits}{
+
+\item The bandit problem is an archetype for
+\begin{items}
+\item Sequential decision making
+
+\item Decisions that influence knowledge as well as rewards/states
+
+\item Exploration/exploitation
+\end{items}
+
+\item The same aspects are inherent also in Active Learning, RL, global optimization, \& game engines
+
+~
+
+\item The Bandit problem formulation is the basis of UCB -- which is
+the core of serveral planning and decision making methods
+
+\item Bandit problems are commercially very relevant
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\sublecture{Upper Confidence Bound (UCB1)}{}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{Bandits: Formal Problem Definition}{
+
+%% \item Let $a_t\in\{1,..,n\}$ be the decision at time $t$
+
+%% Let $y_t\in\RRR$ be the outcome
+
+%% ~
+
+%% \item A policy or strategy maps all the history to a new decision:
+%% $$ \pi:~ [ (a_1,y_1), (a_2,y_2), ..., (a_{t\1},y_{t\1}) ] \mapsto a_t$$
+
+%% \item Problem: ~ Find a policy $\pi$ that
+%% $$\max \< \Sum_{t=1}^T y_t \>$$
+%% or
+%% $$\max \< y_T \>$$
+
+%% {\tiny or other objectives like discounted infinite horizon $\max \< \Sum_{t=1}^\infty \g^t y_t \>$}
+
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Upper Confidence Bound (UCB1)}
+\slide{Upper Confidence Bound (UCB1)}{
+
+\item We have machines $a\in\{1,..,K\}$, outcomes $y\in[0,1]$ with \textbf{unknown} $P(y|a)$
+
+\pause
+
+\item The \textbf{UCB1 policy} is:
+\begin{algo}
+\State Initialization: Play each machine once
+\Repeat
+\State Play the machine $a$ that maximizes $\hat\mu_a
++ \b \sqrt{\frac{2\ln n}{n_a}}$
+\Until
+\end{algo}
+
+~\small
+
+\item $\hat\mu_a$ is the average outcome of machine $a$ so far
+
+\item $n_a$ is how often machine $a$ has been played so far
+
+\item $n = \Sum_a n_a$ is the number of rounds (size of total data) so far
+
+\item $\b$ is often chosen as $\b=1$
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Upper Confidence Bound (UCB1)}{
+
+\emph{Finite-time analysis of the multiarmed bandit problem},
+Auer, Cesa-Bianchi \& Fischer, Machine learning, 2002.
+
+~\pause
+
+\item Assume outcomes $y\in[0,1]$ are strictly in the interval $[0,1]$, but their form of distribution $P(y|a)$ is not known (and certainly not Gaussian).
+
+
+\item \textbf{Theorem:} UCB1 with $\b=1$ has \textbf{regret bounded} by $O(\ln n)$.
+
+~
+\tiny
+
+
+\item Notion of regret (=sub-optimality):
+\begin{items}\tiny
+\item Each bandit has a true (unknown) mean $\mu_a$; the best bandit has $\mu^* = \mu_{a^*}$
+\item Choosing $a$ leads to regret $\mu^* - \mu_a$
+\item After $n$ steps, we have a total regret $L(n) = \sum_a (\mu^* - \mu_a) \Exp{n_a(n)}$
+\end{items}
+
+~
+
+\item How is this possible to prove? Based on Chernoff/Hoeffding bounds on error of mean estimator
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{UCB algorithms}{
+
+\item UCB algorithms generally determine a \textbf{confidence interval} such that 
+$$\hat\mu_a - \D_a < \mu_a < \hat\mu_a + \D_a$$
+with high probability.
+
+UCB chooses the upper bound of this confidence interval
+
+~
+
+\item \emph{Optimism in the face of uncertainty}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{UCB for Bernoulli**}{
+
+%% \item If we have a single Bernoulli bandits, we can count
+%% $$a=1+\text{\#wins} \comma b=1+\text{\#losses}$$
+
+%% \item Our posterior over the Bernoulli parameter $\t\in[0,1]$ is
+%% $\Beta(\t\|a,b)$
+
+%% \begin{items}
+%% \item The mean is $\<\t\>=\frac{a}{a+b}$
+%% \item The mode (most likely) is $\t^*=\frac{a-1}{a+b-2}$ for $a,b>1$
+%% \item The variance is $\Var{\t} = \frac{ab}{(a+b+1)(a+b)^2}$
+%% \item One can numerically compute the \emph{inverse cumulative Beta
+%% distribution} $\to$ get exact quantiles
+%% \end{items}
+
+%% ~
+
+%% \item Alternative strategies:
+%% $$ \argmax_a \text{90\%-quantile}(\t_a) $$
+
+
+%% $$ \argmax_a \<\t_a\> + \b \sqrt{\Var{\t_a}} $$
+
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{UCB for Gauss**}{
+
+\item If we had Gaussian bandits, we can compute
+\begin{items}
+\item the mean estimator $\hat \m_a$ and empirical variance $\hat \s_a^2$ as on slide 5
+\item the variance \emph{of the mean estimator} $\Var{\hat \m_a} = \hat \s_a^2/n_a$
+\item and standard deviation of the mean estimator: $\D_a = \sqrt{\Var{\hat \m_a}} = \hat \s_a/\sqrt{n_a}$
+\end{items}
+
+~
+
+\item $\hat\m_a$ and $\D_a$ describe the mean and confidence bounds for bandit $A$. Using the err-function we can get exact quantiles.
+
+~
+
+\item UCB strategy: Choose $a$ to maximize
+$$\hat \m_a + \b \sqrt{\Var{\m_a}}  = \hat \m_a + \b \frac{\hat\s_a}{\sqrt{n_a}}$$
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{UCB -- Discussion}{\label{lastpage}
+
+\item UCB over-estimates the reward-to-go (under-estimates cost-to-go),
+just like $A^*$ -- but does so in the probabilistic setting of bandits
+
+~
+
+\item The fact that a regret bound exist is great!
+
+~
+
+\item UCB became a core method for algorithms (including planners) to
+decide what to explore:
+
+~
+
+\emph{In tree search, the decision of which branches/actions to
+explore (which node to expand) is itself a decision problem. An
+``intelligent agent'' (like UCB) can be used within the planner to
+make decisions about how to grow the tree.}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slidesfoot

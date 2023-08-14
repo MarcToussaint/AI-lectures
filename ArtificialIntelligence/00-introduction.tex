@@ -1,0 +1,753 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Artificial Intelligence}
+\renewcommand{\coursepicture}{course_ai}
+\renewcommand{\coursedate}{Summer 2023}
+
+\renewcommand{\topic}{Introductory Slides}
+\renewcommand{\keywords}{}
+
+\slides
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{Outline}{
+
+%% \item What is AI about?
+
+%% \item Course Contents
+
+%% %% \item Brief comments: ~ Lessons from history of AI? ~ Teaching in general.
+
+%% \item Organization, module description
+
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\sublectureHide{What is AI about?}{}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\cen{What is AI about?}
+
+~\pause
+
+\item best answer: look at papers from AI conferences:
+\begin{items}
+\item NeurIPS \url{https://nips.cc/} (Neural Information Processing Systems)
+\item CoRL \url{https://corl2022.org/} (Conference on Robot Learning)
+\item IJCAI \url{https://www.ijcai.org/} (Int. Joint Conf. on Artificial Intelligence)
+\item AAAI \url{https://aaai-23.aaai.org/} (AAAI Conf. on Artificial Intelligence)
+\item AISTATS \url{http://aistats.org} (Conference on Artificial Intelligence and Statistics)
+\item ICLR \url{https://iclr.cc/} (Int. Conf. on Learning Representations)
+\item ICML \url{https://icml.cc/} (Int. Conf. on Machine Learning)
+\end{items}
+
+\item More Conferences \& Journals:
+\begin{items}
+\item \url{https://scholar.google.de/citations?view_op=top_venues&vq=eng_artificialintelligence}
+\item \url{https://airankings.org/}
+\item \url{https://airankings.professor-x.de/}
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\item[$\to$] AI is a very broad research field, including a zillion of problem settings, theory \& applications
+
+\item[$\to$] AI research is broadly about understanding and creating all kinds of learning, reasoning, inferring, and deciding systems, as well as understandings the mathematical, statistical, and algorithmic foundations of such systems.
+
+~\pause
+
+\item AI is not about ``creating the one AI machine'' -- it's a broad \emph{science}
+
+\item AI is not about ``recreating human I'', or natural I ~ \emph{(It can be a tool for a science of natural intelligence though.)}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\cen{What is AI about?}
+
+~\pause
+
+\item AI as \emph{Decision Making}
+\pause
+\begin{items}
+\item What's the decision space? (class, colorings, paths, sequences, words)
+\item What's the input? (data, model, or both)
+\item What's the objective? (loss fct., constraints)
+\end{items}
+
+~\pause
+
+\item For instance: (oversimplified)
+\begin{items}
+\item ``ML: data $\mapsto$ decision'' \qquad (decision$\equiv$function,  where function: $x$ $\mapsto$ prediction/class/word)
+\pause
+\item ``reasoning: model $\mapsto$ decision''
+\pause
+\item ``planning: model $\mapsto$ sequence of decisions''
+\pause
+\item ``RL:~ \raisebox{-3.5mm}{\showh[.15]{dataDecision}}~''
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\cen{What is AI about?}
+
+~
+
+\item AI research is about \emph{problem formulation}:
+\begin{items}
+\item e.g.\ novel loss functions, novel archtectures (e.g. GANs, transformers), novel formalizations of problems (e.g.\ LGP)
+\item Transferring ``problem ideas'' to concise mathematical definitions
+\end{items}
+
+~
+
+\item AI research is about \emph{solvers}:
+\begin{items}
+\item optimization algos, search algos, probabilistic inference algos, logic solvers
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Take Aways}{
+
+~
+
+\item[1)] AI is about decision making, both, \emph{model-based} (reasoning/planning) and \emph{data-based} (learning)
+
+~
+
+\item[2)] AI research is about both, creative problem formulations and solvers
+
+~
+
+\item[3)] AI research is a broad science, aiming to understand all kinds of intelligent systems and their foundations (not a race to \emph{the} AI)
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{}{
+
+%% \item Do we first need to define \emph{intelligence?}
+
+%% ~\pause
+
+%% \begin{center}
+%% \begin{tabular}{r@{$\quad\oto\quad$}l}
+%% Biology & \emph{life}\\
+%% AI & \emph{intelligence}
+%% \end{tabular}
+%% \end{center}
+
+%% ~\pause
+
+%% \item Wikipedia: ``There is currently no consensus regarding the definition of life.''
+
+%% \item But nobody would question that \emph{Biology} is a fruitful scientific discipline
+
+%% ~\pause
+
+%% \item Scientific disciplines define themselves rather practically/socially:
+%% \begin{items}
+%% \item Some concensus (more or less) of what they aim to understand, on what scale
+%% \item Some flavor of methodologies
+%% \end{items}
+
+%% }
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{What is AI? ~ (working definition in this course)}{
+
+%% \pause
+
+%% \item AI is a research discipline
+
+%% ~\pause
+
+%% \item AI research is about systems that take decisions
+%% \begin{items}
+%% \item AI formalizes decision processes: interactive (decisions change world state), or passive
+%% \item AI distinguishes between agent(s) and the external world: decision variables
+%% \end{items}
+
+%% ~\pause
+
+%% \item ... systems that take optimal/desirable decisions
+%% \begin{items}
+%% \item AI formalizes decision objectives
+%% \item AI aims for systems to exhibit \emph{desirable behavior}
+%% \end{items}
+
+%% ~\pause
+
+%% \item ... systems that take decisions on the basis of all available information
+%% \begin{items}
+%% \item AI is about inference ~ (reasoning, planning)
+%% \item AI is about learning
+%% \end{items}
+
+%% }
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{What AI is not ~ (in this course)}{
+
+%% \item AI is not a thing, not a machine, not a computer program -- it's a research discipline
+
+%% \item There is no ``Solving AI'', like there is no ``Solving Biology'' -- it's a research discipline
+
+%% ~
+
+%% \item Common, but not my favorite views:
+%% \begin{items}
+%% \item ``AI is a collection of methods''
+%% \item ``AI is a discipline trying to reproduce human intelligence''
+%% \end{items}
+
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{What is Intelligence?}{
+
+%% \small
+
+%% \item First: It is perfectly fine to define an \emph{intelligence research} discipline without having a definition of \emph{intelligence}. For instance:
+%% \begin{items}
+%% \item Biology as discipline $\oto$ Life as phenomenon
+%%  \item AI as discipline $\oto$ Intelligence as phenomenon
+%%  \end{items}
+
+%% \pause
+
+%% \item The Berlin Reserach Cluster \emph{Science of Intelligence} is exactly about this -- including diverse discussions/views on what intelligence is. Rather than arguing about the ``right'' definition, it is much more fruitful to state a series of concrete partial/disciplinary/limiting definitions, as stable reference for discussion
+
+
+%% ~\pause
+
+%% \item One such concrete definition that I find important as reference:
+
+%% \emph{Intelligence measures the degree to which a "system can control" its environment and itself into "any desired state".}
+
+%% \begin{items}
+%% \item Reflects very much the control and decision making perspective
+%% \item Raises questions about whether the notion of "control" (the decision space) is apriori given; whether "desired" has to be given by another normative faculty (implies that intellgence relates to \emph{any} desireds and is independent of norms); about the notion of "state"
+%% \end{items}
+
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{AI = ML?}{
+
+%% \item We'll discuss this in more detail in later lectures...
+
+%% ~
+
+%% \item ML is of course a core topic of AI research -- but it is naive to state ``AI = ML''
+
+%% {\tiny (e.g., supervised ML can be viewed as a ``single-decision process'', making a single decision about the predictive function $f\in\HH$ in the hypothesis space $\HH$ -- but no interactive process or sequential decision process is considered.)
+
+%% }
+
+%% \pause
+
+%% \item ML (esp.\ function optimization) is a crucial \emph{tool} throughout various AI problems (e.g.\ to approximate a Q-function or system dynamics).)
+
+%% ~\pause
+
+%% \item From a broader AI perspective, instead of distinguishing ``modern ML'' from ``old-fasioned AI'', it is better to equally speak of:
+
+%% \centering
+
+%% \emph{data-based decision making}
+
+%% \emph{model-based decision making}
+
+
+%% %% \item In large parts, ML is: \quad (let's call this ML$^0$)
+
+%% %% \cen{\emph{Fitting a function $f: x\mapsto y$ to given data $D=\{ (x_i,y_i) \}_{i=1}^n$}}
+
+%% %% ~\pause
+
+%% %% \item And what does that have to do with AI?
+
+%% %% \item Literally, not much:
+%% %% \begin{items}
+%% %% \item The decision made by a ML$^0$ method is only a single decision: Decide on the function $f\in\HH$ in the hypothesis space $\HH$
+
+%% %% \item This ``single-decision process'' is not interactive; ML$^0$ does not formalize/model/consider how the choice of $f$ changes the world
+
+%% %% \item The objective $\LL(f, D)$ in ML$^0$ depends only on the given static data $D$ and the decision $f$, not how $f$ might change the world
+
+%% %% \item ``Learning'' in ML$^0$ is not an interactive process, but some method to pick $f$ on the basis of the static $D$. The typically iterative optimization process is not the decision process that ML$^0$ focusses on.
+%% %% \end{items}
+
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{}{
+
+%% \textbf{But,} function approximation can be used to help solving AI (interactive decision process) problems:
+
+%% \item Building a trained/fixed $f$ into an interacting system based on human expert knowledge
+
+%% {\tiny E.g., an engineer trains a NN $f$ to recognize street signs based on
+%% a large fixed data set $D$. S/he builds $f$ into a car to drive
+%% autonomously. That car certainly solves an AI problem; $f$
+%% continuously makes decisions that change the state of the world. But
+%% $f$ was never optimized literally for the task of interacting with the
+%% world; it was only optimized to minimze a loss on the static data
+%% $D$. It is not a priori clear that minimizing the loss of $f$ on $D$
+%% is related to maximizing rewards in car driving. That fact is the
+%% expertise of the engineer; it is not some AI algorithm that discovered
+%% that fact. At no place there was an AI method that ``learns to drive a
+%% car''. There was only an optimization method to minimize the loss of
+%% $f$ on $D$.
+
+%% }
+
+%% \item Using ML in interactive decision processes
+
+%% {\tiny
+%% E.g., to approximate a $Q$-function, state evaluation function, reward
+%% function, the system dynamics, etc. Then, other AI methods can use
+%% these approximate models to actually take decisions in the interactive
+%% context.
+
+%% }
+
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{Ups and downs of AI -- history}{
+
+%% \tiny
+
+%% \begin{tabular}{ll}
+%% \emph{1943}       & McCulloch \& Pitts: Boolean circuit model of brain\\
+%% \emph{1950}       & Turing's ``Computing Machinery and Intelligence''\\
+%% \emph{1952--69}   & Look, Ma, no hands! \\
+%% \emph{1950s}      & Early AI programs, including Samuel's checkers program,\\
+%%            & Newell \& Simon's Logic Theorist, Gelernter's Geometry Engine\\
+%% \emph{1956}       & Dartmouth meeting: ``Artificial Intelligence'' adopted\\
+%% \emph{1965}       & Robinson's complete algorithm for logical reasoning\\
+%% \emph{1966--74}   & AI discovers computational complexity\\
+%%            & Neural network research almost disappears\\
+%% \emph{1969--79}   & Early development of knowledge-based systems\\
+%% \emph{1980--88}   & Expert systems industry booms\\
+%% \emph{1988--93}   & Expert systems industry busts: ``AI Winter''\\
+%% \emph{1985--95}   & Neural networks return to popularity\\
+%% \emph{1988}--     & Resurgence of probability; general increase in technical depth\\
+%%            & ``Nouvelle AI'': ALife, GAs, soft computing\\
+%% \emph{1995}--     & Agents, agents, everywhere $\ldots$\\
+%% \emph{2003}--     & Human-level AI back on the agenda
+%% \end{tabular}
+
+%% \hfill{\tiny(slide from Stuart Russell)}
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{Summary -- AI is about:}{
+
+%% ~
+
+%% \item Systems that interact with the environment
+%% \begin{items}
+%% \item We distinguish between 'system' and 'environment' (cf.\ embodiment)
+%% \item We just introduced basic models of interaction
+%% \item A core part of AI research is to develop formal models for interaction
+%% \end{items}
+
+%% ~
+
+%% \item Systems that aim to manipulate their invironment towards 'desired' states (optimality)
+%% \begin{items}
+%% \item Optimality principles are a standard way to describe desired behaviors
+%% \item We sketched some interesting objectives
+%% \item Coming up with objective functions that imply desired behavior is a core part of AI research
+%% \end{items}
+
+%% ~
+
+%% \item Systems that exploit all available data, i.e., learn and infer
+%% \begin{items}
+%% \item Machine Learning plays a major role, but it is usually only a component in an embedding AI framework
+%% \end{items}
+
+%% }
+
+
+%% \slide{}{
+
+%% \item We gave a very general model of what
+%% it means that an agent takes decisions in an interactive environment
+
+
+%% \item There are many flavors of this:
+%% \begin{items}
+%% \item Fully observable vs.\ partially observable
+%% \item Single agent vs.\ multiagent
+%% \item Deterministic vs.\ stochastic
+%% %{\color{gray}
+%% %\item Episodic vs.\ sequential
+%% %\item Static vs.\ dynamic
+%% %\item Discrete vs.\ continuous
+%% %\item Known vs.\ unknown
+%% %}
+%% \item Structure of the state space: Discrete, continuous, hybrid;
+%% factored; relational 
+%% \item Discrete vs.\ continuous time
+%% \end{items}
+
+%% %% ~
+
+%% %% \item Next we need to decide on \textbf{Objectives}
+
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\sublecture{Contents}{
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{Contents}{
+
+%% \item Roughly:
+%% \begin{items}
+%% \item Discuss model-based and data-based decision making next to each other
+
+%% \item ...in single and sequential settings, with \& w/o uncertainty, discrete \& continuous decisions
+
+%% \item ...including the case of decision making for data collection
+%% \end{items}
+
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Contents}{
+
+\item Part 1: Single-Step Decision Making
+\begin{items}
+\item Decision Making Basics (Decision Theory, uncertainty, Monte Carlo)
+\item {} [Background lecture on probabilities]
+\item Model-based \& data-based setting
+\item Bandits \& UCB1
+\item Continuous Decisions \& Machine Learning (regression)
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Contents}{
+
+\item Part 2: Sequential Decision Making
+\begin{items}
+\item Monte-Carlo Tree Search (MCTS, UCT)
+\item Markov Decision Processes (Bellman, Value and Q-Iteration)
+\item Reinforcement Learning (model-free RL, TD, Q-Learning, batch \& n-step)
+\end{items}
+
+~
+
+\item Part 3 (might vary)
+\begin{items}
+\item Neural networks \& Computation Graphs
+\item Explainable AI
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Schedule (last year)}{
+
+\small\centering
+
+\begin{tabular}{|c|p{.35\textwidth}|p{.35\textwidth}|}
+\hline
+week & lecture & coding ass./exercise\\
+\hline
+1 & L1: Intro Decision Making \newline L2: Probabilities & CA0 \\
+2 & L3: Bandits & E1: Probabilities \\
+3 & L4: Continuous, ML & CA1 \\
+4 & -- & E2: Bandits, Derivatives \\
+5 & L5: Sequential, MCTS & CA2 \\
+6 & (cont) & E3: Decision Trees, MDP \\
+7 & L6: MDPs, Value Iteration & CA3 \\
+8 & L7: Reinforcement Learning & E4: MDPs, Value Iteration \\
+9 & (cont) & E5: Reinforcement Learning \\
+10 & L8,L9: ML \& NNs & CA 4 \\
+11 & L10: Explainable AI & E6: Computation Graphs\\
+\hline
+\end{tabular}
+
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\sublecture{Resources}{
+
+\item Russell \& Norvig\\
+\url{https://aima.cs.berkeley.edu/}\\
+\url{https://people.engr.tamu.edu/guni/csce421/files/AI_Russell_Norvig.pdf}
+
+~
+
+\item General Textbooks:\\
+\url{https://www.user.tu-berlin.de/mtoussai/teaching/\#reference-material}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\sublecture{Organization}{
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{ISIS, contact}{
+
+\item ISIS as central webpage
+
+\item More general teaching material on:
+
+\cen{\tiny\url{https://www.user.tu-berlin.de/mtoussai/teaching/}}
+
+\item TUB Robotics Interest Group:
+
+\cen{\tiny\url{https://isis.tu-berlin.de/course/view.php?id=33668}}
+
+~
+
+\item Contact
+\begin{items}
+\item Office: Ilaria Cicchetti-Nilsson \url{<office@lis.ut-berlin.de>}
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\item 6 LPs (180h, 12h/w, 15 weeks)
+
+\item Lectures, weekly, in person
+
+\item Tutorials, weekly:
+\begin{items}
+\item Weekly exercise sheets, mix of analytic/coding\\
+Voting system $\to$ present your solutions in the tutorials
+\item Hand-in coding assignments every 2-3 weeks:\\
+Submit your solutions $\to$ are numerically evaluated/graded
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Assignments \& Exam}{
+
+\item Tutorial exercises are a mix of analytic and coding problems. Voting System:
+\begin{items}
+\item When attending a tutorial, students mark in a sheet which exercises they have worked on
+\item Students are randomly selected to present their solutions (no need for correct solutions -- just something to present and discuss)
+\item When not attending: upload pdf notes/solutions on ISIS
+\end{items}
+
+~
+
+\item \textbf{Exam prerequisite:}
+\begin{items}
+\item at least 50\% votes in the exercises, and
+\item at least 50\% points in the hand-in coding assignments
+\item[] \emph{(Moses: Bestehen der benoteten Programmier- und Hausaufgaben)}
+\end{items}
+
+~
+
+\item The written exam will be about analytical problems, determines final grade (no portfolio)
+
+%% ~
+
+%% \item Final grading
+%% \begin{items}
+%% \item Current Moses description: grade by exam points only
+%% \item We would prefer 25\% coding assignment points, and 75\% exam points
+%% \item We'll compute both grading schemes, your grade is the max (better).
+%% \end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Modulbeschreibung (Moses 41048)}{
+
+\item Lernergebnisse
+\begin{items}\ttiny
+\item Die Student:innen gewinnen ein integratives Verständnis des Forschungsgebiets Künstliche Intelligenz, das daten-basierte KI (insb. Maschinelles Lernen) und model-basierte KI (insb. Planung \& Reasoning) gleichberechtigt und integriert.
+\item Die Student:innen verstehen KI aus Sicht der Entscheidungs-Theorie, des Maschinellen Lernens, der Optimierung, und des klassischen Problemlösens.
+\item Die Student:innen können grundlegende Algorithmen aus den genannten Gebieten eigenständig von Grund auf implementieren und im Detail verstehen.
+\item Die Student:innen wissen, welche Problemformulierung und Algorithmen der KI für ein gegebenes Anwendungsproblem adäquat sind.
+\end{items}
+
+\item Lehrinhalte
+\begin{items}\ttiny
+\item Die Problemformulierungen und algorithmischen Ansätze der Gebiete
+$\bullet$ Entscheidungstheorie (inkl. Reinforcement-Lernen, Banditen, Regelungstheorie)
+$\bullet$ Maschinelles Lernen
+$\bullet$ Optimierung
+$\bullet$ Inferenz, klassisches Planen, \& Problemlösen
+\item Zudem, grundlegende und wiederkehrende algorithmische Prinzipien wie:
+$\bullet$ Dynamisches Programmieren
+$\bullet$ Optimierungs- vs. sample-basierte Methoden
+$\bullet$ Entscheidungsbäume
+\end{items}
+
+\item Voraussetzungen
+\begin{items}
+\item Grundkenntnisse in Mathematik, insb. Lineare Algebra, Analysis, und Stochastik.
+\item Grundkenntnisse in Datenstrukturen und Programmierung (insb. Python).
+\item für Modulprüfung: Bestehen der benoteten Programmier- und Hausaufgaben
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Modulbeschreibung (Moses 41048)}{\label{lastpage}
+
+\item Lehr- und Lernformen:
+\begin{items}\ttiny
+\item Vorlesung: Klassische Vorlesung mit Zeit für Diskussionen und breitere Fragen zum Thema.
+\item Übung: Hausaufgaben, die auf Papier lösbar sind und dem Inhalt der abschließenden schriftlichen Prüfung entsprechen; und deren Besprechung in Tutorien.
+\item Praktische Programmieraufgaben: Über ein automatisiertes Code-Abgabe- und Evaluierungs-System (per git) reichen Student:innen ihre algorithmischen Lösung zu KI-Problemstellungen ein.
+\end{items}
+
+\item Benotung
+\begin{items}
+\item Schriftliche Prüfung (120min)
+\end{items}
+
+\item Zugeordnete Studiengänge
+\begin{items}
+\item Informatik (Bachelor of Science)
+\item Technische Informatik (Bachelor of Science)
+\item Wirtschaftsinformatik (Bachelor of Science)
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{Learning \& Intelligent Systems Lab}{
+
+%% %% \newcommand{\face}[2]{
+%% %% \begin{minipage}{9mm}
+%% %% \centering
+%% %% \showh[.7]{faces/#1}\\
+%% %% \ttiny #2
+%% %% \end{minipage}
+%% %% }
+
+
+%% \small
+
+%% \hspace*{-5mm}\twocol[.05]{.5}{.4}{
+
+%% \medskip
+
+%% \cen{\url{argmin.lis.tu-berlin.de}}
+
+%% \medskip
+
+%% \item[] \textbf{Research}
+%% \begin{items}
+%% \item Intersection of AI \& Robotics
+%% \item Combining Learning \& Reasoning
+%% \item physical reasoning, task-and-motion planning (logic-geometric programming), reinforcement learning, perception-based reasoning, reactive control/learning
+%% \item driven by robotics problems
+%% \end{items}
+
+%% ~
+
+%% \item[] \textbf{Physical Reasoning}
+
+%% \medskip
+
+%% \hspace*{-5mm}\twocol[0]{.3}{.75}{
+%% \showh[1]{kitchen}
+%% }{
+%% \begin{items}\ttiny
+%% \item CV:~ What objects? Labels? Segments?
+%% \item img2text, VQA:~ Answer ``Where is the knife?''
+%% \item Physical Reasoning: What can \emph{you do} in that scene? How could it look like after acting?
+%% \end{items}
+%% }
+
+%% }{
+
+%% \vspace*{-5mm}
+
+%% \item[] \textbf{Applications}
+
+%% {\centering
+
+%% \showh[.4]{movies/20-DeepVisualReasoningData}
+%% \showh[.45]{videos/19-forceBased-liftRing-dynamic_COMP}
+
+%% \showh[.4]{IntCDC-tall}\quad
+%% \showh[.4]{phyre}
+
+%% }
+
+%% \item[] \textbf{Team}
+ 
+%% \face{dannySCIoI}{Danny Driess}~
+%% \face{jungsu_ha}{Jung-Su Ha}~
+%% \face{foto_id_quim}{Quim Ortiz de Haro}~
+%% \face{vh_img}{Valentin Hartmann}~
+%% \face{oz_photo}{Ozgur Oguz}~
+%% \face{aorthey}{Andreas Orthey}~
+%% \face{ingmar_schubert}{Ingmar Schubert}~
+%% \face{scioi_Svetlana_Levit}{Svetlana Levit}~
+%% \face{wolfgang_hoenig}{Wolfgang H{\"o}nig}~
+%% \face{ilaria}{Ilaria Cicchetti-Nilsson}~
+
+}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slidesfoot

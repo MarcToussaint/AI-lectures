@@ -1,0 +1,155 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Artificial Intelligence}
+\renewcommand{\coursepicture}{course_ai}
+\renewcommand{\coursedate}{Summer 2023}
+
+\renewcommand{\exnum}{Exercise 3}
+
+\exercises
+%\excludecomment{solution}
+\exercisestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Decision Tree for a Partially Observable Domain (1 Pt)}
+
+Consider the domain, where an agent interacts with an integer number
+$s_t \in\ZZZ$:
+\begin{itemize}
+\item The state space is $s_t \in \ZZZ$, \emph{but the state is not observable
+  to the agent}.
+\item The agent's observation are two binary values, $y_t = ([x_t \% 2=0],
+  [x_t\%5 = 0])$, that is, the first binary observation indicates
+  whether $x_t$ is dividable by 2, the second binary observation
+  indicates whether $x_t$ is dividable by 5.
+\item The action space is $a_t \in\{-1, +1\}$.
+\item The state transitions deterministically with $s_{t\po} = s_t + a_t$.
+\item The initial state distribution $P(s_0) = \UU(\{-3,..,3\})$
+is uniformly random in $\{-3,..,3\}$.
+\end{itemize}
+
+\begin{enumerate}
+\item Write (on paper) the decision tree for this domain, which has \emph{two} branchings: a 2-way branching for your decision $a_t\in\{-1,+1\}$, and a 4-way branching for all possible observations $y_t\in\{00,01,10,11\}$.
+
+For this, assume that you first receive an observation $y_0$ about the (unknown) start state $s_0$, then you execute the first action $a_0$.
+
+Write down just 3 levels of the tree, branching at $y_0,a_0,y_1$. (Warning: This has up to 32 leaf nodes.)
+
+\item For which of the nodes can the agent be certain about the state $s_t$? (And therefore also infer certainly what the start state $s_0$ was.)
+
+\item Which observation branchings can you prune, because they'll never be possible?
+
+\item Can you annotate each node with the \emph{set} of possible states, i.e., states $s_t$ that would be consistent with the history $y_{0:t},a_{0:t}$? Do this for a just a few nodes.
+\end{enumerate}
+
+Note: With this exercise you learn how decision trees can formulated in the partially observable case, and that nodes relate to \emph{sets} of possible underlying states (related to the notion \emph{``belief''}). This is exactly how Monte Carlo Tree Search it typically applied to so-called POMDPs (partially observable MDPs).
+
+
+\begin{solution}
+\begin{enumerate}
+\item 
+  \includegraphics[width=0.5\textwidth]{../pics/ex31a.png}
+\item For four nodes the state can be inferred: \\
+for $[y_0 = 00, a_0 = -1, y_1 = 11]$ the only possible state is $s_1 = 0$ with $s_0 = 1$ \\
+$[y_0 = 00, a_0 = 1, y_1 = 11]$ : $s_1 = 0$ $(s_0 = -1)$ \\
+$[y_0 = 11, a_0 = -1, y_1 = 00]$ : $s_1 = -1$ $(s_0 = 0)$ \\
+$[y_0 = 11, a_0 = 1, y_1 = 00]$ : $s_1 = 1$ $(s_0 = 0)$ \\
+  \includegraphics[width=0.5\textwidth]{../pics/ex31a2.png}
+\item 24 of the 32 nodes can be pruned (marked with crosses).
+\item for example the observation $y_0 = 00$ is possible for states $-3, -1, 1, 3$, the observation $y_0 = 01$ is not possible, etc (s. drawing)
+\end{enumerate}
+
+
+\end{solution}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Decision Tree for a Markov Decision Problem (1 Pt)}
+
+Consider the following MDP:
+\begin{itemize}
+\item The state space is $s_t \in \ZZZ$, and the state is fullly observable.
+\item The action space is $a_t \in\{-1, +1\}$
+\item The state transition probabilities are
+$$P(s'|s,a) = \begin{cases} .8
+& \text{if~} s'=s+a \\ .2 & s'=s-a \\ 0
+& \text{otherwise}\end{cases}$$
+\item The initial state distribution is $P(s_0) = [s_0=0]$ (1 for $s_0=0$ and
+zero otherwise)
+\item The reward is binary with probability $P(r\=1|s) = [s=2]$
+(reward of 1 for $s=2$ and zero otherwise)
+\end{itemize}
+
+\begin{enumerate}
+\item Write (on paper) the decision tree for this domain, which has \emph{two} branchings: a 2-way branching for your decision $a_t\in\{-1,+1\}$, and a 2-way branching for the uncertain state transition.
+
+Write down 4 levels of the tree, branching at $a_0,s_1,a_1,s_2$. (Warning: This has up to 16 leaf nodes.) You might want to ``compress'' the tree into a graph -- you're welcome to do this. BUT: what if decision $a=+1$ would add a negative reward (cost) of -1. Would it then still be ok to compress the tree into a graph?)
+
+\item What is the expected return (=sum of rewards) of first deciding $a_0=+1$ and $a_1$ uniform random, versus $a_0=-1$ and $a_1$ uniform random? (Assuming the MDP stops after two transitions.)
+
+\item What is the best expected return one can achieve, assuming the MDP stops after two transitions.
+\end{enumerate}
+
+
+\begin{solution}
+\begin{enumerate}
+\item the tree with 4 levels:
+  \includegraphics[width=0.5\textwidth]{../pics/ex32a.png}
+\\
+In the presence of a negative reward we cannot compress the tree, as every transition for decision $a=+1$ would change the accumulated reward. To calculate the reward we would need the full trajectory.
+
+
+\item the expected reward for $a_0 = -1$ and $a_1$ uniform random is 0.1, with only two possible trajectories having non-zero reward \\
+$E[r | a_0 = -1] = 0.2 * 0.5 * 0.2 * 1 + 0.2 * 0.5 * 0.8 * 1 + (..) * 0 = 0.1$\\
+the expected reward for $a_0 = +1$ and $a_1$ uniform random is 0.4, again with only two possible trajectories having non-zero reward \\
+$E[r | a_0 = +1] = 0.8 * 0.5 * 0.2 * 1 + 0.8 * 0.5 * 0.8 * 1 + (..) * 0  = 0.4$\\
+\item for $a_0 = +1$ and $a_1 = +1$ the expected reward is 0.64 \\
+$E[r | a_0 = +1, a_1 = +1] = 0.8 * (0.8 * 1 + 0.2 * 0) + 0.2 * 0 = 0.64$
+\end{enumerate}
+
+
+\end{solution}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Linear Regression and Bootstrapping by Hand (1 Pt)}
+
+To be able to compute something by hand, we keep this very minimalistic here: Consider the data set $D=\{(-1,-1), (+1,+1)\}$ with just two data points $(x,y)$ with 1D input/output. Linear regression (with features $\phi(x) = (1,x)^\T$) would of course predict a linear function with slope 1 and offset 0, i.e., $f(x) = w_1 + x w_2$ with $w=(0,1)$.
+
+\begin{enumerate}
+\item Derive this solution from minimizing the loss $\sum_{i=1}^n (y_i - f(x_i))^2$ -- ideally using matrix notations to train you in this.
+\item If you generate a randomized variant $\tilde D$ of the data using bootstrapping (resampling with replacement), what are the possible data sets $\tilde D$ that could be generated, and what are their probabilities?
+\item What would be optimal linear regressor for each possible $\tilde D$?
+\item Now, how would you estimate confidence bounds for the prediction at $x=0$ and $x=10$, based on bootstrapping?
+\end{enumerate}
+
+\begin{solution}
+    \begin{enumerate}
+        \item We define $Y = \[y_1, ..., y_n\]^T$, $\Phi = \left(\begin{array}{ccc}\phi_1(x_1) & .. & \phi_F(x_1) \\ & \vdots & \\ \phi_1(x_n) & .. & \phi_F(x_n)\end{array}\right)$, $W = (w_1, ..., w_F)^T$.
+        In our case, as we have two features, we have $F = 2$, and $\phi_1(x) = 1, \phi_2(x) = x$.
+
+    In matrix notation, we can write the loss function as $||Y - \Phi W||_2$.
+    To find the optimum, we compute the derivative wrt. $W$, and set it to $0$. We use $W^*$ to denote the optimal linear regressor.
+    Thus, 
+    $
+        2\Phi^T\Phi W^* - 2\Phi^TY = 0
+    $
+    and finally, $W^* = (\Phi^T\Phi)^{-1}\Phi^TY$
+    \item The possible datasets are $\tilde D_1 = \{(-1, -1), (-1, -1)\}$, $\tilde D_2 = \{(1, 1), (1, 1)\}$, $\tilde D_3 = \{(-1, -1), (1, 1)\}$ with probabilities $\frac{1}{4}$, $\frac{1}{4}$, $\frac{1}{2}$, respectively.
+    \item We can compute the optimal linear regressor by plugging in the values of the dataset into our formula from (a).
+    For $\tilde D_3$, we obtain $w = (0, 1)$.
+
+    When plugging in the values from datasets $\tilde D_1$ or $\tilde D_2$, the matrix $(\Phi^T\Phi)$ is not invertible, and the optimum linear regressor is not uniquely defined.
+
+    Intuitively, this makes sense, as we only a have a single unique datapoint in these two datasets.
+    \item With bootstrapping, we would evaluate the $x$ at each point to obtain the corresponding $y$ values. From all the predictions, we can then compute the mean, and standard deviation at these points.
+    \end{enumerate}
+
+\end{solution}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exerfoot
+

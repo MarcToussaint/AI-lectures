@@ -1,0 +1,211 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Artificial Intelligence}
+\renewcommand{\coursepicture}{course_ai}
+\renewcommand{\coursedate}{Summer 2023}
+
+\renewcommand{\exnum}{Exercise 1}
+
+\exercises
+%\excludecomment{solution}
+\exercisestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Marginals \& Conditionals}
+
+We have a joint probability $P(X,Y)$ over 2 binary random variables
+$X,Y$ as described by the matrix
+$$
+P(X,Y)
+= \mat{cc}{ .06 & .24 \\ .14 & .56} ~.
+$$
+(Recall our convention of writing a probability distribution as matrix, with row index corresponding to the first random variable.)
+
+\begin{enumerate}
+\item What are $P(X)$, $P(Y)$, and $P(X|Y)$?
+%% \item Are $X$ and $Y$ independent?
+\end{enumerate}
+
+\begin{solution}
+$P(X) = \sum_Y P(X, Y) = \mat{c}{ 0.06 \\ 0.14} + \mat{c}{ 0.24 \\ 0.56} = \mat{c}{ 0.3 \\ 0.7}$ \\
+$P(Y) = \sum_X P(X, Y)  = \mat{cc}{ 0.06 & 0.24} + \mat{cc}{ 0.14 & 0.56} =  \mat{cc}{ 0.2 & 0.8}$ \\
+$P(X|Y) = \frac{P(X,Y)}{P(Y)} = \mat{cc}{ .06 & .24 \\ .14 & .56} \mat{cc}{ \frac{1}{0.2} & 0 \\ 0 & \frac{1}{0.8}} = \mat{cc}{ 0.3 & 0.3 \\ 0.7 & 0.7}  $
+
+\end{solution}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Bayes' Theorem}
+
+\begin{enumerate}
+\item Box 1 contains 8 apples and 4 oranges. Box 2 contains 10 apples and 2
+oranges. First, a box is chosen with equal probability; then a fruit drawn uniformly from that box. What is the
+probability of choosing an apple? If an apple is chosen, what is the
+probability that it came from box 1?
+
+{\small (Help: The first thing to think about in such exercises is: \emph{What are the random variables?} That helps to match the text description with the learnt equations. E.g., here we can identify two random variables: $B$ (=which box is chosen), and $F$ (=which type of fruit is chosen).)
+
+}
+
+~
+
+\item The blue M\&M was introduced in 1995.
+Before then, the color mix in a bag of plain M\&Ms was:
+30\% Brown, 20\% Yellow, 20\% Red, 10\% Green, 10\% Orange, 10\% Tan.
+Afterward it was: 24\% Blue , 20\% Green, 16\% Orange, 14\% Yellow, 13\% Red,
+13\% Brown.
+
+A friend of mine has two bags of M\&Ms, and he tells me that one is from
+1994 and one from 1996.  He won't tell me which is which, but he gives me
+one M\&M from each bag.  One is yellow and one is green.  What is the
+probability that the yellow M\&M came from the 1994 bag?
+\end{enumerate}
+
+\begin{solution}
+\begin{enumerate}
+\item $P(F=apple) = P(F=apple|B=1) P(B=1) + P(F=apple|B=2)P(B=2) = \frac{8}{12} \frac{1}{2} + \frac{10}{12} \frac{1}{2} = \frac{3}{4} $ \\
+$P(B=1|F=apple) =  \frac{P(F=apple|B=1)P(B=1)}{P(F=apple)} =  \frac{\frac{8}{12} \frac{1}{2}}{\frac{3}{4}} = \frac{4}{9} $
+
+\item
+Variables: Bag1 is the year of the first bag we picked from and from which we got the yellow M\&M. We assume $P(Bag1=1994) = P(Bag1=1996)=0.5$.\\
+$P(Bag1=1994 | yellow, green ) = \frac{P(yellow, green | Bag1=1994) P(Bag1=1994) }{P(yellow, green | Bag1=1994) P(Bag1=1994) + P(yellow, green | Bag1=1996) P(Bag1=1996) } $\\
+$P(yellow, green | Bag1=1994) = 0.2 * 0.2 = 0.04$\\
+$P(yellow, green | Bag1=1996) = 0.14 * 0.1 = 0.014$\\
+$P(Bag1=1994 | yellow, green ) =  \frac{0.04 * 0.5}{0.04 * 0.5 + 0.014 * 0.5} \approxeq 0.74$
+\end{enumerate}
+\end{solution}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Mean and Variance Estimators}
+
+You are given data $D= \{ y_i \}_{i=1}^n$ of real numbers $y_i\in\RRR$. You may assume that the data is sampled from an underlying Gaussian distribution $p(y) = \NN(y | \mu, \s^2)$, but $\mu,\s$ are not known to you. You estimate the mean as $\hat\mu = \frac{1}{n} \sum_i y_i$. (Note that this is the Monte Carlo estimate of $\Exp[p(y)]{y}$.)
+
+\begin{enumerate}
+\item Show that $\frac{1}{n} \sum_i (y_i - \hat\mu)^2 = \[\frac{1}{n}\sum_i y_i^2\] - \hat \mu^2$.
+
+{\small (This $\hat\s^2 = \frac{1}{n} \sum_i (y_i - \hat\mu)^2$ is one way to estimate the true variance $\s^2$. In textbooks you also find $\hat\s^2 = \frac{1}{n-1} \sum_i (y_i
+- \hat\mu)^2$. Discuss the difference with the tutor.)
+
+}
+
+\item Since the data $D$ is a random variable, also your estimated mean $\hat\mu$ is random. You have to expect that it deviates somewhat from the unknown true $\mu$. The expected squared error $\Exp[p(D)]{(\hat\mu(D) - \mu)^2}$ is also the \emph{variance of the mean estimator $\hat\mu$}.
+
+How can you estimate the variance of your mean estimator? In other words, how precise is the mean estimator depending on $n$ and $\s^2$? If you cannot derive this analytically (which is fine), what would you guess roughly?
+\end{enumerate}
+
+\begin{solution}
+\begin{enumerate}
+    \item \begin{align*}
+        \frac{1}{n} \sum_i (y_i - \hat\mu)^2 &= \frac{1}{n} \sum_i (y_i^2 - 2y_i\hat\mu + {\hat\mu}^2) \\
+        &= \frac{1}{n} \left[\sum_i y_i^2 - \sum_i 2y_i\hat\mu + \sum_i{\hat\mu}^2 \right]\\
+        &= \frac{1}{n} \left[\sum_i y_i^2 - 2\hat\mu\sum_i y_i + n{\hat\mu}^2 \right]\\
+        &= \frac{1}{n} \sum_i y_i^2 - \frac{1}{n} 2\hat\mu\sum_i y_i + {\hat\mu}^2\\
+        &= \frac{1}{n} \sum_i y_i^2 - 2\hat\mu\hat\mu + {\hat\mu}^2\\
+        &= \left[\frac{1}{n} \sum_i y_i^2\right] - {\hat\mu}^2
+    \end{align*}
+    \item $\Var{\hat{\mu}} = \Var{\frac{1}{n} \sum_i y_i} = \frac{1}{n^2}\Var{ \sum_i y_i} = \frac{1}{n^2}\sum_i\Var{ y_i} = \frac{1}{n^2}\sum_i \sigma^2 = \frac{\sigma^2}{n}$. \\
+    In the first step, we inserted the definition of our estimator, in the second step we used a property of the variance, in the thirst step, we used the fact that all the $y_i$ are independent of each other to take the sum out of the variance.
+\end{enumerate}
+\end{solution}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{The Monty Hall Problem (For fun, if there is time in the tutorials)}
+
+I have three boxes. In one I put a prize, and two are empty. I then
+mix up the boxes. You want to pick the box with the prize in it, but do not know in which one it is (the prior is uniform).
+
+You choose one box but leave it closed. I then select one of the
+two \emph{other} boxes, open it, and it turns out empty. I then give
+you the chance to change your choice of boxes---should you do so?
+
+Derive the respective chances.
+
+\begin{solution}
+    The chance of picking the box with the prize is $\frac{1}{3}$. Thus, the chance that the prize is in one of the other two boxes is $\frac{2}{3}$.
+
+    The action of opening a box does not change the $\frac{2}{3}$ chance of the prize being in one of the boxes that you did not choose.
+
+    Thus, you should switch boxes, and the respective chances of the strategies are $P_\text{not switching}(\text{winning}) = \frac{1}{3}$ and $P_\text{switching}(\text{winning}) = \frac{2}{3}$.
+\end{solution}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \exsection{Sum of 3 dices}
+
+%% You have 3 dices (potentially fake dices where each one has a
+%% different probability table over the 6 values). You're given all three
+%% probability tables $P(D_1)$, $P(D_2)$, and $P(D_3)$. Write down the
+%% equations and an algorithm (in pseudo code) that computes the
+%% conditional probability $P(S|D_1)$ of the sum of all three dices
+%% conditioned on the value of the first dice.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \exsection{Conditionalized versions of product and Bayes rule}
+
+%% Prove from first principles the conditionalized version of the product
+%% rule (the same as the product rule, but every term is additionally
+%% conditioned on $Z$):
+%% \begin{align}
+%%   P (X, Y | Z) = P(Y | X, Z)~ P (X|Z) ~.
+%% \end{align}
+%% Also prove the conditionalized version of Bayes’ rule
+%% \begin{align}
+%%   P (X|Y, Z) = \frac{P (Y |X, Z)P (X|Z)}{P (Y |Z)} ~.
+%% \end{align}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \exsection{Implementing Bayes Rule}
+
+%% a)
+%% Assume there is a robot that is trying to determine if a door is open.
+%% It has a perception module which is charaterized by the following conditional
+%% probabilities
+%% $$p(Z=\text{sense open} | X=\text{is open}) = .6$$
+%% $$p(Z=\text{sense closed} | X=\text{is open}) = .4$$
+%% $$p(Z=\text{sense open} | X=\text{is closed}) = .2$$
+%% $$p(Z=\text{sense closed} | X=\text{is closed}) = .8$$
+%% where $X$ is the state of the door.
+
+%% The robot has a prior belief of the state of door:
+%% $bel(X=\text{is open}) = 0.5$ and $bel(X=\text{is closed}) =.5$.
+%% It perceives the observations ``open'', ``closed'', ``open'', ``open'', ``open''.
+%% Use Bayes' rule to update the belief.
+%% What is the belief/posterior after each update step?
+
+%% ~
+
+%% b)
+%% Implement Bayes' rule in a programming language of your choice and repeat a).
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \exsection{Präsenzaufgabe: ~ Bedingte Wahrscheinlichkeit}
+
+%% \begin{enumerate}
+
+%% \item Die Wahrscheinlichkeit, an der bestimmten tropischen Krankheit
+%%   zu erkranken, betr"agt 0,02\%.  Ein Test, der bestimmt, ob man
+%%   erkrankt ist, ist in 99,995\% der F"alle korrekt. Wie hoch ist die
+%%   Wahrscheinlichkeit, tats"achlich an der Krankheit zu leiden, wenn
+%%   der Test positiv ausf"allt?
+
+%% \item Eine andere seltene Krankheit betrifft 0,005\% aller
+%%   Menschen. Ein entsprechender Test ist in 99,99\% der F"alle
+%%   korrekt. Mit welcher Wahrscheinlichkeit ist man bei positivem
+%%   Testergebnis von der Krankheit betroffen?
+
+%% \item Es gibt einen neuen Test f"ur die Krankheit aus b), der in
+%%   99,995\% der F"alle korrekt ist. Wie hoch ist hier die
+%%   Wahrscheinlichkeit, erkrankt zu sein, wenn der Test positiv
+%%   ausf"allt?
+
+%% \end{enumerate}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exerfoot

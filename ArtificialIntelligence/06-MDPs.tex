@@ -1,0 +1,671 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Artificial Intelligence}
+\renewcommand{\coursepicture}{course_ai}
+\renewcommand{\coursedate}{Summer 2023}
+
+\renewcommand{\topic}{Markov Decision Processes \& Value Iteration}
+\renewcommand{\keywords}{}
+
+\slides
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\story{
+Markov Decision Processes are a standard formalization of sequential decision making in AI. We already introduced them in the last lecture, but only discussed MCTS to estimate values, which is a forward search method.
+
+A fundamental alternative approach is to exploit the Bellman equation, that is, the understanding that the value function fulfills a recursive property. In contrast to tree search, this principle in some sense iterates backward, it propagates values from goals (high reward states) to all states.
+
+The Bellman equation is the foundation to derive algorithms to compute optimal value functions, namely value iteration (a form of dynamic programming), and thereby also optimal policies. The Bellman equation is also the foundation of Reinforcement Learning, which essentially are methods that try to approximate value iteration only on the basis of collected data.
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\sublecture{Recap}{
+
+\small
+
+\item Objectives typically concern expectations of return:
+  \begin{items}
+  \item Expected utility depending on decision, $\Exp[P(y|a)]{U(y)}$ (slide 01:8)
+  \item Expected total return in bandits, $\Exp{\sum_{t=1}^n y_t}$ (slide 03:3)
+%  \item Expected (predicted) outcome for a given continuous decisions, $f(a)$ (slide 04:6)
+  \item Expected return for given the first decision in a Decision Tree, $Q(s_0,a)$ (slide 05:22)
+  \end{items}
+
+\pause
+  
+\item All these are \textbf{Q-values} $Q(s,a)$: The expected ``objective'' (return, sum of
+rewards, sum of discouted rewards, etc) when taking a decision $a$ in
+state $s$
+\begin{items}
+  \item Q-values are at the core of everything we talked about so far,
+and will talk about in the next lectures. They are at the core of
+decision making.
+\item They are not systematically called Q-values across disciplines: In
+  Bandits: also 'Gittins Index'; in Decision Theory: just 'expected
+  utility'; in Active Learning (=continuous decisions): 'acquisition
+  function'.
+\end{items}
+
+\pause
+
+\item Once Q-values $Q(s,a)$ are estimated, one may choose the decision
+  \begin{items}
+  \item with highest Q-value, $\argmax_a Q(s,a)$
+\item with highest (optimistic) UCB, $\argmax_a Q(s,a) + \b \s_Q(s,a)$
+\item with highest pessimistic bound, $\argmax_a Q(s,a) - \b \s_Q(s,a)$
+  \end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{How estimate Q-values in sequential domains?}{
+
+\item Two paradigms:
+
+~
+  
+\twocol[.05]{.45}{.45}{ 
+\cen{\textbf{Decision Trees}}
+
+~
+
+\only<2->{
+\ttiny
+  
+\item originated in classical AI
+
+\item explicitly represents reachable situations in the future
+
+  Tree is grown to represent likely/possible future states only; not
+  to cover the full state space
+
+\item very 'flexible': deterministic worlds, MDPs,
+  games, POMDPs
+
+\item Methods typically \textbf{``search forward''}
+
+%% \item methods search the tree, or generate rollouts
+
+%% \item[] [I'm including \textbf{Monte Carlo} methods here]
+
+%%  In Decision
+%% Trees we can flexibly represent all kinds of processes, introduce
+%% branchings e.g. for stochastic transitions, observations, opponent
+%% choices, etc. Maybe also multi-agent DEC-POMDPs possible, or whatever
+%% one might want to come up as a formalism.
+}
+
+}{
+
+\cen{\textbf{Bellman}}
+
+~
+
+\ttiny
+
+\only<2->{
+
+\item originated more in control theory, basis of RL
+\item typically represent Q-function $Q(s,a)$, e.g. using function approximation (Machine Learning)
+
+  value functions are often meant to cover `whole' state/action
+  
+\item methods exploit Q-values need to fulfill a fundamental Bellman optimality principle space
+
+\item Methods typically \textbf{``propagate backward''}
+
+}
+
+}
+
+~
+
+~\pause\pause\small
+
+  
+%% minimizing the Bellman error (TD error)
+%% Value Iteration
+%% Q-learning
+
+
+\item Perhaps a 3rd paradigm: \textbf{Probabilistic Inference}
+
+\cit{Botvinick, Toussaint}{Planning as Inference}{Trends in Cog.\ Sci.\ 2012}
+
+\cit{Rawlik, Toussaint, Vijayakumar}{On Stochastic Optimal Control and Reinforcement Learning by Approximate Inference}{RSS'12}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\sublecture{Bellman Optimality \& Value Iteration}{
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Markov Decision Process}{
+
+
+~
+
+\twocol{.6}{.4}{
+
+\item A \textbf{Markov Decision Process} (MDP) is defined by
+\begin{items}
+\item world's initial state distribution $P(s_0)$
+\item world's transition probabilities $P(s' \| s,a)$
+\item world's expected reward $R(s,a) = \Exp{r|s,a}$
+\end{items}
+
+}{
+
+\shows[.7]{mdp1}
+
+}
+
+{\tiny
+\item Here we assume a \textbf{stationary} MDP, where $P(s' \| s,a)$ and $R(s,a)$ are independent of absolut time $t$
+
+}
+
+~
+
+\item The objective is to find
+\begin{items}
+\item a deterministic \textbf{policy} $a_t = \pi(s_t)$, or stochastic policy $\pi(a_t \| s_t) = P(a_t|s_t;\pi)$
+\item that maximizes the \textbf{expected discounted return} $\Exp{\sum_t \g^t r_t}$
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Value Function}
+\slide{Value function}{
+
+\item The \textbf{expected discounted return} of policy $\pi$ is
+$$J^\pi = \Exp{\tsum_t \g^t r_t \| \pi} = \Exp{ r_0 + \g r_1 + \g^2 r_2 + \cdots \| \pi }\comma\text{(where $s_0\sim P(s_0)$)}~,$$
+with \emph{discounting factor $\g\in[0,1]$}
+
+~\pause
+
+\item The \defn{value function} of policy $\pi$ gives the exp.dis.return when started in state $s$:
+\begin{align*}
+V^\pi(s) = \Exp{ \tsum_t \g^t r_t \| s_0\=s; \pi } ~.
+\end{align*}
+
+~\pause
+
+\item The \defn{Q-function} (state-action value function) gives the exp.dis.return when starting in state $s$
+and taking first action $a$:
+\begin{align*}
+Q^\pi(s,a)
+ &= \Exp{ \tsum_t \g^t r_t \| s_0\=s, a_0\=a; \pi } ~.
+\end{align*}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Optimal Value Function and Policy}{
+
+~
+
+\item A policy $\pi^*$ is \defn{optimal} iff
+\begin{align*}
+\forall s:~ V^{\pi^*}(s) = V^*(s)\comma
+\text{ where } ~ V^*(s) = \max_\pi V^\pi(s) ~,
+\end{align*}
+\small
+i.e., simultaneously maximises the value in all states
+
+{\tiny (In MDPs there always exists (at least one) optimal deterministic
+policy.)}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{}{
+
+%% \twocol{.3}{.3}{
+%% An example for a \\
+%% value function...
+%% }{\center
+
+%% \showhs[5]{15x20holes}
+
+%% }
+
+%% ~
+
+%% {\hfill\tiny\texttt{demo: test/mdp runVI}}
+
+%% ~
+
+%% ~
+
+%% \cen{\textbf{Values provide a gradient towards desirable states}}
+
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Value function}{
+
+~
+
+\item The value function $V$ is a central concept in all of RL!
+
+{\small\medskip
+
+Many algorithms can directly be derived from properties of the value
+function.
+
+}
+
+~
+
+\item In other areas (stochastic optimal control) it is also
+called \emph{cost-to-go} function ($\text{cost}=-\text{reward}$)
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Recursive property of the value function}{
+
+\begin{align*}
+\hspace*{-10mm}{\color{red}V^\pi(s)}
+ &= \Exp{ r_0 + \g r_1 + \g^2 r_2 + \cdots \| s_0\=s ;\pi} \\
+ &= \Exp{ r_0 \| s_0\=s ;\pi} + \g \Exp{ r_1 + \g r_2 + \cdots \| s_0\=s ;\pi} \\
+ &= R(s,\pi(s))  +  \g \tsum_{s'} P(s'\|s,\pi(s))~ \Exp{ r_1 + \g r_2 + \cdots \| s_1\=s' ;\pi} \\
+ &= R(s,\pi(s)) + \g \tsum_{s'} P(s'\|s,\pi(s))~ {\color{red}V^\pi(s')}
+\end{align*}
+
+~\mypause
+
+\small
+\item Note, for discrete $s$ we can write this in vector notation \quad $\vec
+V^\pi = \vec R^\pi + \g \vec P^\pi \vec V^\pi$ \\ with vectors $\vec
+V^\pi_s = V^\pi(s)$, $\vec R^\pi_s =R(s,\pi(s))$ and matrix $\vec
+P^\pi_{ss'} = P(s'\|s,\pi(s))$
+
+~
+
+\item For stochastic  $\pi(a|s)$:
+
+\cen{$V^\pi(s)= \sum_a \pi(a|s)R(s,a) + \g \tsum_{s',a}  \pi(a|s)P(s'\|s,a)~ V^\pi(s')$}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Bellman optimality equation}
+\slide{Bellman optimality equation}{
+
+\item Recall the recursive property of the value function
+$${\color{red}V^\pi(s)}
+ = R(s,\pi(s)) + \g \tsum_{s'} P(s'\|s,\pi(s))~ {\color{red}V^\pi(s')}$$
+
+~\pause
+
+\item \textbf{Theorem (Bellman optimality principle):} The optimal value function $V^*$ fulfills
+\begin{align*}
+V^*(s)
+&= \max_a \[R(s,a) + \g \tsum_{s'} P(s'\|s,a)~ V^*(s') \] \\
+\text{and~}
+\pi^*(s)
+&= \argmax_a \[R(s,a) + \g \tsum_{s'} P(s'\|s,a)~ V^*(s') \]
+\end{align*}
+
+~
+
+{\tiny (Sketch of proof: If $\pi^*$ would select another action than
+$\argmax_a[\cdot]$, then $\pi'$ which $=\pi$
+everywhere except $\pi'(s)=\argmax_a[\cdot]$ would be better.)
+
+}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\hspace*{-5mm}\twocol{.4}{.65}{\center
+\small Richard E. Bellman (1920–-1984)
+\show{bellman}
+
+}{\center
+
+~
+
+\textbf{Bellman's principle of optimality}
+
+\medskip
+
+\showh[.4]{bellmanOpt}
+
+}
+
+~
+
+~
+
+\begin{align*}
+V^*(s)
+ &= \max_a \[R(s,a) + \g \tsum_{s'} P(s'\|s,a)~ V^*(s') \]  \\
+\pi^*(s)
+ &= \argmax_a \[R(s,a) + \g \tsum_{s'} P(s'\|s,a)~ V^*(s') \]
+\end{align*}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Value Iteration}
+\slide{Value Iteration}{
+
+\item \emph{How can we use this to compute $V^*$?}
+
+\pause
+
+\item Recall the Bellman optimality equation:
+$$ V^*(s) = \max_a \[R(s,a) + \g \sum_{s'} P(s'\|s,a)~ V^*(s') \] $$
+
+\item \textbf{Value Iteration:} \quad initialize $V_{k\=0}(s)=0$, then iterate:
+$$
+\forall s:~
+  V_{k+1}(s)
+  = \max_a \[ R(s,a) + \g \sum_{s'} P(s'|s,a) ~V_k(s') \]
+$$
+stopping criterion: \quad $\max_s |V_{k+1}(s) - V_k(s)| \le \e$
+
+~\pause
+
+\item Note that $V^*$ is a \textbf{fixed point} of value iteration!
+
+\item \textbf{Theorem:} Value Iteration converges to the optimal value function $V^*$
+(proof below)
+
+{\hfill\tiny\texttt{demo: test/mdp runVI}}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Q-Iteration}
+\slide{Bellman Optimality with the Q-function}{
+
+\item General relations between value and Q-function:
+\begin{align*}
+V^\pi(s) &= Q^\pi(s,\pi(a)) \qquad
+\text{(or $V^\pi(s) = \tsum_a \pi(a|s)~ Q^\pi(s,a)$ for stoch. $\pi$)} \\
+V^*(s) &= \max_a Q^*(s,a)
+\end{align*}
+
+~\pause
+
+\item Bellman optimality written with Q-function:
+\begin{align*}
+Q^*(s,a)
+&= R(s,a) + \g \sum_{s'} P(s'\|s,a) \overbrace{\max_{a'} Q^*(s',a')}^{V^*(s')} \\
+\text{with~}
+\pi^*(s)
+&= \argmax_a Q^*(s,a)
+\end{align*}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Q-Iteration}
+\slide{Q-Iteration}{
+
+\item Recall the Bellman optimality equation:
+$$
+Q^*(s,a)
+ = R(s,a) + \g \sum_{s'} P(s'\|s,a)~ \max_{a'} Q^*(s',a')
+$$
+
+\item \textbf{Q-Iteration:} \quad initialize $Q_{k\=0}(s,a)=0$, then iterate:
+\begin{align*}
+\forall_{s}:~ V_{k\po}(s) &= \max_{a'} Q_k(s',a') \\
+\forall_{s,a}:~ Q_{k+1}(s,a) &= R(s,a) + \g \sum_{s'} P(s'|s,a)~ V_{k\po}(s')
+\end{align*}
+stopping criterion: \quad $\max_{s,a} |Q_{k+1}(s,a) - Q_k(s,a)| \le \e$
+
+~
+
+\item Note that $Q^*$ is a \textbf{fixed point} of Q-Iteration!
+
+\item \textbf{Theorem:} Q-Iteration converges to the optimal state-action value function $Q^*$
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Proof of convergence of Q-Iteration}
+\slide{Proof of convergence}{
+
+\item Let $\D_k = ||Q^* - Q_k||_\infty = \max_{s,a} | Q^*(s,a) - Q_k(s,a)|$
+\begin{align*}
+\hspace*{-10mm}Q_{k+1}(s,a)
+ &= R(s,a) + \g \sum_{s'} P(s'|s,a)~ \max_{a'} Q_k(s',a') \\
+ &\le R(s,a) + \g \sum_{s'} P(s'|s,a)~ \max_{a'}\[ Q^*(s',a') + \D_k \]\\
+ &= \[ R(s,a) + \g \sum_{s'} P(s'|s,a)~ \max_{a'} Q^*(s',a')\] + \g \D_k \\
+ &= Q^*(s,a) + \g \D_k
+\end{align*}
+
+similarly: $Q_k \ge Q^*-\D_k ~ \To ~ Q_{k+1} \ge Q^* - \g \D_k$
+
+~
+
+\item The proof translates directly also to value iteration
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Comments \& relations}{
+
+\small
+
+\item Core principle behind decision tree and MCTS-like approaches:
+\begin{items}
+\item \emph{Expand a decision tree forward and estimate values from rollouts data}
+\end{items}
+
+\item Core principle behind Bellman-based approaches:
+\begin{items}
+\item \emph{Globally correct values need to fulfill the Bellman principle (be temporally consistent)}
+\end{items}
+
+\pause
+
+\item Value Iteration is a form of \textbf{Dynamic Programming}, which propagates values \emph{backward}
+\begin{items}
+\item In deterministic worlds, Value Iteration is the same as
+\emph{Dijkstra backward}; it labels all nodes with the value
+($\oto$ cost-to-go).
+\end{items}
+
+~\pause
+
+\item In \emph{control theory}, the Bellman equation is formulated for
+continuous state $x$ and continuous time $t$ and ends-up:
+$$
+-\frac{\del}{\del t} V(x,t)
+ = \min_u \[c(x, u) + \frac{\del V}{\del x} f(x,u) \]
+$$
+which is called \emph{Hamilton-Jacobi-Bellman} equation. For linear quadratic systems, this becomes the \emph{Riccati equation}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Terminology: Bellman Error}{
+
+\item Recall The Bellman optimality equation:
+$$
+Q^*(s,a)
+ = R(s,a) + \g \sum_{s'} P(s'\|s,a)~ \max_{a'} Q^*(s',a')
+$$
+
+\item Given a non-optimal $Q(s,a)$, the Bellman error at $s$ and $a$ is RHS-LHS:
+$$\BB^*(s,a) = R(s,a) + \g \sum_{s'} P(s'\|s,a)~ \max_{a'} Q(s',a') - Q(s,a)$$
+
+~
+
+\item Same for a non-optimal $V(s)$:
+$$\BB^*(s) = \max_a R(s,a) + \g \sum_{s'} P(s'\|s,a)~ V(s') - V(s)$$
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Prioritized Sweeping}{
+
+~
+
+\item Standard Value Iteration globally updates a new $V_{k\po}$ from the old $V_k$:
+$$
+\forall s:~
+  V_{k+1}(s)
+  = \max_a \[ R(s,a) + \g \sum_{s'} P(s'|s,a) ~V_k(s') \]
+$$
+
+~
+
+\item Instead, update values \emph{in place}: Iterate
+$$
+\text{choose $s$:}~ V(s) \gets \max_a \[ R(s,a) + \g \sum_{s'} P(s'|s,a) ~V(s') \]
+$$
+
+\item Prioritized Sweeping: Choose $s$ that maximizes the Bellman error of $V(s)$, implemented via a priority queue
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{For completeness: Policy Iteration}{
+
+~
+
+\item \textbf{Policy Evaluation} computes $V^\pi$ instead of $V^*$: Iterate:
+$$
+\forall s:~
+ V_{k+1}^\pi(s)
+ = R(s,\pi(s)) + \g \Sum_{s'} P(s'|s,\pi(s))~ V_k^\pi(s')
+$$
+{\tiny
+E.g., using prioritized sweeping, or use matrix inversion
+%% \vec V^\pi &= \vec R^\pi + \g \vec P^\pi \vec V^\pi \\
+%% \vec V^\pi + \g \vec P^\pi \vec V^\pi &= \vec R^\pi \\
+%% (\vec I - \g \vec P^\pi) \vec V^\pi &= \vec R^\pi \\
+$\vec V^\pi = (\vec I - \g \vec P^\pi)^{-1} \vec R^\pi$,
+which is $O(|S|^3)$.
+
+}
+
+~\pause
+
+\item \textbf{Policy Improvement} updates the policy $\pi$ to
+$$\pi(s) \gets \argmax_a Q(s,a)$$
+
+{\tiny \textbf{Theorem:} For all $s$, $V^{\pi_{k\po}}(s) \ge V^{\pi_k}(s)$
+
+}
+
+~\pause
+
+\item \textbf{Policy Iteration} alternates policy evaluation and improvement, iterating:
+\begin{items}
+\item \textbf{Policy Evaluation:} compute $V^{\pi_k}$ or $Q^{\pi_k}$
+
+\item \textbf{Policy Update:} $\pi_{k+1}(s) \gets \argmax_a Q^{\pi_k}(s,a)$
+\end{items}
+
+{\hfill\tiny\texttt{demo: test/mdp runPI}}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{Summary: Bellman equations}{
+
+%% \item Discounted infinite horizon:
+%% \begin{align*}
+%% V^*(s)
+%% &= \max_a Q^*(s,a) 
+%%  = \max_a \[R(s,a) + \g \tsum_{s'} P(s'\|s,a)~ V^*(s') \] \\
+%% Q^*(s,a)
+%% &= R(s,a) + \g \sum_{s'} P(s'\|s,a)~ \max_{a'} Q^*(s',a')
+%% \end{align*}
+
+%% ~
+
+%% \item With finite horizon $T$ (non stationary MDP), initializing $V_{T\po}(s)=0$
+%% \begin{align*}
+%% V^*_t(s)
+%% &= \max_a Q^*_t(s,a) 
+%%  = \max_a \[R_t(s,a) + \g \tsum_{s'} P_t(s'\|s,a)~ V^*_{t\po}(s') \] \\
+%% Q^*_t(s,a)
+%% &= R_t(s,a) + \g \sum_{s'} P_t(s'\|s,a)~ \max_{a'} Q^*_{t\po}(s',a')
+%% \end{align*}
+
+%% ~
+
+%% \item This recursive computation of the value functions is a form
+%% of \textbf{Dynamic Programming}
+
+%% }
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Outlook}{\label{lastpage}
+
+\item In this lecture we discussed \emph{model-based} decision:
+\begin{items}
+\item We assumed the MDP is known
+\item values can be computed using Bellman principle
+\end{items}
+
+~
+
+\item How can we extend this to \emph{data-based?} Where we have a data of transitions?
+
+{\ttiny $\to$ offline RL}
+
+\item How to \emph{interaction-based}, where the agent needs to generate the data?
+
+{\ttiny $\to$ RL}
+
+\item And how to continuous states (and actions)?
+
+{\ttiny $\to$ ML to approximate $Q^*(s,a)$ or $V^*(s)$}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% However, prior Monte-Carlo planners have been limited to fixed horizon, depth-first search
+%% [7] (also known as sparse sampling),
+
+
+%% Decision theory = probability theory + utility theory .
+
+%% The fundamental idea of decision theory is that an agent is rational
+%% if and only if it chooses the action that yields the highest expected
+%% utility, averaged over all the possible outcomes of the action.
+
+%% Maximization of expected utility
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slidesfoot

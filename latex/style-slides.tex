@@ -80,7 +80,7 @@
   }
   \input{../latex/macros}
 
-  \graphicspath{{pics/}{../pics/}{../latex/pics/}}
+  \graphicspath{{pics/}{../pics/}{pics-local/}}
 }
 
 \newcommand{\lecturetitleslide}{
@@ -114,14 +114,16 @@
 
       \vspace{1cm}
 
-      Marc Toussaint
+      \teacher
       
       Technical University of Berlin
 
       \coursedate
 
-      ~
+      \vspace{1cm}
 
+      (slides by Marc Toussaint)
+      
     }
   }
 }
@@ -242,7 +244,7 @@ Motivation: {\tiny #1}\clearpage
 \newenvironment{items}[1][9]{
 \par\setlength{\unitlength}{1pt}\fontsize{#1}{#1}\linespread{1.2}\selectfont
 \begin{list}{--}{\leftmargin4ex \rightmargin0ex \labelsep1ex \labelwidth2ex
-\topsep0pt \parsep0ex \itemsep3pt}
+\topsep.7ex \parsep0ex \itemsep3pt}
 }{
 \end{list}
 }

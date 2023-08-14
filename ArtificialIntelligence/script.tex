@@ -2,14 +2,14 @@
 
 \renewcommand{\course}{Introduction to Artificial Intelligence}
 \renewcommand{\coursepicture}{course_ai}
-\renewcommand{\coursedate}{Winter 2019}
+\renewcommand{\coursedate}{Summer 2023}
 
 \script
 
-\usepackage[utf8]{inputenc}
 \excludecomment{solution}
+\usepackage{etoolbox}
 
-%%%%%%%%%% some magic to have nice toc
+%%%%%%%%%%
 \newlength\rightmargintoc
 \setlength\rightmargintoc{\linewidth}
 \addtolength\rightmargintoc{-7em}
@@ -20,7 +20,7 @@
 \@tempdima#3
 \ifdim\lastskip=1sp;\relax\ \else\fi{\footnotesize#4}\hskip1sp%
 }
-\renewcommand*\l@subsubsection{\subsubsectocline{1}{0em}{2.5em}}
+\renewcommand*\l@subsubsection{\subsubsectocline{1}{0em}{3em}}
 \makeatother
 
 \pretocmd{\chapter}{\addtocontents{toc}{\par}}{}{}
@@ -31,8 +31,15 @@
   \addtocontents{toc}{\par}
   \fi}
 %%%%%%%%%%
-
+  
 \scripttitle
+
+\emph{This is a direct concatenation and reformatting of lecture
+    slides and exercises, including extended slides from classical AI lectures (covering search, logic \& probabilistic inference).}
+
+  {\tableofcontents}
+
+%\renewcommand{\sublecture}[2]{\subsection{#1}}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -40,25 +47,53 @@
 \slidefont
 \fancyhfoffset{0mm}
 
-%\UndefineShortVerb{\@}
+%  \UndefineShortVerb{\@}
 
-\input{01-introduction.tex}
-\input{02-search.tex}
-\input{03-probabilities.tex}
-\input{04-bandits-MCTS-games.tex}
-\input{05-MDP-DynamicProgramming.tex}
-\input{06-RL.tex}
-\input{07-otherDecisionProcesses.tex}
-\input{08-CSP.tex}
-\input{09-graphicalModels.tex}
-\input{10-dynamicalModels.tex}
-\input{11-neuralNetworks.tex}
-\input{12-explainableAI.tex}
-\input{20-propositionalLogic.tex}
-\input{21-firstOrderLogic.tex}
-\input{22-relationalReasoningAndLearning.tex}
+%% \input{01-introduction.tex}
+%% \input{02-search.tex}
+%% \input{03-probabilities.tex}
+%% \input{04-bandits-MCTS-games.tex}
+%% \input{05-MDP-DynamicProgramming.tex}
+%% \input{06-RL.tex}
+%% \input{07-otherDecisionProcesses.tex}
+%% \input{08-CSP.tex}
+%% \input{09-graphicalModels.tex}
+%% \input{10-dynamicalModels.tex}
+%% \input{11-neuralNetworks.tex}
+%% \input{12-explainableAI.tex}
+%% \input{20-propositionalLogic.tex}
+%% \input{21-firstOrderLogic.tex}
+%% \input{22-relationalReasoningAndLearning.tex}
 
-  \DefineShortVerb{\@}
+\clearpage
+\section{Part 1: Decision Making Basics}
+\input{01-decisionMaking}
+\input{02-probabilities}
+\input{03-bandits}
+\input{04-ML}
+
+\clearpage
+\section{Part 2: Sequential Decision Making}
+\input{05-MCTS}
+\input{06-MDPs}
+\input{07-RL}
+
+\clearpage
+\section{Part 3: Further Topics}
+\input{08-neuralNetworks}
+\input{09-explainableAI.tex}
+
+\clearpage
+\section{Part 4: Classical Lectures}
+
+\input{10-search.tex}
+\input{11-CSP.tex}
+\input{12-graphicalModels.tex}
+\input{13-dynamicalModels.tex}
+\input{14-propositionalLogic.tex}
+\input{15-firstOrderLogic.tex}
+\input{16-relationalReasoningAndLearning.tex}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -67,21 +102,63 @@
 \parindent 0ex
 \parskip 1ex
 
-\section{Exercises}
+\DefineShortVerb{\@}
 
-\input{e01-treeSearch.tex}
-\input{e02-chess.tex}
-\input{e03-ValueIteration.tex}
-\input{e04-RL.tex}
-\input{e05-CSP.tex}
-\input{e06-inference.tex}
-\input{e08-logic.tex}
-\input{exx-HMMs.tex}
-\input{exx-probabilities-exercises.tex}
+\section{Exercises}
+\subsection{Exercises 1}
+\input{e01-probabilities.tex}
+\subsection{Exercises 2}
+\input{e02-bandits.tex}
+\subsection{Exercises 3}
+\input{e03-sequential.tex}
+\subsection{Exercises 4}
+\input{e04-MDPs.tex}
+\subsection{Exercises 5}
+\input{e05-RL.tex}
+\subsection{Exercises 6}
+\input{e06-AutoDiff.tex}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Old Exercises}
+\subsection{Exercises 1}
+\input{e10-treeSearch.tex}
+\subsection{Exercises 2}
+\input{e11-chess.tex}
+\subsection{Exercises 3}
+\input{e12-ValueIteration.tex}
+\subsection{Exercises 4}
+\input{e13-RL.tex}
+\subsection{Exercises 5}
+\input{e14-CSP.tex}
+\subsection{Exercises 6}
+\input{e15-inference.tex}
+\subsection{Exercises 7}
+\input{e16-HMMs.tex}
+\subsection{Exercises 8}
+\input{e17-extraNN.tex}
+\subsection{Exercises 9}
+\input{e18-logic.tex}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \clearpage
+\renewcommand{\exsection}[1]{\subsection{#1}}
+\renewcommand{\exsubsection}[1]{\subsubsection{#1}}
+\renewcommand{\tableofcontents}{}
+
+\section{Overview of Coding Assignments}
+\input{codingAssignments.tex}
+
+\section{Literature Pointers}
+\input{literature.tex}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\clearpage
+\phantomsection
+\addtocontents{toc}{\par}
 \addcontentsline{toc}{section}{Index}
 \printindex
 

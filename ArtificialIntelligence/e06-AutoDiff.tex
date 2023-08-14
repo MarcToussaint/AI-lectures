@@ -1,0 +1,111 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Artificial Intelligence}
+\renewcommand{\coursepicture}{course_ai}
+\renewcommand{\coursedate}{Summer 2023}
+
+\renewcommand{\exnum}{Exercise 6}
+
+\exercises
+%\excludecomment{solution}
+\exercisestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Computation Graphs and Chain Rule (1 Pt)}
+
+\begin{enumerate}
+\item Consider the computation graph that has $x$ as input and then computes
+the quantities
+$$ a(x), b(x,a), c(a,b), f(x,c) $$
+
+Write down $\frac{df}{dx}$ using the General Chain rule in \textbf{both}, the forward and the backward version.
+
+\item We now concretely assume
+% Previous:
+%\begin{align*}
+%a(x) &= 2x \\
+%b(x,a) &= \sin(x+a) \\
+%c(a,b) &= ab \\
+%f(x,c) &= 3x - c ~.
+%\end{align*}
+%
+\begin{align*}
+a(x) &= x^2 \\
+b(x,a) &= \cos(x+a) \\
+c(a,b) &= 2ab \\
+f(x,c) &= 3x + c ~.
+\end{align*}
+
+What are $\frac{df}{dc}, \frac{df}{db}, \frac{df}{da}$, and $\frac{df}{dx}$? 
+
+What are $\frac{da}{dx}, \frac{db}{dx}$, and $\frac{dc}{dx}$?
+\end{enumerate}
+
+\begin{solution}
+\begin{enumerate}
+\item forward
+$$\frac{df}{dx} = \frac{\del f}{\del x} + \frac{\del f}{\del c} \frac{d c}{d x} $$
+
+backward
+$$\frac{df}{dx} = \frac{\del f}{\del x} + \frac{d f}{d a} \frac{\del a}{\del x} + \frac{d f}{d b} \frac{\del b}{\del x} $$
+
+\item
+% Previous:
+%$$\frac{df}{dc} = -1\comma \frac{df}{db} = -a\comma  \frac{df}{da} = -a \cos(x+a) - b \comma \frac{df}{dx} = 3 + [-a \cos(x+a) - b] 2 + (-a)\cos(x+a) = 3 - 2b - 3a\cos(x+a) $$
+%$$\frac{da}{dx} = 2\comma \frac{db}{dx} = 3\cos(x+a)\comma \frac{dc}{dx} = 0 + a[3\cos(x+a)] + 2b \comma \frac{df}{dx} = 3 - 3a\cos(x+a) - 2b$$
+
+$$\frac{df}{dc} = 1\comma \frac{df}{db} = 2a\comma  \frac{df}{da} = -2a \sin(x+a) + 2b \comma \frac{df}{dx} = 3 + [-2a \sin(x+a) + 2b] 2x - 2a\sin(x+a)$$
+$$\frac{da}{dx} = 2x\comma \frac{db}{dx} = -\sin(x+a)-2x\sin(x+a)\comma \frac{dc}{dx} = 4xb + 2a(-\sin(x+a)-2x\sin(x+a))$$
+\end{enumerate}
+\end{solution}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Regression using PyTorch AutoGrad (1 Pt)}
+
+This is a coding exercise, but you do not have to hand it in. You will discuss it in the tutorials as usual. The exercise is to implement linear regression and neural networks using PyTorch and AutoGrad.
+
+Please read (roughly) through the following tutorial:
+
+\url{https://pytorch.org/tutorials/beginner/basics/autogradqs_tutorial.html}
+
+
+\begin{enumerate}
+\item Please download the data
+  \url{https://www.user.tu-berlin.de/mtoussai/teaching/data/dataQuadReg1D.txt}
+
+You can plot it from cmd line using\newline @gnuplot -e "plot 'dataQuadReg1D.txt'; pause(-1)"@  (if the @gnuplot@ dep package is installed).
+
+\item Install PyTorch. For this, follow the instructions on \url{https://pytorch.org/}. You don't need CUDA for this exercise, i.e.\ a CPU only version of PyTorch is sufficient. If you are using pip, you can install it with \\ @pip3 install torch --extra-index-url https://download.pytorch.org/whl/cpu@
+
+\item Load the data into a $n\times 2$ numpy array $D$ and plot the data with matplotlib
+
+\item Implement linear regression with PyTorch, roughly like this:
+  \begin{items}
+  \item Load the data into torch tensors @X@ (first column of $D$) and @Y@ (second column of $D$).\\
+  Tip: @X = torch.from_numpy(D[:,0]).float().unsqueeze(1)@ if @D@ is the numpy array. @X@ will have dimension $n\times 1$
+  \item Define a linear model exactly as in beginning of the torch-autograd tutorial, except: Replace '5' by '1' (only 1D input); replace '3' by '1' (only 1D output); replace @binary_cross_entropy@ with a mean squared error loss
+  \item For $i=1..1000$
+    \begin{items}
+      \item forward pass through your model, i.e.\ where you compute the predictions @YPred = ...@
+      \item compute the loss. Tip: @loss = (YPred - Y).square()...@ (not finished)
+      \item call @loss.backward()@
+      \item Perform a gradient descent step $W \gets W - \a\cdot$@W.grad@ with $\a=0.01$, and similarly for $b$. Tip: You have to wrap this in a @with torch.no_grad():@ context manager, otherwise it does not work (find out the reason yourself or ask in the tutorials).
+      \item zero accumulated gradients of the parameters. Tip: @W.grad.zero_()@
+    \end{items}
+    
+  \end{items}
+
+\item After training, evaluate the trained model over a grid of 100 points over the interval $[-3,4]$, and plot the function. You are also welcome to do this evaluation/plotting during the training procedure
+
+\item Torch has the @torch.nn.functional.relu@ function to implement a non-linear computation step. How can you add this to the code above, together with a second linear computation step ($W_2, b_2$), to define a minimalistic 2-layer neural network? Assume the hidden dimension to be 16 and also plot the function after training.
+
+\item Play around with $\a$, and the hidden size of the network in f). What do you observe?
+\end{enumerate}
+
+Tips: PyTorch uses floats instead of doubles as standard, therefore, when interacting with numpy, ensure to convert properly, e.g. with @.float()@. The PyTorch API is very similar to numpy (but not identical!).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exerfoot

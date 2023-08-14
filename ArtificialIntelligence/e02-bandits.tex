@@ -1,0 +1,212 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Artificial Intelligence}
+\renewcommand{\coursepicture}{course_ai}
+\renewcommand{\coursedate}{Summer 2023}
+
+\renewcommand{\exnum}{Exercise 2}
+
+\exercises
+%\excludecomment{solution}
+\exercisestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Bandits (1 Pt)}
+
+Assume you have real-valued 3 bandits. (I.e., the returns $y_t\in\RRR$ are real numbers.) You have already tested them a few times
+and received returns
+\begin{itemize}
+\item From bandit 1:~ 8 7 12 13 11 9
+\item From bandit 2:~ 8 12
+\item From bandit 3:~ 5 13
+\end{itemize}
+
+\begin{enumerate}
+    \item For the returns of each bandit separately, compute (with a calculator) the following:
+  \begin{align}
+    \text{empirical mean estimator: \quad} y_i &= \frac{1}{n_i} \sum_{t:a_t=i} y_t \\
+    \text{std.dev.\ of returns:\quad} \hat \s_i &= \sqrt{\frac{1}{n_i-1} \sum_{t:a_t=i} (y_t - \hat y_i)^2} \\
+      \text{std.dev.\ of the mean estimator:\quad} \sqrt{\Var{\hat y_i}} &= \frac{1}{\sqrt{n_i}} \hat \s_i
+      \end{align}
+
+  \item Which bandit would UCB1 (the method we discussed in the lecture) choose next? (For $\b=1$.)
+
+  \item Which bandit would you choose next, if you know
+    that this is the very last time you pull a bandit?
+
+\end{enumerate}
+
+\begin{solution}
+	a)
+	\begin{center}
+		\begin{tabular}{lccc}
+			\hline
+			& Bandit 1 & Bandit 2 & Bandit 3\\
+			\hline
+			$\hat{y}_i$ & 10 & 10 & 9\\
+			$\hat{\sigma}_i$ & $\sqrt{\frac{28}{5}}\approx2.4$ & $\sqrt{8}\approx2.8$ & $\sqrt{32} \approx5.66$ \\
+			$\sqrt{\Var{\hat{y}_i}}$ & $\sqrt{\frac{28}{30}}\approx0.97$ & 2 & 4 \\
+			UCB1 &10.88&11.52&10.52\\
+			\hline
+		\end{tabular}
+	\end{center}
+	b) as seen in the table, UCB1 would choose bandit 2
+	
+	c) either 1 or 2. Bandit 1 is the conservative choice.
+\end{solution}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Matrix Equations \& Derivatives (1 Pt)}
+
+(This exercise aims to guide you to the solution of Linear Regression, mentioned in the lecture.)
+
+\begin{enumerate}
+\item Let $X,A$ be arbitrary matrices, $A$ invertible. Solve for $X$:
+$$ X A + A^\T = \Id $$
+
+\item Let $X,A,B$ be arbitrary matrices, $(C-2A^\T)$ invertible. Solve for $X$:
+$$ X^\T C = [2 A (X + B)]^\T $$
+
+\item Let $x\in\RRR^n,y\in\RRR^d,A\in\RRR^{d\times n}$. $A$ obviously \emph{not}
+invertible, but let $A^\T A$ be invertible. Solve for $x$:
+$$ (A x - y)^\T A = \vec 0_n^\T $$
+
+\item As above, additionally $B\in\RRR^{n\times n}$, $B$
+positive-definite. Solve for $x$: 
+$$ (A x - y)^\T A + x^\T B = \vec 0_n^\T $$
+\end{enumerate}
+
+The last result can be used to derive the solution to Linear Regression (and more generally, Ridge Regression). To see this,
+here is a very useful rule (the generalization of the ``product rule''):
+The derivative of the scalar product $f(x)^\T g(x)$ (where $f(x)$ and $g(x)$ are ``some expressions of $x$'') is:
+$$\Del x \[f(x)^\T g(x)\] = f(x)^\T \Del x g(x) + g(x)^\T \Del x f(x)$$
+{\footnotesize [To be more precise: $f,g:\RRR^n \to \RRR^d$ are differentiable vector-valued functions.]}
+
+\begin{enumerate}
+\item[e)] Apply this rule to compute the derivative $\Del x \[ (Ax -
+y)^\T (Ax - y) + x^\T B x\]$ and relate it to exercise d), when $B$ is also symmetric.
+\end{enumerate}
+
+
+\begin{solution}
+	a)
+	\begin{align}
+	X A + A^\T &= \Id \\
+	X A  &= \Id - A^\T \\
+    X &= (\Id - A^\T) A^\1
+	\end{align}
+	
+	b)
+	\begin{align}
+	X^\T C &= [2 A (X + B)]^\T \\
+	C^\T X &= 2 A (X + B) \\
+	(C^\T - 2A) X &= 2 A B \\
+	X &= (C^\T - 2A)^\1 2 A B
+	\end{align}
+	
+	c)
+	\begin{align}
+	(A x - y)^\T A &= \vec 0_n^\T \\
+	A^\T (A x - y) &= \vec 0_n \\
+	A^\T A x  &= A^\T y\\
+	x  &= (A^\T A)^\1 A^\T y
+	\end{align}
+	
+	d)
+	\begin{align}
+	(A x - y)^\T A + x^\T B &= \vec 0_n^\T \\
+	A^\T (A x - y) + B^\T x &= \vec 0_n \\
+	A^\T A x - A^\T y + B^\T x &= \vec 0_n \\
+	(A^\T A +B^\T) x &= A^\T y \\
+	x &= (A^\T A + B^\T)^\1 A^\T y
+	\end{align}
+	$(A^\T A + B^\T)$ is invertible (even without the assumption of $A^\T A$ being invertible from c)), since $A^\T A$ is semi-pos-def for any $A$, and $B$ is pos-def, so their sum is pos-def.
+	
+	e)
+	\begin{align}
+		2(Ax-y)^\T A + 2x^\T B
+	\end{align}
+\end{solution}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Optional: Bandits \& Bayes Rule (1 Pt)}
+
+We consider just a single binary bandit. A binary bandit only has one unkown parameter: the win probability $\t \in [0,1]$ (the parameter of its Bernoulli distribution). Let's make the strong assumptions that $\t \in \{0.4, 0.6\}$, which means that the bandit was either build with win probability $0.4$, or with win probability $0.6$ -- but you don't know in advance.
+
+Your \textbf{prior knowledge} (also called prior belief) over the unknown variable $\t$ is ``nothing'', meaning, $P(\t)$ is uniform over the domain $\{0.4, 0.6\}$ (maximal entropy).
+
+\begin{enumerate}
+\item Assume that you play a single game, and you win. I.e., the data we have is $D = \{ y_1=1 \}$. What is your \textbf{posterior knowledge} $P(\t \| D)$ (also called posterior belief) about the unkown variable?
+
+\item Assume that you played the bandit 3 times and always won. I.e., the data we have is $D = \{ y_1=1, y_2=1, y_3=1 \}$. What is your \textbf{posterior knowledge} $P(\t \| D)$ (also called posterior belief) about the unkown variable?
+\end{enumerate}
+
+Tip 1: In Bayes rule $P(X \| Y) = \frac{P(Y \| X)~ P(X)}{P(Y)}$ you often can spare explicitly computing the normalization $P(Y)$ (also called evidence). Instead, just compute $P(Y \| X)~ P(X)$ for all possible $X$, then normalize these to find the posterior $P(X \| Y)$, which needs to be normalized $\sum_X P(X \| Y) = 1$.
+
+Tip 2: For b), think of the three data points as each adding a new factor via Bayes rule. Again, you can neglect normalization until the very end, when you normalize the resulting posterior $P(\t \| D)$.
+
+
+\begin{solution}
+	a)
+	$P(\theta) = 0.5$
+	\begin{align}
+		P(\theta = 0.4 | y_1 = 1) \propto 0.4 \cdot 0.5\\
+		P(\theta = 0.4 | y_1 = 1) \propto 0.6 \cdot 0.5\\
+	\end{align}
+	Normalization factor $0.5$
+	\begin{align}
+		P(\theta = 0.4 | y_1 = 1) = 0.4\\
+		P(\theta = 0.4 | y_1 = 1) = 0.6
+	\end{align}
+	b)
+	\begin{align}
+		P(\theta|y_3, y_2, y_1) &\propto P(y_3, y_2, y_1, \theta)\\
+		P(y_3, y_2, y_1, \theta) &= P(y_3, y_2, y_1 | \theta) P(\theta) = P(y_3 | y_2, y_1, \theta)P(y_2 | y_1, \theta) P(y_1 | \theta)P(\theta) = P(y_3 | \theta)P(y_2 | \theta)P(y_1 | \theta)P(\theta)
+	\end{align}
+	\begin{align}
+		P(\theta = 0.4| y_3=1, y_2=1, y_1=1) \approx 0.23\\
+		P(\theta = 0.6| y_3=1, y_2=1, y_1=1) \approx 0.77\\
+	\end{align}
+\end{solution}
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \exsection{Derivatives}
+
+%% When you want to find the optimum of a cost function (e.g.\ loss
+%% function in Machine Learning), you have to take the derivative and set
+%% it equal to zero. If we optimize a vector $x\in\RRR^n$ (e.g., the
+%% parameters of a model), you need to be able to take the 
+%% derivative w.r.t.\ a vector.
+
+
+%% {\footnotesize [To be precise: $x\in\RRR^n,~ y\in\RRR^d,~ A\in\RRR^{d\times n}, B\in\RRR^{n\times n}$ symmetric and positive definite.]}
+
+
+%% \item Find $x$ that minimizes $(Ax -
+%% y)^\T (Ax - y) + x^\T B x$, by setting the derivative $\Del x[...] = 0^\T$ (transposed zero -- it is a row vector).
+
+%% {\footnotesize [This derives the solution to Linear Regression (and more generally, Ridge Regression).]}
+%% \end{enumerate}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Voluntary Reading: Pedro Domingos}
+
+Read at least until section 5 of Pedro Domingos's \emph{A Few Useful
+Things to Know about Machine Learning}
+{\tiny\url{http://homes.cs.washington.edu/~pedrod/papers/cacm12.pdf}}. 
+Be able to explain roughly what generalization and the bias-variance-tradeoff
+(Fig.\ 1) are.
+
+
+
+
+
+
+\exerfoot
+
