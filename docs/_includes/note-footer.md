@@ -1,0 +1,15 @@
+<script src="https://giscus.app/client.js"
+        data-repo="marctoussaint/AI-lectures"
+        data-repo-id="MDEwOlJlcG9zaXRvcnkyMjE3NzgzMDQ="
+        data-category="Announcements"
+        data-category-id="DIC_kwDODTgRgM4Chrrp"
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="bottom"
+        data-theme="noborder_light"
+        data-lang="en"
+        crossorigin="anonymous"
+        async>
+</script>

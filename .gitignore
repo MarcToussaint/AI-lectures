@@ -1,3 +1,5 @@
+_site
+
 *.pdf
 
 .ipynb_checkpoints/
@@ -31,3 +33,5 @@ _region_.*
 comment.cut
 *.idx
 *.vrb
+
+Gemfile.lock
