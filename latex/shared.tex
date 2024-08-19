@@ -1,7 +1,7 @@
 \providecommand{\slides}{
   \input{../latex/style-slides}
   \slideshead
-  \lecturetitleslide
+  %\slidestitle
 }
 
 \providecommand{\exercises}{
@@ -19,16 +19,16 @@
   \paperhead
 }
 
-\providecommand{\note}{
+\providecommand{\note}[1][9pt]{
   \input{../latex/style-note}
-  \notehead{10}{1.1}
+  \notehead{#1}{1.1}
 }
 
 \providecommand{\course}{NO COURSE}
 \providecommand{\coursepicture}{NO PICTURE}
 \providecommand{\coursedate}{NO DATE}
 \providecommand{\topic}{NO TOPIC}
-\providecommand{\keywords}{NO KEYWORDS}
+\providecommand{\keywords}{}
 \providecommand{\exnum}{NO NUMBER}
 \providecommand{\teacher}{Marc Toussaint}
 

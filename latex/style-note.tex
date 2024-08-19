@@ -1,0 +1,99 @@
+\providecommand{\notehead}[2]{
+  \documentclass[#1,fleqn,twoside]{article}
+  \stdpackages
+  \renewcommand{\labelenumi}{{(\roman{enumi})}}
+  \renewcommand{\theenumi}{(\roman{enumi})} %for ref
+
+  \renewcommand{\baselinestretch}{#2}
+  \renewcommand{\arraystretch}{1.2}
+  \renewcommand{\topfraction}{1}
+  \renewcommand{\bottomfraction}{1}
+  \renewcommand{\textfraction}{0}
+  \columnsep 5ex
+  \parindent 3ex
+  \parskip 1ex
+
+  % Lists and paragraphs
+  \parindent 0pt
+  \topsep 4pt plus 1pt minus 2pt
+  \partopsep 1pt plus 0.5pt minus 0.5pt
+  \itemsep 2pt plus 1pt minus 0.5pt
+  \parsep 2pt plus 1pt minus 0.5pt
+  \parskip .5pc %add _in_ {thebibliography} environment in *.bbl
+
+  \setcounter{tocdepth}{3}
+  \setcounter{secnumdepth}{3}
+
+  \geometry{a4paper,hdivide={25mm,*,25mm},vdivide={25mm,*,25mm}}
+
+  \renewcommand{\headrulewidth}{.0pt}\renewcommand{\footrulewidth}{.0pt}\cfoot{}
+  \fancyhead[OL,EC]{\it\theauthor---\today}
+  \fancyhead[ER]{\leftmark}
+  \fancyhead[OR,EL]{\thepage}
+  \fancyfoot[EL,OR]{}
+  \setlength{\headsep}{10mm}
+  %\fancyhead[OL]{\rightmark}
+  %\fancyfoot[EL,OR]{}
+
+
+  %  \usepackage{palatino}
+
+  \newcommand{\codefont}{\helvetica{8}{1.2}{m}{n}}
+
+  \renewenvironment{abstract}{
+    \vspace*{5ex}\begin{list}{}{
+      \leftmargin3ex
+      \rightmargin3ex
+      \topsep-\parskip}\item[]
+     \hrule\vspace{1.5ex}{\bf Abstract.~}\small}
+    {\vspace{2ex}\hrule\end{list}\vspace{5ex}}
+    
+  \newenvironment{keyword}
+    {\par{\it Keywords:~}}
+    {}
+
+  \def\makemytitle{%
+    \thispagestyle{empty}
+    \begin{list}{}{\leftmargin3ex \rightmargin3ex \topsep0ex \parsep0ex}\item[]
+      \begin{center}
+        {\fontsize{18}{25}\selectfont{\thetitle\\}}\vspace{5ex}
+
+        {\fontsize{14}{16}\selectfont{\theauthor\\}}\vspace{1ex}
+
+        {\footnotesize{\sl \addressFUB}\\ \emailBerlin}
+
+        {\footnotesize \today}
+
+        \vspace{1ex}
+        {\small \published}
+      \end{center}
+    \end{list}
+    \renewcommand{\maketitle}{\chapter{\thetitle}}
+  }
+
+  \input{../latex/macros}
+  \pdflatex
+
+  \graphicspath{{pics/}{../pics/}{pics-local/}}
+
+  \myauthor{Marc Toussaint}
+  \date{\today}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\notetitle}{
+  \begin{document}
+  \thispagestyle{empty}
+    
+  \maketitle
+
+}
+
+\newenvironment{items}[1][9]{
+\par\setlength{\unitlength}{1pt}\fontsize{#1}{#1}\linespread{1.2}\selectfont
+\begin{list}{--}{\leftmargin4ex \rightmargin0ex \labelsep1ex \labelwidth2ex
+\topsep0pt \parsep0ex \itemsep3pt}
+}{
+\end{list}
+}

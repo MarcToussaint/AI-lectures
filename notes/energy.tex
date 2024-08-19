@@ -1,13 +1,16 @@
-%\input{../latex/shared}
+\input{../latex/shared}
 \note
 
 \title{Lecture Note:\\ Probabilities, Energy, Boltzmann \& Partition Function}
 \author{Marc Toussaint\\\small Learning \& Intelligent Systems Lab, TU Berlin}
 
+\makeatletter
+\renewcommand{\@seccntformat}[1]{}
+\makeatother
+
 \notetitle
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\begin{document}
 
 \subsection{Probabilities \& Energy}
 
@@ -26,7 +29,7 @@ p(x) = \Frac 1Z \exp\lbrace-E(x)\rbrace ~,
 where $Z$ is the normalization constant to ensure $\int_x p(x) = 1$,
 and $c=-\log Z$. From the perspective of physics, one can motivate why
 $E(x)$ is called ``energy'' and derive these relations from other
-principles (mentioned in the appendix). Here we want to motivate the
+principles, as mentioned below. Here we first motivate the
 relation more minimalistically as follows:
 
 Probabilities are \emph{multiplicative} (axiomatically): E.g., the likelihood of i.i.d.\ data $D = \lbrace x_i \rbrace_{i=1}^n$ is the product
@@ -50,9 +53,12 @@ be defined as $E(x) = -\log p(x)$ (modulo a constant, where the minus
 is just a convention):
 
 {\small
+
 \begin{proof}
 Let $P(D)$, $E(D)$ be two functions over a space of sets $D$, with 
-properties (1) $P(D)$ is multiplicative, $P(D_1 \cup D_2) = P(D_1) P(D_2)$, (2) $E(D)$ is additive $E(D_1\cup D_2) = E(D_1) + E(D_2)$, and (3) there is a mapping $P(D) = \Frac 1Z f(E(D))$ between both, then if follows that
+properties (1) $P(D)$ is multiplicative, $P(D_1 \cup D_2) = P(D_1)
+P(D_2)$, (2) $E(D)$ is additive $E(D_1\cup D_2) = E(D_1) + E(D_2)$,
+and (3) there is a mapping $P(D) = \Frac 1Z f(E(D))$ between both. Then it follows that
 
 \begin{align}
 P(D_1\cup D_2)
@@ -65,7 +71,7 @@ P(D_1\cup D_2)
 
 where we defined $E_i=E(D_i)$. The only function to fulfill
 the last equation for any $E_1,E_2\in\RRR$ is the exponential function $f(E) = \exp\lbrace -\b E \rbrace$ with arbitrary
- coefficient $\b$ (and minus sign being a convention, and $Z_0 = Z_1
+ coefficient $\b$ (and minus sign being a convention, $Z_0 = Z_1
  Z_2$). Boiling this down to an individual element $x\in D$, we have
 
 \begin{align}
@@ -73,6 +79,7 @@ p(x) = \Frac 1Z \exp\lbrace-\b E(x)\rbrace \comma \b E(x) = -\log p(x) - \log Z 
 \end{align}
 
 \end{proof}
+
 }
 
 
@@ -86,7 +93,7 @@ first principles, in AI: can be point-wise evaluated for each
 $x$). However, the partition function $Z$ is typically apriori unknown
 and evaluating it is a hard global problem: The number $Z$ is a global
 property of the function $E(\cdot)$, while the energy $E(x)$ of a
-single state $x$ can typically be evaluated from properties of $x$
+single state $x$ can be evaluated from properties of $x$
 only.
 
 To appreciate the importance of the partition function, consider we want
@@ -131,7 +138,7 @@ the keyword ``derivation of canonical ensemble'' (e.g.\ Wikipedia),
 but two brief comments may clarify the essentials:
 
 First, the one-to-one relation between energy and probability (in
-physics) only holds in the so-called thermodynamic
+physics) only holds in the thermodynamic
 equilibrium. Second, systems (such as the canonical ensemble) have a
 fixed total energy, which is the sum of energies of all
 particles. Perhaps one can imagine that if one particle has particular
@@ -143,7 +150,7 @@ are populated -- in the previous example the combinatorics is low
 because many particles are confined to low energy states, showing that
 the probability for this one particle to populate such a high energy
 level is low. In general,
-when computing these combinatorics directly leads to the so-called
+computing these combinatorics explicitly leads to the so-called
 Boltzmann distribution $p(i) \propto \exp\lbrace-\b E_i\rbrace$ of a particle to
 be in energy level $i$: Lower energy states have higher probability,
 intuitively because for limited total energy more particles can be in these
@@ -151,15 +158,17 @@ states, leading to higher combinatorics of microstates. In other
 words, in the thermodynamic equilibrium all feasible microscopic
 full-system states are equally likely, but the probability of one
 particle of the ensemble to have energy $i$ goes with the Boltzmann
-distribution. The coefficient $\b$ tells us how exactly energies
+distribution.
+
+The coefficient $\b$ tells us how exactly energies
 translate to probabilities, and should intuitively depend on the total
 energy of the full system: if the full system has little total energy
 (is ``cold''), higher energy states should become less likely. In
 physics, the factor is $\b=\Frac{1}{k_B T}$ with temperature $T$ and
 the Boltzmann constant $k_B$ which translates the system temperature
-to the average (thermal) particle energy $k_B T$. (That is,
+to the average (thermal) particle energy $k_B T$. That is,
 the word ``temperature'' roughly means average particle energy, and in
-AI is often a freely chosen scaling factor of energies.)
+AI is often a freely chosen scaling factor of energies.
 
 
 \end{document}

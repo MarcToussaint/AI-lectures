@@ -64,7 +64,8 @@
   %\rfoot{\raisebox{5mm}{\tiny\textsf{\slidevenue{} -- \arabic{mypage}/\pageref{lastpage}}}}
   %\rfoot{~\anchor{30,12}{\tiny\textsf{\thepage/\pageref{lastpage}}}}
   %\lfoot{\small\textsf{Marc Toussaint}}
-  \rfoot{\vspace*{-4.5mm}{\tiny\textsf{\color{gray}\topic\ -- \subtopic\ -- \arabic{mypage}/\pageref{lastpage}}}\hspace*{-4mm}}
+%  \rfoot{\vspace*{-4.5mm}{\tiny\textsf{\color{gray}\topic\ -- \subtopic\ -- \arabic{mypage}/\pageref{lastpage}}}\hspace*{-4mm}}
+  \rfoot{\vspace*{-4.5mm}{\tiny\textsf{\color{gray}\topic\ -- \arabic{mypage}/\pageref{lastpage}}}\hspace*{-4mm}}
 %  \rfoot{~\anchor{-10,12}{\tiny\textsf{\color{gray}\topic\ --  \arabic{mypage}/\pageref{lastpage}}}}
   \lfoot{\vspace*{-4.5mm}{\hspace*{-3mm}\includegraphics[height=4mm]{LIS-logo-longText}}}
 
@@ -83,7 +84,7 @@
   \graphicspath{{pics/}{../pics/}{pics-local/}}
 }
 
-\newcommand{\lecturetitleslide}{
+\newcommand{\slidestitle}{
   \title{\course \topic}
   \author{Marc Toussaint}
   \institute{Learning \& Intelligent Systems Lab, TU Berlin}
@@ -95,7 +96,7 @@
   \slide{}{
     \thispagestyle{empty}
 
-    \twocol{.27}{.6}{
+    \twocol{.35}{.55}{
       %\vspace*{-5mm}%
       \hspace*{-5mm}%
       \includegraphics[width=1.\columnwidth]{\coursepicture}
@@ -120,10 +121,8 @@
 
       \coursedate
 
-      \vspace{1cm}
+      ~
 
-      (slides by Marc Toussaint)
-      
     }
   }
 }

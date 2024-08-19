@@ -174,7 +174,7 @@
   %\newcommand{\argmax}[1]{{\rm arg}\!\max_{#1}}
   %\newcommand{\argmin}[1]{{\rm arg}\!\min_{#1}}
   \DeclareMathOperator*{\argmax}{argmax}
-  \DeclareMathOperator*{\argmin}{argmin}
+  %\DeclareMathOperator*{\argmin}{argmin}
   \DeclareMathOperator{\sign}{sign}
   \DeclareMathOperator{\acos}{acos}
   \DeclareMathOperator{\unifies}{unifies}
@@ -497,6 +497,7 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+\newcommand{\notetitle}{\begin{document}}
 \usepackage{hyperref}
 \newcommand{\doclink}[2]{#1 [<#2>]}
 \newcommand{\codetip}[1]{\begin{shaded} Code tutorials: #1 \end{shaded}}
@@ -519,4 +520,6 @@
 %% %%   %\index{#1@{\hyperref[key:#1]{#1 (\arabic{mysec}:\arabic{mypage})}}|phantom}
 %% %%   \addtocounter{mypage}{-1}
 %% }
+
+%%% !!! the last line % is important! It comments the first line of the included file...
 %

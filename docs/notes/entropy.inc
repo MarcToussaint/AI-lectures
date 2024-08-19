@@ -3,25 +3,26 @@ Entropy
 
 Entropy is *expected neg-log-likelihood*, which can also be desribed as
 expected surprise, expected code length, or expected error. The notes
-below are to explain this.
+below are to explain this, as well as clarify the relation between ML
+objectives and minimal description length.
 
 Let $p(x)$ be the probability or likelihood of a sample $x$.
 
 Consider $x \in \{A,B,C,D\}$. If the distribution over these four
-symbols was $p(x) = [.7, .1, .1, .1]$, then you would be less surprised
-to see a sample $x=A$ than a sample $x=B$. If you want an optimal
-encoding/compression of samples from this distribution, you would
-allocate a shorter code for the frequent symbol $A$, and a longer code
-for the infrequent symbols $B,C,D$ (cf.&nbsp;Huffman code).
+symbols was $p(\cdot) = [.7, .1, .1, .1]$, then you would be less
+surprised to see a sample $x=A$ than a sample $x=B$. If you want an
+optimal encoding/compression of samples from this distribution, you
+would allocate a shorter code for the frequent symbol $A$, and a longer
+code for the infrequent symbols $B,C,D$ (cf.&nbsp;Huffman code).
 
 The neg-log-likelihood $-\log p(x)$ is also called *surprise*. It
 provides the optimal *code length* you should assign to a symbol $x$
-(modulo rounding): E.g., for $p(x) = [.5, .25, .25, .0]$, $-\log_2 p(x)$
-equals 1 bit for symbol $A$, 2 bits for symbols $B,C$, and $D$ never
-appears. When using $\log_2$, bits is the unit of neg-log-likelihood and
-can also be thought of as unit of *information*: a sample $A$ surprises
-you less and only gives 1 bit of information, a sample $B$ surprises you
-more and gives you 2 bits of information.
+(modulo rounding): E.g., for $p(\cdot) = [.5, .25, .25, .0]$,
+$-\log_2 p(x)$ equals 1 bit for symbol $x=A$, 2 bits for symbols $B$ and
+$C$, and $D$ never appears. When using $\log_2$, bits is the unit of
+neg-log-likelihood and can also be thought of as unit of *information*:
+a sample $A$ surprises you less and only gives 1 bit of information, a
+sample $B$ surprises you more and gives you 2 bits of information.
 
 The entropy
 
@@ -30,10 +31,21 @@ H(p) &= - \sum_x p(x) \log p(x) = \mathbb{E}_{p(x)}\!\left\{-\log p(x)\right\}\e
 
 is the expected neg-log-likelihood. It is a measure of the distribution
 $p$ itself, not of a specific sample. It measures, how much *in average*
-samples of $p(x)$ surprise you. Or: What is the average coding length of
-samples of $p(x)$. Or: What is the average information given by samples
-of $p(x)$. The unit of entropy can be thought of as bits (referring to
-$\log_2$).
+samples of $p$ surprise you. Or: What is the average coding length of
+samples of $p$. Or: What is the average information given by samples of
+$p$. The unit of entropy is bits (when using $\log_2$). That is, we can
+specifically say "the average information given by a sample of $p$ is as
+much as the information given by $H(p)$ uniform binary variables".
+
+Sometimes another unit of information is used: The *perplexity* of $p$
+is defined as $P\mkern-1pt{}P(p) = 2^{H(p)}$ (when using $\log_2$),
+which is one-to-one with entropy but uses different units of
+information. Note that a discrete uniform random variable of cardinality
+$P\mkern-1pt{}P$ has entropy $H = \log_2 P\mkern-1pt{}P$, which explains
+the definition of perplexity. Therefore, we can now say "the average
+information given by a sample of $p$ is as much as the information given
+by a uniform discrete random variable of cardinality
+$P\mkern-1pt{}P(p)$".
 
 Given a gaussian distribution
 $p(x) \propto \exp\{-{\frac{1}{2}}(x-\mu)^2/\sigma^2\}$, the
@@ -53,7 +65,7 @@ $$\begin{aligned}
 H(p,q) = - \sum_x p(x) \log q(x) = \mathbb{E}_{p(x)}\!\left\{-\log q(x)\right\}\end{aligned}$$
 
 is also an expected neg-log-likelihood, but expectation is
-w.r.t.&nbsp;$p$, while the nnl is w.r.t.&nbsp;$q$. This corresponds to
+w.r.t.&nbsp;$p$, while the nll is w.r.t.&nbsp;$q$. This corresponds to
 the situation that samples are actually drawn from $p$, but you model or
 encode them using $q$. So your measure of surprise or code length is
 relative to $q$. In ML, $q$ is typically a learned distribution or
@@ -64,8 +76,8 @@ In ML, cross-entropy is often used as a classification loss function
 $\ell(\bar y, q_\theta(y|x))$ between the true class label $\bar y$ and
 the predicted class distribution $q_\theta(y|x)$ (for some input $x$).
 For each individual data point, the true class label $\bar y$ is not
-probabilistic, but we can use it to defines a one-hot-encoding
-$p_{\bar y}(y) = [0,..,0,1,0,..,0]$ with $1$ for $y=\bar y$. The
+probabilistic, but we can use it to define a one-hot-encoding
+$p_{\bar y}(\cdot) = [0,..,0,1,0,..,0]$ with $1$ for $y=\bar y$. The
 cross-entropy is then nothing but the neg-log-likelihood of the true
 class label under the learned model:
 
@@ -123,3 +135,8 @@ than this entropy. In this view, the KL-divergence
 $D\big(p\,\big\Vert\,q_\theta\big)$ is equal to the cross-entropy of
 your model, but subtracting $H(p)$ as the baseline. It measures only
 your error above the minimal achievable error.
+
+The above establishes the close relation between Machine Learning and
+compression or Minimal Description Length: When ML minimizes a
+cross-entropy or KL-divergence, then it also minimizes the expected code
+length when encoding $p$-samples (data) using the learned $q$-model.

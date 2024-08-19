@@ -134,8 +134,8 @@
   \newcommand{\comma}{~,\quad}
   \newcommand{\period}{~.\quad}
   \newcommand{\del}{\partial}
-  \newcommand{\Del}[1]{\frac{\del}{\del #1}}
-  \newcommand{\Hes}[1]{\frac{\del^2}{\del #1^2}}
+  \newcommand{\Del}[1]{\textstyle\frac{\del}{\del #1}}
+  \newcommand{\Hes}[1]{\textstyle\frac{\del^2}{\del #1^2}}
 
 %  \newcommand{\quabla}{\Delta}
   \newcommand{\point}{$\bullet~~$}
@@ -208,10 +208,11 @@
   \newcommand{\seqq}[1]{\textsf{#1}}
   \newcommand{\floor}[1]{\lfloor#1\rfloor}
   \newcommand{\Exp}[2][]{\mathbb{E}_{#1}\!\left\{#2\right\}}
+  \newcommand{\Expno}[1][]{\mathbb{E}_{#1}}
   \newcommand{\Var}[2][]{\text{Var}_{#1}\{#2\}}
   \newcommand{\cov}[2][]{\text{cov}_{#1}\{#2\}}
 
-%\newcommand{\Exp}[2]{\left\langle{#2}\right\rangle_{#1}}
+  %\newcommand{\Exp}[2]{\left\langle{#2}\right\rangle_{#1}}
   \newcommand{\ex}{\setminus}
 
   \providecommand{\href}[2]{{\color{blue}USE PDFLATEX!}}
@@ -302,6 +303,8 @@
 \newcommand{\zT}{{\underline z}}
 \newcommand{\Sum}{\textstyle\sum}
 \newcommand{\Int}{\textstyle\int}
+\newcommand{\Frac}{\textstyle\frac}
+\newcommand{\Max}{\textstyle\max}
 \newcommand{\Prod}{\textstyle\prod}
 
 
@@ -494,8 +497,6 @@
 \newcommand{\step}{{\delta}}
 \newcommand{\lsstop}{\r_{\text{ls}}}
 \newcommand{\stepmax}{\step_{\text{max}}}
-\newcommand{\Min}{\text{min}}
-\newcommand{\Max}{\text{max}}
 
 
 \definecolor{boxcol}{rgb}{.85,.9,.92}
