@@ -269,7 +269,7 @@
 \newcommand{\pt}{{\myplus2}}
 %\renewcommand{\-}{\myminus}
 %\newcommand{\+}{\myplus}
-\newcommand{\T}{{\!\top\!}}
+\newcommand{\T}{{\mkern-1pt \top \mkern-1pt}}
 %\newcommand{\T}{{\!\textsf{\scriptsize T}\!}}
 \newcommand{\xT}{{\underline x}}
 \newcommand{\uT}{{\underline u}}
