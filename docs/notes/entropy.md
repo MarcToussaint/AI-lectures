@@ -1,6 +1,6 @@
 ---
 layout: home
-title:  "Entropy, Information, Cross-Entropy & ML as Minimal Description Length"
+title:  "Entropy, Information, Cross-Entropy, and ML as Minimal Description Length"
 date: 2024-08-15
 tags: note
 ---

@@ -259,8 +259,8 @@
 \newcommand{\hJi}{{\bar J}^\sharp}
 \renewcommand{\|}{\,|\,}
 \renewcommand{\=}{\!=\!}
-\newcommand{\myminus}{{\hspace{-0.0pt}\textrm{-}\hspace{-0.5pt}}}
-\newcommand{\myplus}{{\hspace{-0.0pt}\textrm{+}\hspace{-0.5pt}}}
+\newcommand{\myminus}{ \textrm{-} \mkern-1pt }
+\newcommand{\myplus}{ \textrm{+} \mkern-1pt }
 \newcommand{\1}{{\myminus1}}
 \newcommand{\2}{{\myminus2}}
 \newcommand{\3}{{\myminus3}}
@@ -506,6 +506,13 @@
 \newcommand{\argmin}{\text{argmin}}
 \newcommand{\tutorial}[2]{#1 <https://marctoussaint.github.io/robotic/tutorials/#2.html>}
 
+\renewenvironment{figure}{}{}
+
+\renewcommand{\show}[2][.7]{
+SPAN-CENTER \includegraphics{#2} SPAN-END }
+
+\renewcommand{\caption}[1]{
+SPAN-SMALL \textbf{Figure:} #1 SPAN-END }
 
 %% \newwrite\tempfile
 %% \immediate\openout\tempfile=z.keys.tex

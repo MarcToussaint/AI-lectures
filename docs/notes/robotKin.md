@@ -1,6 +1,6 @@
 ---
 layout: home
-title:  "Robot Kinematics & Dynamics Essentials"
+title:  "Robot Kinematics and Dynamics Essentials"
 date: 2024-08-25
 tags: note
 ---
