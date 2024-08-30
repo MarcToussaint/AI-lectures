@@ -51,20 +51,20 @@ The following discusses a single cubic spline piece and and how to use it for ti
 
 Consider a cubic polynomial $x(t) = a t^3 + b t^2 + c t + d$. Given four boundary conditions $x(0)=x_0, \dot x(0) = v_0, x(\t) = x_\t, \dot x(\t) = v_\t$, the four coefficients are
 
-$$\begin{align}
+\begin{align}
 d &= x_0 ~, \\
 c &= \dot x_0 ~, \\
 b &= \frac{1}{\t^2}\[ 3(x_\t-x_0) - \t(\dot x_\t + 2 \dot x_0) \] ~, \\
 a &= \frac{1}{\t^3}\[ - 2(x_0-x_\t) + \t(\dot x_\t + \dot x_0) \] ~.
-\end{align}$$
+\end{align}
 
 This cubic spline is in fact the solution to an optimization problem, namely it is the path that minimizes accelerations between these boundary conditions and it can therefore be viewed as the solution to optimal control with acceleration costs:
 
-$$\begin{align}
+\begin{align}
 \min_x~ \int_0^\tau \ddot x(t)^2~ dt 
 \quad\st \mat{c}{x(0)\\\dot x(0)}=\mat{c}{x_0\\v_0},~
 \mat{c}{x(\tau)\\\dot x(\tau)}=\mat{c}{x_1\\v_1} ~.
-\end{align}$$
+\end{align}
 
 %% Check with Maxima:
 %% \begin{code}
@@ -77,7 +77,7 @@ $$\begin{align}
 %% \end{code}
 The minimal costs can analytically be given as
 
-$$\begin{align}
+\begin{align}
 \int_0^T \ddot x(t)^2 dt
 %% &= \int_0^T (6 a t + 2 b)^2 ~ dt \\
 %% &= \int_0^T (36 a^2 t^2 + 4 b^2 + 24 abt) ~ dt \\
@@ -88,11 +88,11 @@ $$\begin{align}
 &= \tilde D^\T \tilde D + \tilde V^\T \tilde V \comma
 \tilde D := \sqrt{12}~ \tau^{-\frac{3}{2}}~ D,~ \tilde V := \tau^{-\half}~ V ~,
 \label{eqLeapSOS}
-\end{align}$$
+\end{align}
 
 where we used some help of computer algebra to get this right.
 
-Eq. $\eqref{eqLeap}$ explicitly gives the optimal cost in terms of
+Eq. \eqref{eqLeap} explicitly gives the optimal cost in terms of
 boundary conditions $(x_0,v_0,x_1,v_1)$ and time $\tau$. This is a very powerful means to optimize boundary conditions and $\tau$. The following is a simple application that realizes reactive control.
 
 \subsubsection{Single-piece optimal timing control}
@@ -103,17 +103,17 @@ However, while PD laws are fundamental for low-level optimal control under noise
 
 Instead of imposing a desired PD behavior, we can impose a desired cubic spline behavior, which leads to succinct convergence in a finite expected time-to-target, as well as moderate gains when far. The approach is simply to choose an optimal $\tau$ (time-to-target) that minimizes
 
-$$\begin{align}
+\begin{align}
 \min_{\tau, x}~ \a \tau + \int_0^\tau \ddot x(t)^2~ dt
-\end{align}$$
+\end{align}
 
-under our boundary conditions, assuming a cubic spline $x(t), t\in[0,\tau]$. Using $\eqref{eqLeap}$, we know the optimal $x$ and optimal control costs for given $\tau$. When $\d = x_\Ref - x$ and $v$ are co-linear (i.e., the system moves towards the target), computer algebra can tell us the optimal $\tau$:
+under our boundary conditions, assuming a cubic spline $x(t), t\in[0,\tau]$. Using \eqref{eqLeap}, we know the optimal $x$ and optimal control costs for given $\tau$. When $\d = x_\Ref - x$ and $v$ are co-linear (i.e., the system moves towards the target), computer algebra can tell us the optimal $\tau$:
 
-$$\begin{align}\label{eqTimingControl}
+\begin{align}\label{eqTimingControl}
   \tau^* = \frac{1}{\a}\[ \sqrt{6 |\d| \a + v^2} - |v| \] ~.
-\end{align}$$
+\end{align}
 
-If the system has a lateral movement, the analytical solution seems overly complex, but a numerical solution to the least-squares form $\eqref{eqLeapSOS}$ very efficient. However, in practise, using $\eqref{eqTimingControl}$ with scalar  $v \gets (\d^\T v)/|\d|$ for easy timing control of convergence to a target is highly efficient and versatile.
+If the system has a lateral movement, the analytical solution seems overly complex, but a numerical solution to the least-squares form \eqref{eqLeapSOS} very efficient. However, in practise, using \eqref{eqTimingControl} with scalar  $v \gets (\d^\T v)/|\d|$ for easy timing control of convergence to a target is highly efficient and versatile.
 
 To make this a reactive control scheme, in each control cycle
 $$\tau^*$$ is reevaluated and the corresponding cubic spline reference send to
@@ -139,7 +139,7 @@ $\tau^*$ will be the true time-to-target. See the SecMPD paper for details and c
 %%   - \frac{36}{\tau^4}~ \d^2
 %%   + \frac{24}{\tau^3}~ \d^\T v
 %%   - \frac{4}{\tau^2}~ v^2  \quad \overset{!}= 0\\
-%% \end{align}$$
+%% \end{align}
 
 
 \subsection{Hermite Cubic Splines}
@@ -159,7 +159,7 @@ accelerations at their joining knots (from the left and the right), and therefor
 However, optimizing both, timing and waypoint velocities under out
 optimal control objective is rather efficient and effective. Note that
 the optimal control cost over the full spline is just the sum of
-single piece costs $\eqref{eqLeapSOS}$. This represents costs as a
+single piece costs \eqref{eqLeapSOS}. This represents costs as a
 least-squares of differentiable features, where $D$ can be interpreted
 as distance to be covered by accelerations, and $V$ as necessary total
 acceleration, and the Jacobians of $\tilde D$ and $\tilde V$
@@ -175,30 +175,30 @@ As a final note, in Hermite quintic splines we need positions $x_i$, velocities 
 
 In B-splines, the path $x: [0,T] \to \RRR^n$ is expressed as a linear combination of control points $z_0,.., z_K \in \RRR^n$,
 
-$$\begin{align}\label{bspline}
+\begin{align}\label{bspline}
 x(t) = \sum_{i=0}^K B_{i,p}(t)~ z_i ~,
-\end{align}$$
+\end{align}
 
 where $B_{i,p}: \RRR \to \RRR$ maps the time $t$ to the weighting of the $i$th control point -- it blends in and out the $i$th control point. For any $t$ it  holds that $\sum_{i=0}^K B_{i,p}(t) = 1$, i.e., all the weights $B_{i,p}(t)$ sum to one (as with a probability distribution over $i$), and the path point $x(t)$ is therefore always in the convex hull of control points.
 
-Concerning terminology, actually the functions $B_{i,p}(t)$ are called \defn{B-splines}, not the resulting path $x(t)$. (But in everyday robotics language, one often calls the path a B-spline.) As the linear (scalar) product in $\eqref{bspline}$ is trivial, the maths (and complexity of code) is all about the B-splines $B_{i,p}(t)$, not the path $x(t)$.
+Concerning terminology, actually the functions $B_{i,p}(t)$ are called \defn{B-splines}, not the resulting path $x(t)$. (But in everyday robotics language, one often calls the path a B-spline.) As the linear (scalar) product in \eqref{bspline} is trivial, the maths (and complexity of code) is all about the B-splines $B_{i,p}(t)$, not the path $x(t)$.
 
 The B-spline functions $B_{i,p}(t)$ are fully specified by a non-decreasing series of time knots $t_0,..,t_m \in [0,T]$ and the integer degree $p\in\{0,1,..\}$. Namely, the recursive definition is
 
-$$\begin{align}
+\begin{align}
 B_{i,0}(t) &= [t_i \le t < t_{i\po}] \comma \text{for $0\le i \le m-1$} ~,\\
 B_{i,p}(t)
 &= \frac{t-t_i}{t_{i+p}-t_i}~ B_{i,p-1}(t)
  +  \frac{t_{i+p+1}-t}{t_{i+p+1}-t_{i+1}}~ B_{i+1,p-1}(t)  \comma \text{for $0\le i \le m-p-1$} ~.
-\end{align}$$
+\end{align}
 
 
 The zero-degree B-spline functions $B_{i,0}$ are indicators of $t_i \le t < t_{i\po}$, and $i$ ranges from $i=0,..,m-1$. The 1st-degree B-spline functions $B_{i,1}$ have support in $t_i \le t < t_{i+2}$ and $i$ only ranges in
 $i=0,..,m-2$ -- because one can show that the normalization $\sum_{i=0}^{m-2} B_{i,1}(t) = 1$ holds (and for $i>m-2$, the recursion would also not be clearly defined). In general, degree $p$ B-spline functions $B_{i,p}$ have support in $t_i \le t < t_{i+p+1}$ and $i$ ranges from $i=0,..,m+p-1$, which is why we need $K+1$ control points $z_{0:K}$ with
 
-$$\begin{align}
+\begin{align}
     K = m+p-1 ~,
-\end{align}$$
+\end{align}
 
 which ensures the normalization property $\sum_{i=0}^K B_{i,p}(t) = 1$ for every degree.
 
@@ -229,9 +229,9 @@ vel/acc/jerk at start and end.
 
 Splines describe a continuous path $x(t)$, but often we want to evaluate this path only at a finite number of time slices $t\in \{\hat t_1,..,\hat t_S\} \subset [0,T]$. E.g., this could be a grid of $S=100$ time slices over which we want to optimize using KOMO, and for which we have to compute collision features. Let $x \in \RRR^{S \times n}$ be the time discretized path, and $z \in\RRR^{K\po\times n}$ be the stack of control points. Then the B-spline representation becomes
 
-$$\begin{align}
+\begin{align}
 x = B_p z \comma \text{with } B_p\in\RRR^{S\times K\po},~ B_{p,si} = B_{i,p}(\hat t_s) ~,
-\end{align}$$
+\end{align}
 
 where $B_p$ is the B-spline matrix of degree $p$ for this particular time grid $\{\hat t_1,..,\hat t_S\}$.
 
@@ -245,9 +245,9 @@ The answer is again the matrix equation. Consider the cubic spline case and that
 
 We can distribute $S$ knots $t_{4:3+S}$ uniformly between start and end knots (or also at $\hat t_1,..,\hat t_S$), from which it follows we have $m = S+7$, and $K=m-p-1=S+3$, which are $K+1=S+4$ control points in total, of which $4$ are already fixed. So the $S$ middle control points are still free, and matrix inversion gives them from the desired waypoints,
 
-$$\begin{align}
+\begin{align}
   z_{2:S+1} = B^\1 x_{1:S} \comma \text{with } B \in \RRR^{S \times S},~ B_{si} =  B_{i+1,3}(\hat t_s),~ s,i=1,..,S  ~.
-  \end{align}$$
+\end{align}
 
 
 
@@ -257,24 +257,24 @@ Consider again an online control situation where the is in state $(x,\dot x)$ an
 
 For degrees 2 and 3 this is simple to achieve: In both cases we usually have $z_0=z_1$ and $z_{K\1}=z_K$ to ensure zero start and end velocities. Modifying $z_1$ directly leads to the start velocity $\dot x(0) = \dot B_{0,p}(0) z_0 + \dot B_{1,p}(0) z_1$. But because of normalization we have $\dot B_{0,p}(0) = - \dot B_{1,p}(0)$, and therefore 
 
-$$\begin{align}
+\begin{align}
   \dot x(0) &= \dot B_{0,p}(0) (z_0 - z_1) \\
   z_1 &= z_0 - \frac{\dot x(0)}{\dot B_{0,p}(0)} ~.
-\end{align}$$
+\end{align}
 
 
 %% A NURBS (non-uniform rational B-spline) is a B-spline
 %% with weighted control points,
 %% \begin{align}
 %% f(t) = \sum_{i=0}^K \frac{w_i B_{i,p}(t)~ x_i}{\sum_{j=0}^K w_j B_{j,p}(t)} ~.
-%% \end{align}$$
+%% \end{align}
 
 
 \subsubsection{Gradients}
 
 The gradients of a B-spline represented path w.r.t.\ control points are trivial. But the gradients w.r.t.\ the knots are less trivial. Here the basic equations:
 
-$$\begin{align}
+\begin{align}
 B_{i,p}(t)
   &= \frac{t-t_i}{t_{i+p}-t_i} B_{i,p-1}(t)
  +  \frac{t_{i+p+1}-t}{t_{i+p+1}-t_{i+1}} B_{i+1,p-1}(t) \\
@@ -297,7 +297,7 @@ B_{i,p}(t)
 \del_{t_{i+p+1}} B_{i,p}
   &= \[\frac{1}{t_{i+p+1}-t} - \frac{1}{t_{i+p+1}-t_{i+1}}\]~ w~ B_{i+1,p-1}
       + v~ \del_{t_{i+p+1}}~ B_{i,p-1} + w~ \del_{t_{i+p+1}}~ B_{i+1,p-1}
-\end{align}$$
+\end{align}
 
 
 \end{document}

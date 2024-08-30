@@ -85,7 +85,7 @@ $$\begin{align}
 &= \frac{12}{\tau^3}~[(x_1 - x_0)-\frac{\tau}{2}(v_0+v_1)]^2+\frac{1}{\tau}(v_1-v_0)^2 \label{eqLeap}\\
 &= \frac{12}{\tau^3} D^{\mkern-1pt \top \mkern-1pt}D + \frac{1}{\tau} V^{\mkern-1pt \top \mkern-1pt}V ~,\quad D := (x_1 - x_0)-\frac{\tau}{2}(v_0+v_1),~ V:=v_1-v_0,~ \\
 &= \tilde D^{\mkern-1pt \top \mkern-1pt}\tilde D + \tilde V^{\mkern-1pt \top \mkern-1pt}\tilde V ~,\quad
-\tilde D := \sqrt{12}~ \tau^{-\frac{3}{2}}~ D,~ \tilde V := \tau^{-{\frac{1}{2}}}~ V ~,
+\tilde D := \sqrt{12}~ \tau^{-\frac{3}{2}}~ D,~ \tilde V := \tau^{-{\textstyle\frac{1}{2}}}~ V ~,
 \label{eqLeapSOS}
 \end{align}$$
 
@@ -157,8 +157,8 @@ knots, $t_0,..,t_m \in [0,T]$, $t_0=0, t_m=T$, and the waypoints $x_i$
 *and velocities* $v_i$ at each time knot. There are not double knots, so
 the interval $[0,T]$ is split in $m$ cubic pieces, where the $i$th piece
 is determined by the boundary conditions
-$(x_{i{ \textrm{-} \mkern-1pt 1}},v_{i{ \textrm{-} \mkern-1pt 1}}, x_i, v_i)$
-and $\tau_i = t_i - t_{i{ \textrm{-} \mkern-1pt 1}}$.
+$(x_{i\text{-1}},v_{i\text{-1}}, x_i, v_i)$ and
+$\tau_i = t_i - t_{i\text{-1}}$.
 
 Specifying the timings (i.e., knots) and velocities of all waypoints is
 often not easy in terms of a user interface. Therefore the question is
@@ -172,13 +172,13 @@ and the right), and therefore a freely specified Hermite cubic spline is
 discontinuous in acceleration (has infintite jerk). Conversely,
 requiring a path in ${\cal C}^2$ implies continuity constraints in
 acceleration at each knot. Over the full path, these are
-$(m{ \textrm{-} \mkern-1pt 1}) \cdot n$ constraints (in
-${\mathbb{R}}^n$), which "kill" the degrees-of-freedom of all but the
-start and end velocity. Therefore, requiring continuous accelleration,
-the kots, waypoints and start/end velocity alone are sufficient to
-specify the spline &ndash; but in practise the resulting waypoint
-velocities might not be quite desired, as they might "go crazy" when
-chaining forward the continuous acceleration constraint.
+$(m\text{-1}) \cdot n$ constraints (in ${\mathbb{R}}^n$), which "kill"
+the degrees-of-freedom of all but the start and end velocity. Therefore,
+requiring continuous accelleration, the kots, waypoints and start/end
+velocity alone are sufficient to specify the spline &ndash; but in
+practise the resulting waypoint velocities might not be quite desired,
+as they might "go crazy" when chaining forward the continuous
+acceleration constraint.
 
 However, optimizing both, timing and waypoint velocities under out
 optimal control objective is rather efficient and effective. Note that
@@ -192,9 +192,8 @@ the least-squares formulation of $\psi$ we can use the Gauss-Newton
 approximate Hessian.
 
 As a concequence, it is fairly efficient to solve for $\tau_{1:m}$,
-$v_{1:m{ \textrm{-} \mkern-1pt 1}}$ given $v_0, v_m, x_{0:m}$ under
-continuous acceleration constraints subject to total time and control
-costs.
+$v_{1:m\text{-1}}$ given $v_0, v_m, x_{0:m}$ under continuous
+acceleration constraints subject to total time and control costs.
 
 As a final note, in Hermite quintic splines we need positions $x_i$,
 velocities $v_i$ and accelerations $a_i$ at each knot, which describe
@@ -309,10 +308,9 @@ transitioning through these waypoints at the desired times?
 
 The answer is again the matrix equation. Consider the cubic spline case
 and that the start and end points and times are fixed. Therefore
-$z_{0:1}$ and $z_{K{ \textrm{-} \mkern-1pt 1}:K}$, as well as knots
-$t_{0:3}$ and $t_{m-3:m}$ are fixed. The user wants waypoints
-$x_1,..,x_S$ at times $\widehat t_1,..,\widehat t_S$ *between* start and
-end.
+$z_{0:1}$ and $z_{K\text{-1}:K}$, as well as knots $t_{0:3}$ and
+$t_{m-3:m}$ are fixed. The user wants waypoints $x_1,..,x_S$ at times
+$\widehat t_1,..,\widehat t_S$ *between* start and end.
 
 We can distribute $S$ knots $t_{4:3+S}$ uniformly between start and end
 knots (or also at $\widehat t_1,..,\widehat t_S$), from which it follows
@@ -322,8 +320,8 @@ points are still free, and matrix inversion gives them from the desired
 waypoints,
 
 $$\begin{align}
-  z_{2:S+1} = B^{ \textrm{-} \mkern-1pt 1} x_{1:S} ~,\quad\text{with } B \in {\mathbb{R}}^{S \times S},~ B_{si} =  B_{i+1,3}(\widehat t_s),~ s,i=1,..,S  ~.
-  \end{align}$$
+  z_{2:S+1} = B^\text{-1} x_{1:S} ~,\quad\text{with } B \in {\mathbb{R}}^{S \times S},~ B_{si} =  B_{i+1,3}(\widehat t_s),~ s,i=1,..,S  ~.
+\end{align}$$
 
 ### Ensuring boundary velocities
 
@@ -333,11 +331,11 @@ B-spline representation we have to construct a spline that starts with
 current state as starting boundary.
 
 For degrees 2 and 3 this is simple to achieve: In both cases we usually
-have $z_0=z_1$ and $z_{K{ \textrm{-} \mkern-1pt 1}}=z_K$ to ensure zero
-start and end velocities. Modifying $z_1$ directly leads to the start
-velocity $\dot x(0) = \dot B_{0,p}(0) z_0 + \dot B_{1,p}(0) z_1$. But
-because of normalization we have $\dot B_{0,p}(0) = - \dot B_{1,p}(0)$,
-and therefore
+have $z_0=z_1$ and $z_{K\text{-1}}=z_K$ to ensure zero start and end
+velocities. Modifying $z_1$ directly leads to the start velocity
+$\dot x(0) = \dot B_{0,p}(0) z_0 + \dot B_{1,p}(0) z_1$. But because of
+normalization we have $\dot B_{0,p}(0) = - \dot B_{1,p}(0)$, and
+therefore
 
 $$\begin{align}
   \dot x(0) &= \dot B_{0,p}(0) (z_0 - z_1) \\
@@ -356,10 +354,10 @@ B_{i,p}(t)
  +  \frac{t_{i+p+1}-t}{t_{i+p+1}-t_{i+1}} B_{i+1,p-1}(t) \\
 &=: v~ B_{i,p-1} + w~ B_{i+1,p-1} \\
 \dot B_{i,p}(t)
- &= \frac{1}{t_{i \textrm{+} \mkern-1pt {}p}-t_i}~ B_{i,p{ \textrm{-} \mkern-1pt 1}}(t)
- + v~ \dot B_{i,p{ \textrm{-} \mkern-1pt 1}}(t)
- - \frac{1}{t_{i \textrm{+} \mkern-1pt {}p{ \textrm{+} \mkern-1pt 1}}-t_{i{ \textrm{+} \mkern-1pt 1}}}~ B_{i{ \textrm{+} \mkern-1pt 1},p{ \textrm{-} \mkern-1pt 1}}(t)
- + w~ \dot B_{i{ \textrm{+} \mkern-1pt 1},p{ \textrm{-} \mkern-1pt 1}}(t) \\
+ &= \frac{1}{t_{i \textrm{+} \mkern-1pt {}p}-t_i}~ B_{i,p\text{-1}}(t)
+ + v~ \dot B_{i,p\text{-1}}(t)
+ - \frac{1}{t_{i \textrm{+} \mkern-1pt {}p{ \textrm{+} \mkern-1pt 1}}-t_{i{ \textrm{+} \mkern-1pt 1}}}~ B_{i{ \textrm{+} \mkern-1pt 1},p\text{-1}}(t)
+ + w~ \dot B_{i{ \textrm{+} \mkern-1pt 1},p\text{-1}}(t) \\
 \partial_{t_i} B_{i,p}
   &= \Big[\frac{-1}{t_{i+p}-t_i} + \frac{t-t_i}{(t_{i+p}-t_i)^2}\Big]~ B_{i,p-1}
    + v~ \partial_{t_i} B_{i,p-1} + w~ \partial_{t_i} B_{i+1,p-1} \\

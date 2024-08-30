@@ -210,7 +210,7 @@ directly read out $w$ by multiplying $q^{-1}$ from the right,
 
 $$\begin{align}
 \dot q \circ q^{-1}
-&= {\frac{1}{2}}(0,w) ~,\quad w = 2~ [\dot q \circ q^{-1}]_{1:3} ~.
+&= {\textstyle\frac{1}{2}}(0,w) ~,\quad w = 2~ [\dot q \circ q^{-1}]_{1:3} ~.
 \end{align}$$
 
 However, in the case where $\dot q$ is non-tangential, i.e.,

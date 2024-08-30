@@ -356,8 +356,8 @@ spline interpolation, or a basic but nice motion profile).
     $\frac{d}{dt} \frac{\partial L}{\partial\dot q} - \frac{\partial L}{\partial q} = u$,
     where $L(q,\dot q) = T(q,\dot q) - U(q)$ with the system kinetic
     energy
-    $$T(q,\dot q) = \sum_i {\frac{1}{2}}m_i v_i^2 + {\frac{1}{2}}w_i^{\mkern-1pt \top \mkern-1pt}\bar I_i w_i
-    = \sum_i {\frac{1}{2}}\dot q^{\mkern-1pt \top \mkern-1pt}J_i^{\mkern-1pt \top \mkern-1pt}M_i J_i \dot q,~
+    $$T(q,\dot q) = \sum_i {\textstyle\frac{1}{2}}m_i v_i^2 + {\textstyle\frac{1}{2}}w_i^{\mkern-1pt \top \mkern-1pt}\bar I_i w_i
+    = \sum_i {\textstyle\frac{1}{2}}\dot q^{\mkern-1pt \top \mkern-1pt}J_i^{\mkern-1pt \top \mkern-1pt}M_i J_i \dot q,~
     M_i = {\rm diag}(m_i{\rm\bf I}_3, \bar I_i),$$ and the system
     potential energy $U(q) = \sum_i g m_i x_i^\text{z}$. When computing
     the partial derivatives analytically we get something of the form

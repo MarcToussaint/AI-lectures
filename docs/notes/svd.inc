@@ -34,10 +34,11 @@ orthonormal vectors $v_1,..,v_k \in {\mathbb{R}}^n$, orthonormal vectors
 $u_1,..,u_k\in{\mathbb{R}}^m$, and scalar numbers $\sigma_k>0$, such
 that
 
-$$\begin{aligned}
+$$\begin{align}
 A = \sum_{i=1}^k  u_i \sigma_i v_i^{\mkern-1pt \top \mkern-1pt}= U S V^{\mkern-1pt \top \mkern-1pt}
 ~,\quad\text{where}\quad S = {\rm diag}(\sigma_{1:k}),~ U=u_{1:k}\in{\mathbb{R}}^{m\times k},~ V=
-v_{1:k} \in {\mathbb{R}}^{n\times k} ~.\end{aligned}$$
+v_{1:k} \in {\mathbb{R}}^{n\times k} ~.
+\end{align}$$
 
 In this form, we see that $V^{\mkern-1pt \top \mkern-1pt}$ spans the
 input space with orthonormal rows $v_i^{\mkern-1pt \top \mkern-1pt}$,

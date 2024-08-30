@@ -21,11 +21,11 @@ parts:
 ## Lecture Notes
 
 <ul>
-{% assign sorted = site.pages | sort: 'date' %}
+{% assign sorted = site.pages | sort: 'order' %}
 {% for page in sorted %}
   {% if page.tags == 'note' %}
   <li>
-    <a href="{{site.baseurl}}{{page.url}}">{{ page.title }} ({{ page.date | date: '%B %d, %Y' }})</a>
+    <a href="{{site.baseurl}}{{page.url}}">{{ page.title }}</a>
   </li>
   {% endif %}
 {% endfor %}

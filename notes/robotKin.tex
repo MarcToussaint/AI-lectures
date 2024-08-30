@@ -375,11 +375,11 @@ Inverse kinematics (IK) simply means computing $q$ to fulfill $\phi(q) =
 y^*$. A proper approach is to formulate this as an NLP (non-linear
 mathematical program)
 
-$$\begin{align}
+\begin{align}
 &\min_{q\in\RRR^n} \norm{q-q_0}^2 \st \phi(q) = y^* \label{eqIK}\\
 \text{or}\quad&\min_{q\in\RRR^n} \norm{q-q_0}^2 + \m \norm{\phi(q) -
 y^*}^2 \quad\text{for large $\m$} 
-\end{align}$$
+\end{align}
 
 and use an efficient NLP solver (e.g.\ Augmented Lagrangian, or SQP,
 exploiting potential sparseness of $\Del q \phi$). However, typical
@@ -401,7 +401,7 @@ $\a$), and then the robot starts moving like the decision variable in
 a non-linear optimization problem with small-scaled Newton steps. This
 is not proper! Proper IK should really first compute the solution
 $q_T$ to
-$\eqref{eqIK}$, and then think about how the robot can actually move
+\eqref{eqIK}, and then think about how the robot can actually move
 to $q_T$ (e.g.\ using proper optimal control, or reactive spline interpolation, or
 a basic but nice motion profile).
 

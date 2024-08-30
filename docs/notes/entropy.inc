@@ -26,8 +26,9 @@ sample $B$ surprises you more and gives you 2 bits of information.
 
 The entropy
 
-$$\begin{aligned}
-H(p) &= - \sum_x p(x) \log p(x) = \mathbb{E}_{p(x)}\!\left\{-\log p(x)\right\}\end{aligned}$$
+$$\begin{align}
+H(p) &= - \sum_x p(x) \log p(x) = \mathbb{E}_{p(x)}\!\left\{-\log p(x)\right\}
+\end{align}$$
 
 is the expected neg-log-likelihood. It is a measure of the distribution
 $p$ itself, not of a specific sample. It measures, how much *in average*
@@ -48,10 +49,10 @@ by a uniform discrete random variable of cardinality
 $P\mkern-1pt{}P(p)$".
 
 Given a gaussian distribution
-$p(x) \propto \exp\{-{\frac{1}{2}}(x-\mu)^2/\sigma^2\}$, the
+$p(x) \propto \exp\{-{\textstyle\frac{1}{2}}(x-\mu)^2/\sigma^2\}$, the
 neg-log-likelihood of a specific sample $x$ is
-$-\log p(x) = -{\frac{1}{2}}(x-\mu)^2/\sigma^2 + \textit{const}$. This
-can be thought of as the *square error* of $x$ from $\mu$, and its
+$-\log p(x) = -{\textstyle\frac{1}{2}}(x-\mu)^2/\sigma^2 + \textit{const}$.
+This can be thought of as the *square error* of $x$ from $\mu$, and its
 expectation (entropy) is the mean square error. Generally, the
 neg-log-likelihood $-\log p(x)$ often relates to an error or loss
 function.
@@ -61,8 +62,9 @@ Cross-Entropy
 
 The cross-entropy
 
-$$\begin{aligned}
-H(p,q) = - \sum_x p(x) \log q(x) = \mathbb{E}_{p(x)}\!\left\{-\log q(x)\right\}\end{aligned}$$
+$$\begin{align}
+H(p,q) = - \sum_x p(x) \log q(x) = \mathbb{E}_{p(x)}\!\left\{-\log q(x)\right\}
+\end{align}$$
 
 is also an expected neg-log-likelihood, but expectation is
 w.r.t.&nbsp;$p$, while the nll is w.r.t.&nbsp;$q$. This corresponds to
@@ -81,8 +83,9 @@ $p_{\bar y}(\cdot) = [0,..,0,1,0,..,0]$ with $1$ for $y=\bar y$. The
 cross-entropy is then nothing but the neg-log-likelihood of the true
 class label under the learned model:
 
-$$\begin{aligned}
-H(p_{\bar y}, q_\theta(\cdot|x)) = - \log q_\theta(\bar y|x) ~.\end{aligned}$$
+$$\begin{align}
+H(p_{\bar y}, q_\theta(\cdot|x)) = - \log q_\theta(\bar y|x) ~.
+\end{align}$$
 
 Note that we could equally cast a square error loss as a cross-entropy:
 If $y$ is continuous, $q_\theta(y|x)$ Gaussian around a mean prediction
@@ -96,16 +99,18 @@ Relative Entropy (KL-divergence)
 The Kullback-Leibler divergence, also called relative entropy, is
 defined as
 
-$$\begin{aligned}
+$$\begin{align}
 D\big(p\,\big\Vert\,q\big)
 &= \sum_x p(x) \log\frac{p(x)}{q(x)}
- = \mathbb{E}_{p(x)}\!\left\{\log\frac{p(x)}{q(x)}\right\} ~.\end{aligned}$$
+ = \mathbb{E}_{p(x)}\!\left\{\log\frac{p(x)}{q(x)}\right\} ~.
+\end{align}$$
 
 Given our definitions above, we can rewrite it as
 
-$$\begin{aligned}
+$$\begin{align}
 D\big(p\,\big\Vert\,q\big)
-&= H(p, q) - H(p) ~.\end{aligned}$$
+&= H(p, q) - H(p) ~.
+\end{align}$$
 
 Note that we described $H(p)$ as the expected code length when encoding
 $p$-samples using a $p$-model; and $H(p, q)$ as the expected code length

@@ -3,15 +3,17 @@ Probabilities & Energy
 
 Given a density $p(x)$, we call
 
-$$\begin{aligned}
-E(x) = -\log p(x) + c ~,\end{aligned}$$
+$$\begin{align}
+E(x) = -\log p(x) + c ~,
+\end{align}$$
 
 (for any choice of offset $c\in{\mathbb{R}}$) an energy function.
 Conversely, given an energy function $E(x)$, the corresponding density
 (called Boltzmann distribution) is
 
-$$\begin{aligned}
-p(x) = \textstyle\frac 1Z \exp\lbrace-E(x)\rbrace ~,\end{aligned}$$
+$$\begin{align}
+p(x) = \textstyle\frac 1Z \exp\lbrace-E(x)\rbrace ~,
+\end{align}$$
 
 where $Z$ is the normalization constant to ensure $\int_x p(x) = 1$, and
 $c=-\log Z$. From the perspective of physics, one can motivate why
@@ -22,14 +24,16 @@ minimalistically as follows:
 Probabilities are *multiplicative* (axiomatically): E.g., the likelihood
 of i.i.d.&nbsp;data $D = \lbrace x_i \rbrace_{i=1}^n$ is the product
 
-$$\begin{aligned}
-P(D) = \prod_{i=1}^n p(x_i) ~.\end{aligned}$$
+$$\begin{align}
+P(D) = \prod_{i=1}^n p(x_i) ~.
+\end{align}$$
 
 We often want to rewrite this with a log to have an *additive*
 expression
 
-$$\begin{aligned}
-E(D) = -\log P(D) = \sum_{i=1}^n E(x_i) ~,\quad E(x_i) = -\log p(x_i) ~.\end{aligned}$$
+$$\begin{align}
+E(D) = -\log P(D) = \sum_{i=1}^n E(x_i) ~,\quad E(x_i) = -\log p(x_i) ~.
+\end{align}$$
 
 The minus is a convention so that we can call the quantity $E(D)$ a
 *loss* or *error* &ndash; something we want to minimize instead of
@@ -45,13 +49,14 @@ P(D_2)$, (2) $E(D)$ is additive $E(D_1\cup D_2) = E(D_1) + E(D_2)$, and
 (3) there is a mapping $P(D) = \textstyle\frac 1Z f(E(D))$ between both.
 Then it follows that
 
-$$\begin{aligned}
+$$\begin{align}
 P(D_1\cup D_2)
 &= P(D_1)~ P(D_2) = \textstyle\frac 1{Z_1} f(E(D_1))~ \textstyle\frac 1{Z_2} f(E(D_2)) \\
 P(D_1\cup D_2)
 &= \textstyle\frac 1{Z_0} f(E(D_1\cup D_2)) = \textstyle\frac 1{Z_0} f(E(D_1) + E(D_2)) \\
 \Rightarrow\quad \textstyle\frac 1{Z_1} f(E_1) \textstyle\frac 1{Z_2} f(E_2)
-&= \textstyle\frac 1{Z_0} f(E_1+E_2) ~, \label{exp}\end{aligned}$$
+&= \textstyle\frac 1{Z_0} f(E_1+E_2) ~, \label{exp}
+\end{align}$$
 
 where we defined $E_i=E(D_i)$. The only function to fulfill the last
 equation for any $E_1,E_2\in{\mathbb{R}}$ is the exponential function
@@ -59,8 +64,9 @@ $f(E) = \exp\lbrace -\beta E \rbrace$ with arbitrary coefficient $\beta$
 (and minus sign being a convention, $Z_0 = Z_1
  Z_2$). Boiling this down to an individual element $x\in D$, we have
 
-$$\begin{aligned}
-p(x) = \textstyle\frac 1Z \exp\lbrace-\beta E(x)\rbrace ~,\quad\beta E(x) = -\log p(x) - \log Z ~.\end{aligned}$$
+$$\begin{align}
+p(x) = \textstyle\frac 1Z \exp\lbrace-\beta E(x)\rbrace ~,\quad\beta E(x) = -\log p(x) - \log Z ~.
+\end{align}$$
 
 Partition Function
 ------------------

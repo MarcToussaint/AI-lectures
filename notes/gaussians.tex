@@ -1,0 +1,349 @@
+\input{../latex/shared}
+\note[9pt]
+
+\title{Lecture Note:\\ Gaussian Identities}
+\author{Marc Toussaint\\\small Learning \& Intelligent Systems Lab, TU Berlin}
+\date{January 25, 2011}
+
+\makeatletter
+\renewcommand{\@seccntformat}[1]{}
+\makeatother
+
+\renewcommand{\mT}{{\text{-}\!\top}}
+\renewcommand{\-}{\!-\!}
+\newcommand{\+}{\!+\!}
+
+\notetitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Definitions}
+
+A Gaussian over $x\in\RRR^n$ with mean $a\in\RRR^n$
+and sym.pos.dev.\ covariance matrix $A\in\RRR^{n\times n}$ is defined as:
+
+\begin{align}
+\NN(x \| a,A) &= \frac{1}{|2\pi A|^{1/2}}~ \exp\{-\half (x-a)^\T
+A^\1 (x-a)\} ~.
+\end{align}
+
+We also define a notation for its so-called \emph{canonical form},
+with sym.pos.def.\ precision matrix $A\in\RRR^{n\times n}$, as
+\begin{align}
+\NN[x \| a,A]
+ = \frac{\exp\{-\half a^\T A^\1a\}}{|2\pi A^\1|^{1/2}}~
+   \exp\{-\half x^\T A x + x^\T a\} ~.
+\end{align}
+It holds
+\begin{align}
+& \NN[x \| a,A] = \NN(x \| A^\1 a, A^\1) \comma
+ \NN(x \| a,A) = \NN[x \| A^\1 a, A^\1] ~.
+\end{align}
+
+%% Non-normalized Gaussian
+%% \begin{align}
+%% \oNN(x,a,A)
+%%  &= |2\pi A|^{1/2}~ \NN(x|a,A) \\
+%%  &= \exp \{-\half (x-a)^\T A^\1 (x-a)\}
+%% \end{align}
+
+
+\subsection{Matrix Identities}
+
+As a background, here are matrix identities (based on
+the \href{https://www.math.uwaterloo.ca/~hwolkowi/matrixcookbook.pdf}{matrix-cookbook})
+which are useful work with Gaussians:
+
+\newcommand{\ve}[2]{\left[\arr{c}{#1\\#2}\right]}
+\newcommand{\ma}[4]{\left[\arr{cc}{#1&#2\\#3&#4}\right]}
+\renewcommand{\de}[4]{\left|\arr{cc}{#1&#2\\#3&#4}\right|}
+\renewcommand{\bar}{\widehat}
+
+\begin{align}
+(A^\1 + B^\1)^\1 &= A~ (A\+B)^\1~ B = B~ (A\+B)^\1~ A \\
+(A^\1 - B^\1)^\1 &= A~ (B\-A)^\1~ B \\
+\del_x |A_x| &= |A_x|~ \tr(A_x^\1~ \del_x A_x) \\
+\del_x A_x^\1 &= - A_x^\1~ (\del_x A_x)~ A_x^\1 \\
+(A+UBV)^\1 &= A^\1 - A^\1 U (B^\1 + VA^\1U)^\1 V A^\1 \label{wood}\\
+(A^\1+B^\1)^\1 &= A - A (B + A)^\1 A \\
+(A + J^\T B J)^\1 J^\T B 
+&= A^\1 J^\T (B^\1 + J A^\1 J^\T)^\1 \label{wood2}\\
+(A + J^\T B J)^\1 A
+&= \Id - (A + J^\T B J)^\1 J^\T B J  \label{null}
+\end{align}
+
+\eqref{wood}=Woodbury; \eqref{wood2},\eqref{null} hold for pos.def.\ $A$ and $B$
+
+\subsection{Derivatives}
+
+\begin{align}
+\del_x \NN(x|a,A) &= \NN(x|a,A)~ (-h^\T)  \comma h:= A^\1(x-a)\\
+\del_\t \NN(x|a,A)
+&= \NN(x|a,A)~ \[- h^\T(\del_\t x) 
+   + h^\T (\del_\t a)
+   - \half \tr(A^\1~ \del_\t A)
+   + \half h^\T (\del_\t A) h \] \\
+\del_\t \NN[x|a,A]
+& = \NN[x|a,A]~ \[ -\half x^\T \del_\t A x + \half a^\T A^\1 \del_\t A A^\1 a 
++ x^\T \del_\t a - a^\T A^\1 \del_\t a + \half\tr(\del_\t A A^\1) \]
+\end{align}
+%%  \\
+%% & \del_\t \oNN_x(a,A) = \oNN_x(a,A) ~\cdot \feed
+%% & \[ h^\T(\del_\t x)
+%%    + h^\T (\del_\t a)
+%%    + \half h^\T (\del_\t A) h \]
+
+\subsection{Product}
+
+The product of two Gaussians can be expressed as
+
+\begin{align}
+\NN(x \| a,A)~ \NN(x \| b,B)
+ &= \NN[x \| A^\1 a+B^\1 b, A^\1 + B^\1]~ \NN(a\|b,A+B) ~, \label{prodNat}\\
+ &= \NN(x \| B(A\+B)^\1a + A(A\+B)^\1b ,A(A\+B)^\1B)~ \NN(a\|b,A+B) ~,\\
+\NN[x \| a,A]~ \NN[x \| b,B]
+ &= \NN[x \| a+b,A+B]~ \NN(A^\1 a \| B^\1 b, A^\1+B^\1) \\
+ &= \NN[x \| a+b,A+B]~ \NN[ A^\1 a \| A(A\+B)^\1 b, A(A\+B)^\1 B]\\
+ &= \NN[x \| a+b,A+B]~ \NN[ A^\1 a \| (1\-B(A\+B)^\1)~ b,~ (1\-B(A\+B)^\1)~ B] ~,\\
+\NN(x \| a,A)~ \NN[x \| b,B]
+ &= \NN[x \| A^\1 a+ b, A^\1 + B]~ \NN(a\|B^\1 b,A+B^\1) \\
+ &= \NN[x \| A^\1 a+ b, A^\1 + B]~ \NN[a\|(1\-B(A^\1\+B)^\1)~ b,~ (1\-B(A^\1\+B)^\1)~
+ B] \label{prodNatCan}
+\end{align}
+
+\subsection{Convolution}
+\begin{align}
+\textstyle\int_x \NN(x \|a,A)~ \NN(y-x \| b,B)~ dx
+ &= \NN(y \| a+b, A+B)
+\end{align}
+
+\subsection{Division}
+
+\begin{align}
+\NN(x|&a,A) ~\big/~ \NN(x|b,B) = \NN(x|c,C) ~\big/~ \NN(c| b, C+B) \comma C^\1c = A^\1a - B^\1b,~ C^\1 = A^\1 - B^\1 \\
+\NN[x|&a,A] ~\big/~ \NN[x|b,B] \propto \NN[x|a-b,A-B]
+\end{align}
+
+\subsection{Expectations}
+
+Let $x\sim\NN(x \| a,A)$, we have:
+\begin{align}
+&\Exp[x]{g(x)} := \textstyle\int_x \NN(x \| a,A)~ g(x)~ dx \\
+%&\Exp[x]{g(f+Fx)} = 
+&\Exp[x]{x} = a \comma \Exp[x]{x x^\T} = A + a a^\T\\
+&\Exp[x]{f+Fx} = f+Fa \\
+&\Exp[x]{x^\T x} = a^\T a + \tr(A)\\
+&\Exp[x]{(x-m)^\T R(x-m)} = (a-m)^\T R(a-m) + \tr(RA)
+\end{align}
+
+\subsection{Linear Transformation}
+
+For any $f\in\RRR^n$ and full-rank $F\in\RRR^{n\times n}$, the
+following identities hold:
+\begin{align}
+\NN(x\|a,A) &= \NN(x+f\|a+f,~A) \\
+\NN(x\|a,A) &= |F|~ \NN(Fx \| Fa,~FAF^\T) \\
+\NN(F x + f \| a,A)
+&= \frac{1}{|F|}~ \NN(x \| ~ F^\1 (a-f),~ F^\1 AF^\mT)
+ = \frac{1}{|F|}~ \NN[x \| ~ F^\T A^\1 (a-f),~ F^\T A^\1 F] ~, \\
+\NN[F x + f \| a,A]
+&= \frac{1}{|F|}~ \NN[x \| ~ F^\T(a-Af),~ F^\T A F] ~.
+\end{align}
+
+\subsection{``Propagation''}
+
+Propagating a message along a linear coupling (e.g.\ forward model), using
+ eqs \eqref{prodNat} and \eqref{prodNatCan}, respectively, we have:
+\begin{align}
+& \textstyle\int_y \NN(x \| a + Fy, A)~ \NN(y \| b, B)~ dy
+ = \NN(x \| a + Fb, A+FBF^\T) \\
+& \textstyle\int_y \NN(x \| a + Fy, A)~ \NN[y \| b, B]~ dy
+ = \NN[x \| (F^\mT\-K)(b+BF^\1a),~ (F^\mT\-K)BF^\1] ~,
+\end{align}
+where $K=F^\mT B(F^\mT A^\1 F^\1\+B)^\1$.
+
+%\begin{align}
+%& x' = F x + f \\
+%& \NN(x|a,A) = |F|~ \NN(Fx+f|~ Fa+f,~ FAF^\T) \\
+%& \NN(F x + f|a,A) = \frac{1}{|F|}~ \NN(x|~ F^\1(a-f),~ F^\1AF^{-1T}) \\
+%& \NN[F x + f|a,A] = \frac{1}{|F|}~ \NN[x|~ F^\T(a-Af),~ F^\T A F] \\
+%& P(x) = |F|~ P(x'=F x + f) \comma P(x') = \frac{1}{|F|}~ P(x=F^\1(x' - f))
+%\end{align}
+%If a forward dependency $P(y|x)$ is given as a linear noise transition
+%$(f,F,Q)$ and if evidence $y^*$ is given, this induces a potential on
+%$x$:
+%\begin{align}
+%\NN(y| Fx+f,Q) = \NN(Fx+f| y,Q)
+% = U(x) \propto \NN(x|F^\1(y-f),~ F^\1 Q F^{-1T})
+%\end{align}
+
+\subsection{Marginal \& Conditional}
+\begin{align}
+\NN(x \| a,A)~ \NN(y \| b+Fx,B)
+ &= \NN\bigg( \arr{c}{x\\ y} \bigg| \arr{c}{a\\ b+Fa} ,~
+             \arr{cc}{A & A^\T F^\T\\ F A & B\!+\!F A^\T F^\T} \bigg) \\
+%
+\NN\bigg( \arr{c}{x\\ y} \bigg| \arr{c}{a\\ b} ,~ 
+         \arr{cc}{A & C\\ C^\T & B} \bigg)
+&= \NN(x \| a,A) \cdot \NN(y \| b+C^\T A^\1(x-a),~ B - C^\T A^\1 C) \\
+%
+\NN[ x \| a,A ]~ \NN(y \| b+Fx,B )
+ &= \NN\bigg[ \arr{c}{x\\ y} \bigg| \arr{c}{a+F^\T B^\1 b \\ B^\1 b} ,~
+             \arr{cc}{A+F^\T B^\1 F & -F^\T B^\1 \\ -B^\1 F & B^\1} \bigg] \\
+%
+\NN[x \| a,A ]~ \NN[y \| b+Fx,B ]
+ &= \NN\bigg[ \arr{c}{x\\ y} \bigg| \arr{c}{a+F^\T B^\1 b \\ b} ,~
+             \arr{cc}{A+F^\T B^\1  F & -F^\T \\ -F & B} \bigg] \\
+%
+\NN\bigg[ \arr{c}{x\\ y} \bigg| \arr{c}{a\\ b} ,~ 
+         \arr{cc}{A & C\\ C^\T & B} \bigg]
+&= \NN[x \| a - C B^\1 b,~ A - C B^\1 C^\T] \cdot \NN[y \| b-C^\T x,B] \\
+\de{A}{C}{D}{B}
+ &= |A|~ |\bar B| = |\bar A|~ |B| ~,
+ \text{where } \arr{l}{ \bar A = A - C B^\1 D \\ \bar B = B - D A^\1 C }\\
+\ma{A}{C}{D}{B}^\1
+ &= \ma{\bar A^\1}{-A^\1 C \bar B^\1}{-\bar B^\1 D A^\1}{\bar B^\1}
+ = \ma{\bar A^\1}{-\bar A^\1 C B^\1}{-B^\1 D \bar A^\1}{\bar B^\1}
+\end{align}
+
+\subsection{Pair-wise Belief}
+
+We have a message $\a(x)=\NN[x \| s,S]$,
+ transition $P(y|x) = \NN(y \| A x+a,Q)$, and a message
+ $\b(y)=\NN[y \| v,V]$, what is the belief $b(y,x)=\a(x)P(y|x)\b(y)$?
+\begin{align}
+b(y,x)
+ &= \NN[x|s,S]~ \NN(y|A x+a,Q^\1)~ \NN[y|v,V] \\
+&=
+\NN\bigg[ \arr{c}{x\\ y} \bigg| \arr{c}{s \\ 0} ,~
+             \arr{cc}{S & 0 \\ 0 & 0} \bigg]~~~
+\NN\bigg[ \arr{c}{x\\ y} \bigg| \arr{c}{A^\T Q^\1 a \\ Q^\1 a} ,~
+             \arr{cc}{A^\T Q^\1 A & -A^\T Q^\1 \\ -Q^\1 A & Q^\1} \bigg]~~~
+\NN\bigg[ \arr{c}{x\\ y} \bigg| \arr{c}{0 \\ v} ,~
+             \arr{cc}{0 & 0 \\ 0 & V} \bigg] \\
+&\propto
+\NN\bigg[ \arr{c}{x\\ y} \bigg| \arr{c}{s + A^\T Q^\1 a\\ v + Q^\1 a} ,~
+             \arr{cc}{S + A^\T Q^\1 A & -A^\T Q^\1 \\ -Q^\1 A & V+Q^\1} \bigg]
+\end{align}
+
+\subsection{Entropy}
+\begin{align}
+H(\NN(a,A)) &= \half \log |2\pi e A|
+\end{align}
+
+\subsection{Kullback-Leibler divergence}
+
+For $p=\NN(x|a,A),~ q=\NN(x|b,B), n = \text{dim}(x)$ and definition
+$\kld{p}{q} = \sum_x p(x) \log\frac{p(x)}{q(x)}$, we have:
+\begin{align}
+2~ \kld{p}{q}
+&= \log\frac{|B|}{|A|} + \tr(B^\1A) + (b-a)^\T B^\1 (b-a) - n \\
+4~ D_\text{sym}\big(p \,\big\Vert\, q\big)
+&= \tr(B^\1A) + \tr(A^\1B) + (b-a)^\T (A^\1+B^\1) (b-a) - 2n
+\end{align}
+
+$\l$-divergence:
+\begin{align}
+2~ D_\l\big(p \,\big\Vert\, q\big)
+&= \l~ \kld{p}{\l p+(1\!-\!\l)q} ~+~ (1\!-\!\l)~ \kld{p}{(1\!-\!\l) p + \l q}
+\end{align}
+
+For $\l=.5$: Jensen-Shannon divergence.
+
+\subsection{Log-likelihoods}
+\begin{align}
+\log \NN(x|a,A)
+ &= - \half \[ \log|2\pi A| + (x-a)^\T A^\1 (x-a) \] \\
+\log \NN[x|a,A]
+ &= - \half \[ \log|2\pi A^\1| + a^\T A^\1 a + x^\T A x - 2 x^\T a \] \\
+\sum_x \NN(x|b,B) \log \NN(x|a,A)
+ &= -\kld{\NN(b,B)}{\NN(a,A)} - H(\NN(b,B))
+\end{align}
+
+\subsection{Mixture of Gaussians}~
+Collapsing a MoG into a single Gaussian
+\begin{align}
+&\argmin_{b,B} \kld{\sum_i p_i~ \NN(a_i,A_i)}{\NN(b,B)}
+\quad=\quad\(
+b=\sum_i p_i a_i ~,~
+B=\sum_i p_i (A_i + a_i a_i^\T - b\, b^\T)\)
+\end{align}
+
+%% THAT STUFF IS WRONG!!
+%% Marginal of a MOG
+%% \begin{align}
+%% &P(x,y) = \sum_i p_i~ \NN(\ve{x}{y}| \ve{a_i}{b_i},\ma{A_i}{C_i}{C_i^\T}{B_i})
+%% \feed
+%% &P(y|x) = \sum_i p_i~ \NN(y| b_i + C_i^\T A_i^\1(x-a_i),~ B_i - C_i^\T
+%% A_i^\1 C_i^\T) \\
+%% &\approx \NN(y|e,E) \comma e=\sum_i p_i (b_i + C_i^\T A_i^\1(x-a_i))
+%% \comma \feed 
+%% &E = \sum_i p_i \[ B_i - C_i^\T
+%% A_i^\1 C_i^\T + b_i b_i^\T + C_i^\T A_i^\1(x-a_i)(x-a_i)^\T
+%% A_i^\1{}^\T C_i + 2 C_i^\T A_i^\1(x-a_i) b^\T - e e^\T\] \\
+%% & F = - \sum_i p_i~ C_i^\T A_i^\1 \comma
+%%   f =   \sum_i p_i~ (b_i - C_i^\T A_i^\1 a_i) \comma
+%%   Q = ? \\
+%% %
+%% &P(x,y) = \sum_i p_i~ \NN[\ve{x}{y}| \ve{a_i}{b_i},\ma{A_i}{C_i}{C_i^\T}{B_i}]
+%% \feed
+%% &P(y|x) = \sum_i p_i~ \NN[y| b_i - C_i^\T x,~ B_i ] \\
+%% &\approx \NN(y|e,E) \comma
+%%  E=\sum_i p_i (B_i^\1 + B^\1 (b_i - C_i^\T x)(b_i - C_i^\T x)^\T
+%%  B^\1{}^\T - e\, e^\T) \comma \feed 
+%% &e = \sum_i p_i~ \[ B_i^\1 (b_i - C_i^\T x) \] \\
+%% & F = - \sum_i p_i~ B_i^\1 C_i^\T \comma
+%%   f =   \sum_i p_i~ B_i^\1 b_i \comma
+%%   Q = ?
+%% \end{align}
+
+%\subsection{Kalman filter (fwd) equations}
+%\begin{align}
+%& x'|x \sim \{F~x+f,~ Q\} \comma y|x \sim \{C~x,~ R\} \\
+%& x'|y',x \sim \{F~x+f, (Q^\1 + C^\T R^\1 C)^\1 C^\T R^\1
+%(y'-C \hat x)\}
+%\end{align}
+
+%\subsection{linear fwd-bwd equations without observations}
+%\begin{align}
+%& \a_t(x) = \NN(a_t,A_t) = P(x | \text{start})
+%  \comma \b(x) = \oNN(b_t,B_t) = P(\text{goal}|x) \\ 
+%& a_{t+1} = F~ a_t + f
+%  \comma A_{t+1} = F A_t F^\T + Q \\
+%& b_{\tau+1} = F^\1(b_t-f)
+%  \comma B_{\tau+1} = F^\1 (B_\tau + Q) F^{-1T} \\
+%&\text{( truely: $\b_{\tau+1} = \frac{1}{|F|}~ \NN(b_\tau,B_\tau)$ )}
+%\end{align}
+
+%\subsection{non-linear fwd-bwd equations without observations}
+%\begin{align}
+%&P(x'|x) = \NN(x'| \phi(x),Q) \\
+%&\a_t(x) = \NN(x|a_t,A_t) \comma (a_t,A_t) = UT_\phi(a_{t-1},A_{T-1}) + (0,Q) \\
+%&\b_t(x) = \oNN_x(b_t,B_t) \comma (b_t,B_t) =
+% UT_{\phi-1}(b_{t-1},B_{T-1} + Q) \\
+%&Z_{t,\tau} = |2\pi B_\tau|^{1/2}~ \NN(a_t|b_\tau,A_t + B_\tau) \cdot
+%\NN(\cdots?\cdots)\\
+%&\g_{t,\tau}(x) = \NN(x|c_t,C_t)
+% \comma C_{t,\tau} = A_t~ (A_t + B_\tau)^\1~ B_\tau
+% \comma c_{t,\tau} = C_{t,\tau}~ (A_t^\1~ a_t + B_\tau^\1~ b_\tau) ~.
+%\end{align}
+
+%\subsection{action selection - simple control}
+%\begin{align}
+%& P(y|x,u) = \NN(x+u,Q) \\
+%& P(r \| u,x) = P(r\|u) + (1-P(r\|u))~ P(r\|x) ??\\
+%& q_\tau(x,u) = \textstyle\int_y \NN(y|x+u,Q)~ \oNN_y(b,B)
+% = |2\pi B|^{1/2}~ \NN(u| b-x, B + Q) \\
+%& \argmax{u} q_\tau(x,u) = b-x
+%\end{align}
+
+%\subsection{action selection - noisy control}
+%\begin{align}
+%& P(y|x,u) = \NN(x+u,u^2 Q) \\
+%& q_\tau(x,u) = \textstyle\int_y \NN(y|x+u,Q)~ \NN(y|b,B) = \NN(u| b-x, B + u^2 Q) \\
+%%& \argmax{u} q_\tau(x,u) = b-x
+%\end{align}
+
+%[[todo: unscented transform]
+
+\end{document}

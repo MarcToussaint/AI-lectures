@@ -15,17 +15,13 @@
 \subsection{Probabilities \& Energy}
 
 Given a density $p(x)$, we call
-
 \begin{align}
 E(x) = -\log p(x) + c ~,
 \end{align}
-
 (for any choice of offset $c\in\RRR$) an energy function. Conversely, given an energy function $E(x)$, the corresponding density (called Boltzmann distribution) is
-
 \begin{align}
 p(x) = \Frac 1Z \exp\lbrace-E(x)\rbrace ~,
 \end{align}
-
 where $Z$ is the normalization constant to ensure $\int_x p(x) = 1$,
 and $c=-\log Z$. From the perspective of physics, one can motivate why
 $E(x)$ is called ``energy'' and derive these relations from other
@@ -33,17 +29,13 @@ principles, as mentioned below. Here we first motivate the
 relation more minimalistically as follows:
 
 Probabilities are \emph{multiplicative} (axiomatically): E.g., the likelihood of i.i.d.\ data $D = \lbrace x_i \rbrace_{i=1}^n$ is the product
-
 \begin{align}
 P(D) = \prod_{i=1}^n p(x_i) ~.
 \end{align}
-
 We often want to rewrite this with a log to have an \emph{additive} expression
-
 \begin{align}
 E(D) = -\log P(D) = \sum_{i=1}^n E(x_i) \comma E(x_i) = -\log p(x_i) ~.
 \end{align}
-
 The minus is a convention so that we can call the quantity $E(D)$
 a \emph{loss} or \emph{error} -- something we want to minimize instead
 of maximize. We can show that whenever we want to define a
@@ -59,7 +51,6 @@ Let $P(D)$, $E(D)$ be two functions over a space of sets $D$, with
 properties (1) $P(D)$ is multiplicative, $P(D_1 \cup D_2) = P(D_1)
 P(D_2)$, (2) $E(D)$ is additive $E(D_1\cup D_2) = E(D_1) + E(D_2)$,
 and (3) there is a mapping $P(D) = \Frac 1Z f(E(D))$ between both. Then it follows that
-
 \begin{align}
 P(D_1\cup D_2)
 &= P(D_1)~ P(D_2) = \Frac 1{Z_1} f(E(D_1))~ \Frac 1{Z_2} f(E(D_2)) \\
@@ -68,16 +59,13 @@ P(D_1\cup D_2)
 \To\quad \Frac 1{Z_1} f(E_1) \Frac 1{Z_2} f(E_2)
 &= \Frac 1{Z_0} f(E_1+E_2) ~, \label{exp}
 \end{align}
-
 where we defined $E_i=E(D_i)$. The only function to fulfill
 the last equation for any $E_1,E_2\in\RRR$ is the exponential function $f(E) = \exp\lbrace -\b E \rbrace$ with arbitrary
  coefficient $\b$ (and minus sign being a convention, $Z_0 = Z_1
  Z_2$). Boiling this down to an individual element $x\in D$, we have
-
 \begin{align}
 p(x) = \Frac 1Z \exp\lbrace-\b E(x)\rbrace \comma \b E(x) = -\log p(x) - \log Z ~.
 \end{align}
-
 \end{proof}
 
 }

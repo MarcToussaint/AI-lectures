@@ -147,9 +147,9 @@
   \newcommand{\tsum}{\textstyle\sum}
   \newcommand{\st}{~~\text{s.t.}~~}
 
-  \newcommand{\half}{{\frac{1}{2}}}
-  \newcommand{\third}{{\frac{1}{3}}}
-  \newcommand{\fourth}{{\frac{1}{4}}}
+  \newcommand{\half}{{\textstyle\frac{1}{2}}}
+  \newcommand{\third}{{\textstyle\frac{1}{3}}}
+  \newcommand{\fourth}{{\textstyle\frac{1}{4}}}
 
   \newcommand{\ubar}{\underline}
   %\renewcommand{\vec}{\underline}
@@ -257,11 +257,11 @@
 \newcommand{\THi}{T^\sharp_H}
 \newcommand{\Jci}{J^\natural_C}
 \newcommand{\hJi}{{\bar J}^\sharp}
-\renewcommand{\|}{\,|\,}
+\renewcommand{\|}{ \mkern-1pt \mid \mkern-1pt }
 \renewcommand{\=}{\!=\!}
-\newcommand{\myminus}{ \textrm{-} \mkern-1pt }
+\newcommand{\myminus}{ - }
 \newcommand{\myplus}{ \textrm{+} \mkern-1pt }
-\newcommand{\1}{{\myminus1}}
+\newcommand{\1}{\text{-1}}
 \newcommand{\2}{{\myminus2}}
 \newcommand{\3}{{\myminus3}}
 \newcommand{\mT}{{\text{\rm -}\hspace*{-1pt}\top}}
@@ -502,7 +502,7 @@
 \newcommand{\doclink}[2]{#1 [<#2>]}
 \newcommand{\codetip}[1]{\begin{shaded} Code tutorials: #1 \end{shaded}}
 \renewcommand{\url}[1]{<#1>}
-\renewcommand{\href}[2]{#2 <#1>}
+\renewcommand{\href}[2]{HREF-START#2HREF-MID\verb^#1^HREF-END}
 \newcommand{\argmin}{\text{argmin}}
 \newcommand{\tutorial}[2]{#1 <https://marctoussaint.github.io/robotic/tutorials/#2.html>}
 
