@@ -4,6 +4,9 @@
 
 \script
 
+\usepackage[round]{natbib}
+\bibliographystyle{abbrvnat}
+
 \renewcommand{\<}{\langle}
 \renewcommand{\>}{\rangle}
 \DeclareMathOperator{\vol}{vol}
@@ -52,7 +55,6 @@
 \begin{document}
 \maketitle
 
-
 This script is primarily based on a lecture I gave 2015-2019 in Stuttgart.
 The current form also integrates notes and exercises from the Optimization lecture, and a little material from my Robotics and ML lectures. The first full version was from 2019, since then I occasionally update it.
 
@@ -65,7 +67,7 @@ The current form also integrates notes and exercises from the Optimization lectu
 
 Systems can be described in many ways. Biologists describe their
 systems often using text, and lots and lots of data. Architects
-describe buildings using drawings. Physisics describe nature using
+describe buildings using drawings. Physicists describe nature using
 differential equations, or optimality principles, or differential
 geometry and group theory. The whole point of science is to find
 descriptions of systems---in the natural science descriptions that
@@ -100,7 +102,7 @@ fields are essential to formulate problems in intelligent
 systems research and hopefully will equip you with the basics of
 speaking maths.
 
-\subsection{Should maths be tought with many application examples? Or
+\subsection{Should maths be taught with many application examples? Or
 abstractly?}
 
 Maybe this is the wrong question and implies a view on maths I don't
@@ -153,7 +155,7 @@ important.
   $(x_1,..,x_n)$, $x_{1:n}$.
 \item When defining sets, we write something like $\{ f(x) : x \in\RRR \}$, or $\{ n \in\NNN : \exists~\{
 v_i\}_{i=1}^n~ \text{linearly independent}, v_i \in V\}$
-\item I usually use bracket $[a=b] \in \{0,1\}$ for the boolean indicator function of some expression. An alternative notation is $\mathbb I(a=b)$, or the  \Def{Kronecker} symbol $\d_{ab}$.
+\item I usually use brackets $[a=b] \in \{0,1\}$ for the boolean indicator function of some expression. An alternative notation is $\mathbb I(a=b)$, or the  \Def{Kronecker} symbol $\d_{ab}$.
 \item A tuple $(a,b) \in A \times B$ is an element of the product space.
 %% \item The \Def{outer product} $x \otimes y \in X \times Y$ is almost the same as
 %% $(x,y) \in X \times Y$, only slightly different in standard vector and tensor context);
@@ -161,7 +163,7 @@ v_i\}_{i=1}^n~ \text{linearly independent}, v_i \in V\}$
 \item \Def{direct sum} $A \oplus B$ is same as $A \times B$ in
 finite-dimensional spaces
 \item If $f: X \to Y$, then $\min_x f(x) \in Y$ is minimal function \emph{value} (output); whereas $\argmin_x f(x) \in X$ is the input (``argument'') that minimizes the function. E.g., $\min_x f(x) = f(\argmin_x f(x))$.
-\item One should distinguish between the infimum $\inf_x f(x)$ and supremum $\sup_x f(x)$ from the min/max: the inf/sup refer to limits, while the min/max to values actually aquired by the function. I must admit I am sloppy in this regard and usually only write min/max.
+\item One should distinguish between the infimum $\inf_x f(x)$ and supremum $\sup_x f(x)$ from the min/max: the inf/sup refer to limits, while the min/max to values actually acquired by the function. I must admit I am sloppy in this regard and usually only write min/max.
 \item Never use multiple letters for one thing. E.g.\ $length = 3$
 means $l$ times $e$ times $n$ times $g$ times $t$ times $h$ equals
 $3$.
@@ -188,7 +190,7 @@ a_n}$ for a diagonal matrix. And overload this so that $\diag(A) = (A_{11},..,A_
 Also, $e_i=(0,..,0,1,0,..,0) \in\RRR^n$ often denotes the $i$th column of
 the identity matrix, which of course are the coordinates of a basis
 vector $e_i\in\VV$ in a basis $(e_i)_{i=1}^n$.
-\item The element-wise product of two matricies $A$ and $B$ is also
+\item The element-wise product of two matrices $A$ and $B$ is also
 called \Def{Hadamard product} and notated $A\circ B$ (which has nothing to
 do with the concatenation of two operations). If there is need,
 perhaps also use this to notate the element-wise product of two vectors.
@@ -206,7 +208,7 @@ We super quickly recap the basics of functions $\RRR \to \RRR$, which the reader
 
 \begin{itemize}
 \item A function $f:\RRR\to\RRR$ is \Def{continuous} at $x$ if the limit $\lim_{h\to 0} f(x+h) = f(x)$ exists and equals $f(x)$ (from both sides).
-\item A function $f:\RRR\to\RRR$ is \Def{diferentiable} at $x$ if $f'(x) = \lim_{h\to 0} \frac{f(x+h) - f(x)}{h}$ exists. Note, differentiable $\To$ continuous.
+\item A function $f:\RRR\to\RRR$ is \Def{differentiable} at $x$ if $f'(x) = \lim_{h\to 0} \frac{f(x+h) - f(x)}{h}$ exists. Note, differentiable $\To$ continuous.
 \item A function is continuous/differentiable if it is continuous/differentiable at any $x\in\RRR$.
 \item A function $f$ is an element of $\CC^k$ if it is $k$-fold continuously differentiable, i.e., if its $k$-th derivative $f^{(k)}$ is continuous. For example, $\CC^0$ is the space of continuous functions, and $\CC^2$ the space of twice continuously differentiable functions.
 \item A function $f\in\CC^\infty$ is called \Def{smooth} (infinitely often differentiable).
@@ -216,13 +218,13 @@ We super quickly recap the basics of functions $\RRR \to \RRR$, which the reader
 
 Let's recap some basic functions that often appear in AI research.
 \begin{itemize}
-\item A \Def{polynomial} of degree $p$ is of the form $f(x) = \sum_{i=0}^p a_i x^i$, which is a weighed sum of \Def{monimials} $1, x, x^2,..$. Note that for multi-variate functions, the number of monimials grows combinatorially with the degree and dimension. E.g., the monimials of degree $2$ in $3$D space are $x_1^2$, $x_1 x_2$, $x_1 x_3$, $x_2^2$, $x_2 x_3$, $x_3^2$. In general, we have $\left(d \atop p\right)$ monimials of degree $p$ in $d$-dimensional space.
+\item A \Def{polynomial} of degree $p$ is of the form $f(x) = \sum_{i=0}^p a_i x^i$, which is a weighed sum of \Def{monomials} $1, x, x^2,..$. Note that for multi-variate functions, the number of monomials grows combinatorially with the degree and dimension. E.g., the monomials of degree $2$ in $3$D space are $x_1^2$, $x_1 x_2$, $x_1 x_3$, $x_2^2$, $x_2 x_3$, $x_3^2$. In general, we have $\left(d \atop p\right)$ monomials of degree $p$ in $d$-dimensional space.
 \item Polynomials are smooth.
 \item I assume it is clear what piece-wise means (we have different polynomials in disjoint intervals covering the input domain $\RRR$).
 
 \item A set of \Def{basis functions} $\{e_1,...,e_n\}$  defines the space $f = \{ \sum_i a_i e_i : a_i \in \RRR \}$ of functions that are linear combinations of the basis functions. More details on bases are discussed below for vector spaces in general. Here we note typical basis functions:
 \begin{items}
-\item Monimials, which form the basis of polynomials.
+\item Monomials, which form the basis of polynomials.
 
 \item Trigonometric functions $\sin(2\pi a x), \cos(2\pi a x)$, with integers $a$, which form the Fourier basis of functions.
 
@@ -235,7 +237,7 @@ However, in general a function $f:\RRR \to \RRR$ is an ``infinite-dimensional ob
 
 The core example are functions used for regression or classification in Machine Learning, which are a linear combination of an \emph{infinite} set of basis functions. E.g., an infinite set of radial basis functions $\varphi(|x-c|)$ for \emph{all} centers $c \in \RRR$. This infinite set of basis functions spans a function space called Hilbert space (in the ML context, ``Reproducing Kernel Hilbert Space (RKHS)''), which is an infinite-dimensional vector space. Elements in that space are called non-parameteric.
 
-\item As a final note, splines are parameteric functions that are often used in robotics and engineering in general. Splines usually are piece-wise polynomials that are continuously joined. Namely, a spline of degree $p$ is in $\CC^{p-1}$, i.e., $p-1$-fold continuously differentiable. A spline is not fully smooth, as the $p$-th derivative is discontinuous. E.g., a cubic spline has a piece-wise constant (``bang-bang'') jerk (3rd derivative). Cubic splines and B-splines (which are also piece-wise polynomials) are commonly used in robotics to describe motions. In computational design and graphics, B-splines are equally common to describe surfaces (in the form of Non-uniform rational basis spline, NURBS). Appendix \ref{appSplines} is a brief reference for splines.
+\item As a final note, splines are parameteric functions that are often used in robotics and engineering in general. Splines usually are piece-wise polynomials that are continuously joined. Namely, a spline of degree $p$ is in $\CC^{p-1}$, i.e., $p-1$-fold continuously differentiable. A spline is not fully smooth, as the $p$-th derivative is discontinuous. E.g., a cubic spline has a piece-wise constant (``bang-bang'') jerk (3rd derivative). Cubic splines and B-splines (which are also piece-wise polynomials) are commonly used in robotics to describe motions. In computational design and graphics, B-splines are equally common to describe surfaces (in the form of Non-uniform rational basis spline, NURBS). \href{https://marctoussaint.github.io/AI-lectures/notes/splines.html}{This link} contain a brief reference for splines.
 \end{itemize}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -537,9 +539,9 @@ For problem (v), we want to find a \Def{minimum for a matrix expression}. We fin
 \begin{align}
 0 &= \Del{\b} \norm{y - X \b}^2 + \l \norm{\b}^2 \\
 &= 2 (y - X\b)^\T (-X) + 2 \l \b^\T \\
-0 &= - X^\T (y - X\b) + 2 \l \b \\
-0 &= - X^\T y + (X^\T X + 2 \l \Id) \b \\
-\b &= - (X^\T X + 2 \l \Id)^\1 X^\T y
+0 &= - X^\T (y - X\b) + \l \b \\
+0 &= - X^\T y + (X^\T X + \l \Id) \b \\
+\b &= - (X^\T X + \l \Id)^\1 X^\T y
 \end{align}
 Line 2 uses a standard rule for the derivative (see below) and gives a
 row vector equation. Line 3 transposes this to become a column vector
@@ -698,7 +700,7 @@ Here $\vec e_i$ is the $i$th standard basis vector in $\RRR^n$.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\subsection{Examples and Exercises}
+\subsection{Further Examples and Exercises}
 
 \exsection{More derivatives}
 
@@ -709,7 +711,6 @@ $(a \times b)^2$ w.r.t.\ $a$ and $b$?
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 
 %\input{e06-matlabGradients.tex}
 \input{e04-derivatives.tex}
@@ -795,7 +796,7 @@ multiplication, are defined as follows
 \end{myDefinition}
 
 Roughly, this definition says that a vector space is ``closed under
-linear transformations'', meaning that we can add and scale vectors and
+linear operations'', meaning that we can add and scale vectors and
 they remain vectors.
 
 
@@ -2083,8 +2084,8 @@ f(x)$ if $G$ is a metric tensor. Let's keep this in mind!
 The original Newton method is a method to find the \Def{root} (that
  is, zero point) of a function $f(x)$. In 1D it iterates $x \gets x
  - \frac{f(x)}{f'(x)}$, that is, it uses the gradient $f'$ to estimate
- where the function might cross the $x$-axis. To find an minimum or
- maximum of $f$ we want to find the root of its gradient. For
+ where the function might cross the $x$-axis. To find an optimum (minimum or
+ maximum) of $f$ we want to find the root of its gradient. For
  $x\in\RRR^n$ the Newton method iterates
 \begin{equation}
 x \gets x - \he f(x)^\1 \na f(x) ~.
@@ -2118,7 +2119,7 @@ f(x)$ is pos-def. Then it fulfils all necessary conditions to define a
 scalar product $\<v ,w\> = \sum_{ij} v_i w_j H_{ij}$, where $H$ plays
 the role of the metric tensor. If $H$ was the space's metric, then the
 steepest descent direction is $- H^\1 \na f(x)$, which is the Newton
-direction!
+direction.
 
 Another way to understand the same: In the 2nd-order Taylor
 approximation $f(x+\d) \approx f(x) + \na f(x)^\T\d + \half \d^\T H
@@ -2197,7 +2198,7 @@ Setting this to zero gives the step $\step = -(\he f(x) +
 
 Therefore, the $\l$ can be viewed as \Def{dual variable} of a trust
 region method. There is no analytic relation between $\b$ and $\l$; we
-can't determine $\l$ directly from $\b$. We could use a constrained
+cannot determine $\l$ directly from $\b$. We could use a constrained
 optimization method, like primal-dual Newton, or Augmented Lagrangian
 approach to solve for $\l$ and $\step$. Alternatively, we can always
 increase $\l$ when the computed steps are too large, and decrease if
@@ -2258,16 +2259,15 @@ not anymore a proper vector!
 \end{algorithm}
 
 
-\subsubsection{Gauss-Newton: a super important special case}
+\subsubsection{Least Squares \& Gauss-Newton: a very important special case}
 
-A special case that appears really a lot in intelligent systems is the
-Gauss-Newton case: Consider an objective function of the form
+A special case that appears a lot in intelligent systems is the
+\Def{Least Squares} case: Consider an objective function of the form
 \begin{align}
 f(x) = \phi(x)^\T \phi(x) = \sum_i \phi_i(x)^2
 \end{align}
 where we call $\phi(x)$ the \textbf{cost features}. This is also
-called a \Def{sum-of-squares} problem, here a sum of cost feature
-squares. We have
+called a \Def{sum-of-squares} problem. We have
 \begin{align}
 \na f(x)
  &= 2 \Del{x}\phi(x)^\T \phi(x) \\
@@ -2290,7 +2290,7 @@ negative hessian eigenvalues.
 \item The approximate Hessian only requires the first-order
 derivatives of the cost features. There is no need for
 computationally expensive hessians of $\phi$.
-\item The objective $f(x)$ can be interpreted as just the Euclidean
+\item The objective $f(x)$ can be interpreted as the Euclidean
 norm $f(\phi) = \phi^\T \phi$ but pulled back into the $x$-space. More
 precisely: Consider a mapping $\phi:~ \RRR^n \to \RRR^m$ and a general
 scalar product $\<\cdot,\cdot\>_\phi$ in the output space. In differential geometry
@@ -2315,8 +2315,8 @@ non-constant (i.e., Riemannian) pull-back metric $\<\cdot,\cdot\>_x$.
 
 To apply full Newton methods we need to be able to compute $f(x), \na
 f(x)$, and $\he f(x)$ for any $x$. However, sometimes, computing $\he f(x)$ is not
-possible, e.g., because we can't derive an analytic expression for
-$\he f(x)$, or it would be to expensive to compute the hessian
+possible, e.g., because we cannot derive an analytic expression for
+$\he f(x)$, or it would be too expensive to compute the hessian
 exactly, or even to store it in memory---especially in very
 high-dimensional spaces. In such cases it makes sense to approximate
 $\he f(x)$ or $\he f(x)^\1$ with a low-rank approximation.
@@ -2353,7 +2353,7 @@ H^\1 \gets {\color{red}\(\Id-\frac{y \d^\T}{\d^\T y}\)^\T H^\1
 \end{equation}
 which is equivalent to (using the Sherman-Morrison formula)
 \begin{equation}
-H \gets H - \frac{H \d \d^\T H^\T}{\d^T H \d} + \frac{y y^\T}{y^\T \d}
+H \gets H - \frac{H \d \d^\T H^\T}{\d^T H \d} + \frac{y y^\T}{y^\T \d} ~.
 \end{equation}
 Note:
 \begin{itemize}
@@ -2362,7 +2362,7 @@ $H^\1 \gets \frac{\d \d^\T}{\d^\T y}$, which is the minimal rank 1
 update we discussed above.
 
 \item If $H^\1$ is previously non-zero, the red part ``deletes certain
-  dimensions'' from $H^\1$. More precisely, note that ${\color{red}\(\Id-\frac{y \d^\T}{\d^\T y}\)} y = 0$, that is, this construction deletes $\Span\{y\}$ from its input space. Therefore, the red part gives zero when multiplied with $y$; and it is guaranteed that the resulting $H^\1$ fulfils $H^\1 y = \d$.
+  dimensions'' from $H^\1$. More precisely, note that ${\color{red}\(\Id-\frac{y \d^\T}{\d^\T y}\)} y = 0$, that is, this rank $n-1$ construction deletes $\Span\{y\}$ from its input space. Therefore, the red part gives zero when multiplied with $y$; and it is guaranteed that the resulting $H^\1$ fulfils $H^\1 y = \d$.
 \end{itemize}
 
 The \Def{BFGS} algorithms uses this $H^\1$ instead of a precise $\he
@@ -2406,12 +2406,12 @@ direction $\d_1$. This latter assumption is quite optimistic: it
 assumes we did perfect line search. But it gives great information:
 The iso-lines of $f(x)$ at $x_2$ are tangential to $\d_1$.
 
-In this setting, convince yourself of the following: Ideally each search direction
-should be orthogonal to the previous one---but not orthogonal in the
-conventional Euclidean sense, but orthogonal w.r.t.\ the Hessian
-$H$. Two vectors $\d$ and $\d'$ are called \Def{conjugate} w.r.t.\
-a metric $H$ iff $d'^\T H d = 0$. Therefore, subsequent search
-directions to be conjugate to each other.
+In this setting, convince yourself of the following: Ideally each
+search direction should be orthogonal to the previous one---but not
+orthogonal in the conventional Euclidean sense, but orthogonal w.r.t.\
+the Hessian $H$. Two vectors $d$ and $d'$ are called \Def{conjugate}
+w.r.t.\ a metric $H$ iff $d'^\T H d = 0$. Therefore, subsequent search
+directions should be conjugate to each other.
 
 Conjugate gradient descent does the following:
 \begin{algorithm}
@@ -2439,7 +2439,7 @@ function $f(x) = x^\T H x$ this leads to \Def{conjugate} search
    direction. This essentially provides 2nd order information.
 
 \item For arbitrary quadratic functions CG converges in $n$ iterations. But
- this really only works with \Def{perfect line search}.
+ this only works with \Def{perfect line search}.
 \end{itemize}
 
 %% \cen{\twocol{.5}{.5}{
@@ -2662,7 +2662,7 @@ unconstrained problem $\min_x L(x,\l,\k)$ (if this has a unique solution).
 \subsubsection{Augmented Lagrangian*}
 
 This is not a main-stream algorithm, but I like
-it. See \cite{14-toussaint-AugLag}.
+it. See \citep{14-toussaint-AugLag}.
 
 In the Augmented Lagrangian $\hat L$, the solver has two types of
 knobs to tune: the strenghts of the penalties $\nu,\mu$ and the
@@ -2880,7 +2880,7 @@ $\m=0$, but often that is not robust. The beauty is that we can adapt
 $\mu$ on the fly, before each Newton step, so that we do not need a
 separate outer loop to adapt $\m$.
 
-Before computing a Newton step, we compute the current duality measure
+Before computing a Newton step, we compute the current duality measure\\
 $\tilde \mu = -\frac{1}{m}~ \sum_{i=1}^m \l_i g_i(x)$. Then we set
 $\mu = \half \tilde \mu$ to half of this. In this way, the Newton step
 will compute a direction that aims to half the current duality gap. In
@@ -2973,7 +2973,7 @@ because the algorithms is nice or particularly efficient, but rather
 because one gains a lot of insights in what actually makes
 (inequality) constrained problems hard.
 
-\subsubsection{Convex sets, functions, problems}
+\subsubsection{Convex sets, functions, problems}\label{secCvx}
 
 \begin{myDefinition}[Convex set, convex function]
 A set $X\subseteq V$ (a subset of some vector space $V$) is \Def{convex} iff
@@ -3185,7 +3185,7 @@ evaluated.
 
 In this lecture I very briefly want to add comments on \textbf{global}
 blackbox optimization. Global means that we now, for the first time,
-really aim to find the global optimum (within some pre-specified
+aim to find the global optimum (within some pre-specified
 bounded range). In essence, to address such a problem we need to
 explicitly know what we know about $f$\footnote{Cf.\ the KWIK (knows
 what it knows) framework.}, and an obvious way to do this is to use
@@ -4178,7 +4178,7 @@ because its energy is a parabola. Further, notice that in the Taylor
 expansion we skipped the linear term. That's because we are at the
 mode $x^*$ where $\na E(x^*)=0$.
 
-The Laplace approximation really is the probabilistic analoque of a
+The Laplace approximation is the probabilistic analoque of a
 local second-order approximation of a function, just as we used it in
 Newton methods. However, it is defined to be taken specifically at the
 mode of the distribution.
@@ -4692,526 +4692,6 @@ B=\sum_i p_i (A_i + a_i a_i^\T - b\, b^\T)\)
 %[[todo: unscented transform]
 
 
-\section{3D geometry basics (for robotics)}
-
-This document introduces to some basic geometry, focussing on 3D
-transformations, and introduces proper conventions for notation. There
-exist one-to-one implementations of the concepts and equations in
-libORS.
-
-\subsection{Rotations}
-
-There are many ways to represent rotations in $SO(3)$. We restrict
-ourselves to three basic ones: rotation matrix, rotation vector, and
-quaternion. The rotation vector is also the most natural
-representation for a ``rotation velocity'' (angular velocities). Euler
-angles or raw-pitch-roll are an alternative, but they have
-singularities and I don't recommend using them in practice.
-
-\begin{description}
-\item[A rotation matrix] is a matrix $R\in\RRR^{3\times3}$ which is orthonormal
-(columns and rows are orthogonal unit vectors, implying determinant
-1). While a $3\times3$ matrix has 9 degrees of freedom (DoFs), the
-constraint of orthogonality and determinant 1 constraints this: The
-set of rotation matrices has only 3 DoFs ($\sim$ the local Lie algebra
-is 3-dim).
-
-The application of $R$ on a vector $x$ is simply the matrix-vector
-product $R x$.
-
-Concatenation of two rotations $R_1$ and $R_2$ is the normal
-matrix-matrix product $R_1 R_2$.
-
-Inversion is the transpose, $R^\1 = R^\T$.
-
-\item[A rotation vector] is an unconstraint vector $w\in\RRR^3$. The
-vector's direction $\ul w = \frac{w}{|w|}$ determines the rotation
-axis, the vector's length $|w|=\t$ determins the rotation angle (in
-radians, using the right thumb convention).
-
-The application of a rotation described by $w\in\RRR^3$ on a vector
-$x\in\RRR^3$ is given as (Rodrigues' formula)
-\begin{align}
-w \cdot x
- &= \cos\t~ x
-  + \sin\t~ (\ul w\times x)
-  + (1-\cos\t)~ \ul w(\ul w^\T x)
-\end{align}
-where $\t=|w|$ is the rotation angle and $\ul w=w/\t$ the unit length
-rotation axis.
-
-The inverse rotation is described by the negative of the rotation
-vector.
-
-Concatenation is non-trivial in this representation and we don't
-discuss it here. In practice, a rotation vector is first converted to
-a rotation matrix or quaternion.
-
-Convertion to a matrix: For every vector $w\in\RRR^3$ we define its skew
-symmetric matrix as
-\begin{align}
-\hat w = \mat{ccc}{0 & -w_3 & w_2 \\ w_3 & 0 & -w_1 \\-w_2 & w_1 & 0} ~.
-\end{align}
-Note that such skew-symmetric matrices are related to the cross
-product: $w \times v = \hat w~ v$, where the cross product is
-rewritten as a matrix product. The rotation matrix $R(w)$ that
-corresponds to a given rotation vector $w$ is:
-\begin{align}\label{eqRodriguez}
-R(w)
- &= \exp(\hat w) \\
- &= \cos\t~ I + \sin\t~ \hat w/\t + (1-\cos\t)~ w w^\T/\t^2
-\end{align}
-The $\exp$ function is called exponential map (generating a group
-element (=rotation matrix) via an element of the Lie algebra (=skew
-matrix)). The other formular is called Rodrigues' formular: the first
-term is a diagonal matrix ($I$ is the 3D identity matrix), the second
-terms the skew symmetric part, the last term the symmetric part ($w
-w^\T$ is also called outper product).
-
-\item[Angular velocity \& derivative of a rotation matrix:] We
-represent angular velocities by a vector $w\in\RRR^3$, the direction
-$\ul w$ determines the rotation axis, the length $|w|$ is the rotation
-velocity (in radians per second). When a body's orientation at time
-$t$ is described by a rotation matrix $R(t)$ and the body's angular
-velocity is $w$, then
-\begin{align}\label{eqDotR}
-\dot R(t) = \hat w~ R(t)~.
-\end{align}
-(That's intuitive to see for a rotation about the $x$-axis with
-velocity 1.) Some insights from this relation: Since $R(t)$ must
-always be a rotation matrix (fulfill orthogonality and determinant 1),
-its derivative $\dot R(t)$ must also fulfill certain constraints; in
-particular it can only live in a 3-dimensional sub-space. It turns out
-that the derivative $\dot R$ of a rotation matrix $R$ must always be a
-skew symmetric matrix $\hat w$ times $R$ -- anything else would be
-inconsistent with the contraints of orthogonality and determinant 1.
-
-Note also that, assuming $R(0)=I$, the solution to the differential
-equation $\dot R(t) = \hat w~ R(t)$ can be written as
-$R(t)=\exp(t \hat w)$, where here the exponential function notation
-is used to denote a more general so-called exponential map, as used in
-the context of Lie groups. It also follows that $R(w)$ from
-(\ref{eqRodriguez}) is the rotation matrix you get when you rotate for
-1 second with angular velocity described by $w$.
-
-\item[Quaternion] (I'm not describing the general definition, only the
-``quaternion to represent rotation'' definition.) A quaternion is a
-unit length 4D vector $r\in\RRR^4$; the first entry $r_0$ is related
-to the rotation angle $\t$ via $r_0=\cos(\t/2)$, the last three
-entries $\bar r\equiv r_{1:3}$ are related to the unit length rotation
-axis $\ul w$ via $\bar r = \sin(\t/2)~ \ul w$.
-
-The inverse of a quaternion is given by negating $\bar r$, $r^\1 =
-(r_0,-\bar r)$ (or,
-alternatively, negating $r_0$).
-
-The concatenation of two rotations $r$, $r'$ is given as the quaternion
-product
-\begin{align}\label{eqQuat}
-r \circ r'
- = (r_0 r'_0 - \bar r^\T \bar r',~
-    r_0 \bar r' + r'_0 \bar r + \bar r' \times \bar r)
-\end{align}
-
-The application of a rotation quaternion $r$ on a vector $x$ can be expressed
-by converting the vector first to the quaternion $(0,x)$, then computing
-\begin{align}
-r \cdot x = (r \circ (0,x) \circ r^\1)_{1:3} ~,
-\end{align}
-I think a bit more efficient is to first convert the rotation
-quaternion $r$ to the equivalent rotation matrix $R$, as given by
-\begin{align}
-R
- &= \mat{ccc}{
-    1-r_{22}-r_{33} & r_{12}-r_{03} &    r_{13}+r_{02} \\
-    r_{12}+r_{03} &   1-r_{11}-r_{33} &  r_{23}-r_{01} \\
-    r_{13}-r_{02} &   r_{23}+r_{01} &    1-r_{11}-r_{22}
-    } \feed & ~ r_{ij} := 2 r_i r_j ~.
-\end{align}
-(Note: In comparison to (\ref{eqRodriguez}) this does not require to
-compute a $\sin$ or $\cos$.) Inversely, the quaterion $r$ for a given
-matrix $R$ is
-\begin{align}
-    r_0 &= \half\sqrt{1+\tr R}\\
-    r_3 &= (R_{21}-R_{12})/(4 r_0)\\
-    r_2 &= (R_{13}-R_{31})/(4 r_0)\\
-    r_1 &= (R_{32}-R_{23})/(4 r_0) ~.
-\end{align}
-
-\item[Angular velocity $\to$ quaternion velocity] Given an
-    angular velocity $w\in\RRR^3$ and a current quaterion
-    $r(t)\in\RRR$, what is the time derivative $\dot r(t)$ (in analogy
-    to Eq.~(\ref{eqDotR}))? For simplicity, let's first assume
-    $|w|=1$. For a small time interval $\d$, $w$ generates a
-    rotation vector $\d w$, which converts to a quaterion
-\begin{align}
-\Delta r = (\cos(\d/2), \sin(\d/2) w) ~.
-\end{align}
-    That rotation is concatenated LHS to the original quaternion,
-\begin{align}
-r(t+\d)
- = \Delta r \circ r(t) ~.
-%%  \\
-%% &\vspace*{-5mm}= (\cos(\d/2) r_0 - \sin(\d/2) w^\T \bar r,~
-%%     \cos(\d/2) \bar r + \sin(\d/2)[r_0 w + \bar r \times w])
-\end{align}
-   Now, if we take the derivative w.r.t.\ $\d$ and evaluate it at
-   $\d=0$, all the $\cos(\d/2)$ terms become $-\sin(\d/2)$ and evaluate
-   to zero, all the $\sin(\d/2)$ terms become $\cos(\d/2)$ and evaluate
-   to one, and we have
-\begin{align}
-%% \dot r(t+\d)
-%% &= \half(-\sin(\d/2) r_0 - \cos(\d/2) w^\T \bar r,~
-%%     -\sin(\d/2) \bar r + \cos(\d/2)[r_0 w + \bar r \times w])\\
-\dot r(t)
-&= \half( - w^\T \bar r,~  r_0 w + \bar r \times w )
- = \half (0,w) \circ r(t)
-\end{align}
-Here $(0,w)\in\RRR^4$ is a four-vector; for $|w|=1$ it is a normalized
-quaternion. However, due to the linearity the equation holds for
-any $w$.
-
-\item[Quaternion velocity \protect$\to$ angular velocity] The following is
-relevant when taking the derivative w.r.t.\ the parameters of a
-quaternion, e.g., for a ball joint represented as quaternion. Given
-$\dot r$, we have
-\begin{align}
-\dot r \circ r^\1
-&= \half (0,w) \circ r \circ r^\1 = \half (0,w)
-\end{align}
-which allows us to read off the angular velocity induced by a change of
-quaternion. However, the RHS zero will hold true only iff $\dot
-r$ is orthogonal to $r$ (where $\dot r^\T r = \dot r_0 r_0 + \dot {\bar
-r^\T} \bar r = 0$, see \refeq{eqQuat}). In case $\dot r^\T r \not=0$,
-the change in length of the quaterion does not represent any angular
-velocity; in typical kinematics engines a non-unit length is
-ignored. Therefore one first orthogonalizes $\dot
-r \gets \dot r - r(\dot r^\T r)$.
-
-As a special case of application, consider computing the partial
-derivative w.r.t.\ quaternion coordinates, where $\dot r$ is the unit
-vectors $e_0,..,e_3$. In this case, the orthogonalization becomes
-simply $e_i \gets e_i - r r_i$ and
-\begin{align}
-(e_i - r_i r) \circ r^\1
-&= e_i \circ r^\1 - r_i (1,0,0,0) \\
-w_i
-&= 2 [e_i \circ r^\1]_{1:3} ~,
-\end{align}
-where $w_i$ is the rotation vector implied by $\dot r = e_i$. In case
-the original quaternion $r$ wasn't normalized (which could be, if a
-standard optimization algorithm searches in the quaternion
-configuration space), then $r$ actually represents the normalized
-quaternion $\bar r = \frac{1}{\sqrt{r^2}} r$, and (due to linearity of the above), the rotation vector implied by $\dot r = e_i$ is
-\begin{align}
-w_i
-&= \frac{2}{\sqrt{r^2}}~ [e_i \circ r^\1]_{1:3} ~.
-\end{align}
-\end{description}
-
-
-
-\subsection{Transformations}
-
-We consider two types of transformations here: either static
-(translation+rotation), or dynamic
-(translation+velocity+rotation+angular velocity). The first maps
-between two static reference frames, the latter between moving
-reference frames, e.g. between reference frames attached to moving
-rigid bodies.
-
-\subsubsection{Static transformations}
-
-Concerning the static transformations, again there are different
-representations:
-\begin{description}
-\item[A homogeneous matrix] is a $4\times 4$-matrix of the form
-\begin{align}
-T = \mat{cc}{R & t \\ 0 & 1}
-\end{align}
-where $R$ is a $3\times 3$-matrix (rotation in our case) and $t$ a
-$3$-vector (translation).
-
-In homogeneous coordinates, vectors $x\in\RRR^3$ are expanded to 4D
-vectors $\mat{c}{x\\1} \in \RRR^4$ by appending a 1.
-
-Application of a transform $T$ on a vector $x\in\RRR^3$ is then given
-as the normal matrix-vector product
-\begin{align}
-x' = T \cdot x
- &= T~ \mat{c}{x \\ 1}
-  = \mat{cc}{R & t \\ 0 & 1}~ \mat{c}{x \\ 1}
-  = \mat{c}{Rx + t \\ 1} ~.
-\end{align}
-%% \emph{Note:} This equation motivates the standard convention that
-%%  a pair $(R,t)$ of a rotation and translation is always to be
-%%  understood as \emph{first} rotating \emph{then} translating.
-
-Concatenation is given by the ordinary 4-dim matrix-matrix product.
-
-The inverse transform is
-\begin{align}
-T^\1
- &= \mat{cc}{R & t \\ 0 & 1}^\1
-  = \mat{cc}{R^\1 & -R^\1 t \\ 0 & 1}
-\end{align}
-
-\item[Translation and quaternion:] A transformation can efficiently be
-  stored as a pair $(t,r)$ of a translation vector $t$ and a rotation
-  quaternion $r$. Analogous to the above, the application of $(t,r)$
-  on a vector $x$ is $x' = t + r\cdot x$; the inverse is $(t,r)^\1 =
-  (-r^\1\cdot t, r^\1)$; the concatenation is $(t_1,r_1) \circ
-  (t_2,r_2) = (t_1 + r_1\cdot t_2, r_1 \circ r_2)$.
-\end{description}
-
-\subsubsection{Dynamic transformations}
-
-Just as static transformations map between (static) coordinate frames,
-dynamic transformations map between moving (inertial) frames which
-are, e.g., attached to moving bodies. A dynamic transformation is
-described by a tuple $(t,r,v,w)$ with translation $t$, rotation $r$,
-velocity $v$ and angular velocity $w$. Under a dynamic transform
-$(t,r,v,w)$ a position and velocity $(x,\dot x)$ maps to a new
-position and velocity $(x',\dot x')$ given as
-\begin{align}
-& x'=t + r\cdot x \\
-& \dot x' = v + w \times (r\cdot x)+ r\cdot\dot x
-\end{align}
-(the second term is the additional linear velocity of $\dot x'$
-arising from the angular velocity $w$ of the dynamic transform). The
-concatenation $(t,r,v,w) = (t_1,r_1,v_1,w_1) \circ (t_2,r_2,v_2,w_2)$
-of two dynamic transforms is given as
-\begin{align}
-& t = t_1 + r_1 \cdot t_2 \\
-& v = v_1 + w_1 \times (r_1 \cdot t_2) + r_1 \cdot v_2 \\
-& r = r_1 \circ r_2 \\
-& w = w_1 + r_1 \cdot w_2
-\end{align}
-For completeness, the footnote\footnote{Transformation of accelerations:
-\begin{align}
-\dot v
- &= \dot v_1
-      + \dot w_1 \times (r_1 \cdot t_2)
-      + w_1 \times (w_1 \times (r_1 \cdot t_2))\feed
-      &\quad+ 2\, w_1 \times (r_1 \cdot v_2)
-      + r_1 \cdot \dot v_2 \\
-\dot w
- &= \dot w_1 + w_1 \times (r_1 \cdot w_2) + r_1 \cdot \dot w_2
-\end{align}
-Used identities: for any vectors $a,b,c$ and rotation $r$:
-\begin{align}
-&r \cdot (a \times b) = (r \cdot a) \times (r \cdot b)\\
-& a \times (b \times c) = b (a c) - c (ab) \\
-&\del_t (r \cdot a) = w \times (r \cdot a) + r \cdot \dot a \\
-%& \del_t (r_0 \circ r \cdot t)
-% = w_0 \times (r_0 \circ r \cdot t)
-% + r_0 \cdot \[w \times (r \cdot t) + r \cdot v\]
-% = (w_0 + r_0 \cdot w) \times (r_0 \circ r \cdot t) + r_0 r \cdot v  \\
-& \del_t (w \times a) = \dot w \times t + w \times \dot a
-\end{align}
-} also describes how
-accelerations transform, including the case when the transform itself is
-accelerating. The inverse $(t',r',v',w') = (t,r,v,w)^\1$ of a dynamic
-transform is given as
-\begin{align}
-& t' = -r^\1 \cdot t \\
-& r' =  r^\1 \\
-& v' =  r^\1 \cdot (w \times t - v) \\
-& w' = -r^\1 \cdot w
-\end{align}
-
-
-\begin{description}
-\item[Sequences of transformations] by $T_{A\to
-B}$ we denote the transformation from frame $A$ to frame
-$B$. The frames $A$ and $B$ can be thought of coordinate frames
-(tuples of an offset (in an affine space) and three local orthonormal
-basis vectors) attached to two bodies $A$ and $B$. It holds
-\begin{align}
-T_{A\to C} = T_{A\to B} \circ T_{B\to C}
-\end{align}
-where $\circ$ is the concatenation described above. Let $p$ be a point
-(rigorously, in the affine space). We write $p^A$ for the coordinates
-of point $p$ relative to frame $A$; and $p^B$ for the
-coordinates of point $p$ relative to frame $B$. It holds
-\begin{align}
-p^A = T_{A\to B}~ p^B ~.
-\end{align}
-\end{description}
-
-\subsubsection{A note on affine coordinate frames}
-
-Instead of the notation $T_{A\to B}$, other text books often use
-notations such as $T_{AB}$ or $T^A_B$. A common question regarding
-notation $T_{A\to B}$ is the following:
-\begin{quote}
-\emph{The notation $T_{A\to B}$ is
-confusing, since it transforms coordinates from frame $B$ to frame
-$A$. Why not the other way around?}
-\end{quote}
-I think the notation $T_{A\to B}$ is intuitive for the following
-reasons. The core is to understand that a transformation can be
-thought of in two ways: as a transformation of the \emph{coordinate
-frame itself}, and as transformation of the \emph{coordinates relative
-to a coodrinate frame}. I'll first give a non-formal explanation and
-later more formal definitions of affine frames and their
-transformation.
-
-Think of $T_{W\to B}$ as translating and rotating a real rigid body:
-First, the body is located at the world origin; then the body is moved
-by a translation $t$; then the body is rotated (around its own center)
-as described by $R$. In that sense, $T_{W\to B} = \mat{cc}{R & t \\ 0
-& 1} $ describes the ``forward'' transformation of the body. Consider
-that a coordinate frame $B$ is attached to the rigid body and a frame
-$W$ to the world origin. Given a point $p$ in the world, we can
-express its coordinates relative to the world, $p^W$, or relative to
-the body $p^B$. You can convince yourself with simple examples that
-$p^W = T_{W\to B}~ p^B$, that is, $T_{W\to B}$ \emph{also} describes
-the ``backward'' transformation of body-relative-coordinates to
-world-relative-coordinates.
-
-Formally: Let $(A,V)$ be an affine space. A coordinate frame is a
-tuple $(o,\bd e_1,..,\bd e_n)$ of an origin $o \in A$ and basis
-vectors $\bd e_i \in V$. Given a point $p\in A$, its coordinates
-$p_{1:n}$ w.r.t.\ a coordinate frame $(o,\bd e_1,..,\bd e_n)$ are given
-implicitly via
-\begin{align}
-p = o + \sum\nolimits_i p_i \bd e_i ~.
-\end{align}
-A transformation $T_{W\to B}$ is a (``forward'')
-transformation of the coordinate frame itself:
-\begin{align}
-(o^B,\bd e^B_1,..,\bd e^B_n)
- &= (o^W + t, R\bd e^W_1,..,R\bd e^W_n)
-\end{align}
-where $t\in V$ is the affine translation in $A$ and $R$ the rotation
-in $V$. Note that the coordinates $(\bd e^B_i)^W_{1:n}$ of a basis
-vector $\bd e^B_i$ relative to frame $W$ are the columns of $R$:
-\begin{align}
-\bd e^B_i
- &= \sum_j (\bd e^B_i)^W_j \bd e^W_j
-  = \sum_j R_{ji} \bd e^W_j
-\end{align}
-Given this transformation of the coordinate frame itself, the
-coordinates transform as follows:
-\begin{align}
-p &= o^W + \sum_i p^W_i~ \bd e^W_i \\
-p &= o^B + \sum_i p^B_i~ \bd e^B_i \\
-  &= o^W + t + \sum_i p^B_i~ (R \bd e^W_i) \\
-  &= o^W + \sum_i t^W_i~ e^W_i + \sum_j p^B_j~ (R \bd e^W_j) \\
-  &= o^W + \sum_i t^W_i~ e^W_i + \sum_j p^B_j~ (\sum_i R_{ij}~ \bd e^W_i) \\
-  &= o^W + \sum_i \[t^W_i + \sum_j R_{ij}~ p^B_j\]~ e^W_i \\
-\To
- &~ p^W_i = t^W_i + \sum_j R_{ij}~ p^B_j ~.
-\end{align}
-Another way to express this formally: $T_{W\to B}$
-maps \emph{covariant} vectors (including ``basis vectors'') forward,
-but \emph{contra-variant} vectors (including ``coordinates'')
-backward.
-
-
-
-
-\subsection{Kinematic chains}
-
-In this section we only consider static transformations compost of
-translation and rotation. But given the general concatenation rules
-above, everything said here generealizes directly to the dynamic case.
-
-\subsubsection{Rigid and actuated transforms}
-
-A actuated kinematic chain with $n$ joints is a series of transformations of the form
-\begin{align}
-T_{W\to 1} \circ Q_1 \circ T_{1\to2} \circ Q_2 \circ T_{2\to3} \circ
-Q_3 \circ \cdots
-\end{align}
-Each $T_{i\1\to i}$ describes so-called ``links'' (or bones) of the
-kinematic chain: the rigid (non-actuated) transformation from the
-$i\1$th joint to the $i$th joint. The first $T_{W\to 1}$ is the
-transformation from \emph{world} coordinates to the first joint.
-
-Each $Q_i$ is the actuated transformation of the joint -- usually simply
-a rotation around the joint's x-axis with a specific angle, the
-so-called \emph{joint angle}. These joint angles (and therefore each
-$Q_i$) are actuated and may change over time.
-
-When we control the robot we essentially tell it to actuate its joint
-so as to change the joint angles. There are two fundamental
-computations necessary for control:
-\begin{enumerate}
-\item For a given $n$-dimensional vector $q \in \RRR^n$ of joint
-angles, compute the absolute frames $T_{W\to i}$ (\emph{world} to link
-transformation) of each link $i$.
-\item For a given $n$-dimensional vector $\dot q \in \RRR^n$ of joint
-angle velocities, compute absolute (\emph{world}-relative) velocity
-and angular velocity of the $i$th link.
-\end{enumerate}
-
-The first problem is solved by ``forward chaining'' the
-transformations: we can compute the absolute transforms $T_{W\to i}$
-(i.e., the transformation from \emph{world} to the $i$th link) for
-each link, namely:
-\begin{align}
-T_{W\to i} = T_{W\to i\1} \circ Q_i \circ T_{i\1\to i} ~.
-\end{align}
-Iterating this for $i=2,..,n$ we get positions and orientations
-$T_{W\to i}$ of all links in world coordinates.
-
-The second problem is addressed in the next section.
-
-
-\subsubsection{Jacobian \& Hessian}
-
-\begin{figure}[t]
-\begin{center}
-\show[.15]{kinematics}
-\end{center}
-\caption{\label{figJac}
-  Illustration for the Jacobian and Hessian.}
-\end{figure}
-
-Assume we have computed the absolute position and orientation of each
-link in an actuated kinematic chain. Then we want to know how a point
-$p_i^W$ attached to the $i$th frame (and coordinates expressed w.r.t.\
-the world frame $W$) changes when rotating the $j$th joint. Equally we
-want to know how some arbitrary vector $a_i^W$ attached to the $i$th
-frame (coordinates relative to the world frame $W$) rotates when
-rotating the $j$th joint. Let $a_j^W$ be the unit length rotation axis
-of the $j$th joint (which, by convention, is $r_{W\to j} \cdot
-(1,0,0)$ if $r_{W\to j}$ is the rotation in $T_{W\to j}$). In the
-following we drop the superscript $W$ because all coordinates are
-expressed in the world frame. Let $q_j$ be the joint angle of the
-$j$th joint. For the purpose of computing a partial deriviative of
-something attached to link $i$ w.r.t.\ the actuation at joint $j$ we
-can think of everything inbetween as rigid.  Hence, the point and
-vector Jacobian and Hessian are simply:
-\begin{align}
-d_{ij}
- &:=p_i-p_j \feed
-\frac{\del p_i}{\del q_j}
- &= a_j \times d_{ij} \\
-\frac{\del a_i}{\del q_j}
- &= \a_j \times a_i \\
-\frac{\del^2 p_i}{\del q_j~ \del q_k}
- &=\frac{\del a_j}{\del q_k} \times d_{ij} + a_j \times \frac{\del d_{ij}}{\del q_k} \feed
- &= (a_k \times a_j) \times d_{ij}
-   + a_j \times [a_k \times (p_i - p_k) - a_k \times (p_j - p_k)] \feed
- &= (a_k \times a_j) \times d_{ij}
-   + a_j \times (a_k \times d_{ij}) \feed
- &\[\text{using $a \times (b \times c) + b \times (c \times a) + c \times (a \times b) = 0$}\]\feed
- &= a_k \times (a_j \times d_{ij}) \\
-\frac{\del^2 a_i}{\del q_j~ \del q_k}
- &= (a_k \times \a_j) \times a_i + \a_j \times (a_k \times a_i) \feed
- &= a_k \times (\a_j \times a_i)
-\end{align}
-
-Efficient computation: Assume we have an articulated
-kinematic \emph{tree} of links and joints. We write $j\!<\!i$ if joint
-$j$ is inward from link (or joint) $i$.  Then, for each body $i$
-consider all inward edges $j\!<\!i$ and further inward edges
-$k\!\le\!j$ and compute $H_{ijk}=\del_{\t_j}\del_{\t_k} p_i$. Note
-that $H_{ijk}$ is symmetric in $j$ and $k$ -- so computing for
-$k\!\le\!j$ and copying the rest is sufficient.
 
 \section{Further}
 
