@@ -1,0 +1,66 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Robot Learning}
+\renewcommand{\coursepicture}{roblearn.png}
+\renewcommand{\coursedate}{Summer 2024}
+\renewcommand{\exnum}{Weekly Exercise 4}
+
+\renewcommand{\teacher}{Marc Toussaint \& Wolfgang H{\"o}nig}
+\renewcommand{\addressTUB}{
+  Learning~\&~Intelligent~Systems Lab, Intelligent Multi-Robot Coordination Lab, TU~Berlin\\\small
+  Marchstr. 23, 10587 Berlin, Germany
+}
+
+\exercises
+
+\input{macros-local}
+
+\excludecomment{solution}
+
+\exercisestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Trajectory Distribution $\to$ Control}
+
+In the context of imitation learning, assume that from demonstration data you learned a trajectory distribution as well as an inverse dynamics model and now want to use these to ``execute what you learned'' on a robot. This question is about how to derive a control policy from a trajectory distribution and an inverse dynamics model.
+
+More specifically, assume you learned a trajectory distribution
+\begin{align}
+p(x_t) = \NN(x_t; \mu_t, \S_t) \comma t=1,..,T ~,
+\end{align}
+where for each time step $t$ you have a different mean $\mu_t$ (characterizing
+the mean trajectory) and covariance matrix $\S_t$, as well as an inverse dynamics model
+\begin{align}
+u = \hat f(x_{t\1}, x_t) ~.
+\end{align}
+(Both models, $p$ and $f$ were trained from the data using ML, but we neglect annotating parameters.) We assume $x_t\in\RRR^n$ and fully observable, and $u\in\RRR^d$.
+
+During execution, assume we are at time step $t$ and current state $x_t$:
+\begin{enumerate}
+\item Formulate an optimization problem to find a reference trajectory $x^*_{t\po:T}$ for the future execution. (You want that the reference ``starts'' (connects with) the current state $x_t$, but also that it is as consistent as possible with the learned trajectory distribution $p$.
+
+Think about the role of the covariance matrices $\S_t$ and the role of the inverse kinematics in this formulation.
+
+{\tiny (This would be called a model-predictive control (MPC) approach: One would solve this optimization problem in every control cycle and use inverse kinematics to decide on controls. Depending on how you formulated the problem, it could be solved very efficiently using Riccati methods.)
+
+}
+
+
+\item Now assume that the trajectory distribution you learned is actually bi-modal, namely
+\begin{align}
+p(x_t) = w_t \NN(x_t; \mu^1_t, \S^1_t) + (1-w_t) \NN(x_t; \mu^2_t, \S^2_t) ~, \end{align}
+where superscripts index the mode. How could you now formulate and optimization problem?
+
+\item Assume you are scared away from using MPC and optimization in each control cycle. Could you also define a PD law to follow the (multi-modal) tranectory distribution? How? What would be issues?
+\end{enumerate}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Remapping Demonstrations}
+
+Assume demonstration data $D=\{(x^i_{1:T_i}, u^i_{1:T_i})\}_{i=1}^n$ was collected from a system $A$ and you want to imitate the behavior on system $B$...
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exerfoot

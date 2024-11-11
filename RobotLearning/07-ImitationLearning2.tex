@@ -1,0 +1,601 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Robot Learning}
+\renewcommand{\coursepicture}{roblearn.png}
+\renewcommand{\coursedate}{Summer 2024}
+\renewcommand{\teacher}{Wolfgang H{\"o}nig}
+
+\renewcommand{\topic}{Imitation Learning 2}
+\renewcommand{\keywords}{Inspired by Guanya Shi's Lecture 6}
+
+\slides
+
+\input{macros-local}
+\providecommand{\bm}[1]{\boldsymbol{#1}}
+
+\slidestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Recap}{
+
+\item Imitation Learning
+    \begin{itemize}
+        \item Given: expert demonstration data $D=\{(x^i_{1:T_i}, u^i_{1:T_i})\}_{i=1}^n$
+        \item Goal: reproduce demonstrations
+    \end{itemize}
+
+\item Main Challenges: 
+
+    \begin{itemize}
+        \item Distributional Domain Shift \hspace{1cm} Solutions:
+            \begin{itemize}
+                \item Behavior Cloning: add noise
+                \item DAgger: interactively add additional \emph{expert} data
+                \item Trajectory Distribution Learning: rely on controller
+            \end{itemize}
+        
+        \item Data Collection \hspace{1cm} Solutions:
+            \begin{itemize}
+                \item Humans: teleoperation, kinesthetic teaching, motion capture, videos
+                \pause
+                \item \textbf{high-effort computations} (w.r.t. to computation or observation), e.g., \emph{Privileged Teacher}
+            \end{itemize}
+    \end{itemize}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Outline Today}{
+
+\item Data Collection: Privileged Teacher 
+
+~
+
+\item Generative Models
+
+~
+
+\item Case Studies
+
+    \begin{itemize}
+        \item Quadrotor Acrobatics
+        \item Learning from ALOHA data
+        \item Transfer Learning
+    \end{itemize}
+
+    % Experts that aren't human
+    % quadrotors
+    % Learning from ALOHA data
+    % Hybrid cases (Alpha Go, relationship to decision making (e.g., Ichter paper))
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\key{Privileged Teacher}
+\slide{Privileged Teacher}{
+
+\item So far we considered to directly learn $\pi_\t: x \mapsto u$ (or $\pi_\t: y \mapsto u$)
+\item $y$ might be high-dimensional or unstructured (e.g., RGBD sequences)
+
+\item Key insight: First learn \emph{privileged} policy (``teacher''); use it to generate data for the ``student''
+    \begin{enumerate}
+        \item Learn $\pi_{\t_1}: z \mapsto u$ (where $z$ contains some ``ground truth'' data, e.g., states, traffic lights, neighbor behavior)
+        \item Use $\pi_{\t_1}$ to generate data $D=\{(x^i_{1:T_i}, u^i_{1:T_i})\}_{i=1}^n$
+        \item Learn $\pi_{\t_2}: x \mapsto u$
+    \end{enumerate}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Privileged Teacher}{
+
+\show[.65]{learningByCheating}
+
+~
+
+\show[.7]{learningByCheatingFig1}
+
+~
+
+\citehere{2020-chen-LearningCheating}
+{\urlfont\url{https://youtu.be/u9ZCxxD-UUw}}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Privileged Teacher}{
+
+\item Pros and Cons compared to one-stage IL?
+
+~
+
+\pause
+
+\twocol{.5}{.5}{
+    Pros:
+    \begin{itemize}
+    \item Second stage can be easily trained with DAgger
+    \item Data augmentation simple
+    \end{itemize}
+}{
+    Cons
+    \begin{itemize}
+    \item Simulation-focused
+    \item Hierarchical approach (requires domain knowledge)
+    \end{itemize}
+}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Generative Models}{
+
+\item Generative Model: 
+    \begin{itemize}
+        \item Input: Data $D=\{d^i\}_{i=1}^n$
+        \item Learning: find distribution $p_\t$ such that $d^i \sim p_\t$
+        \item Inference: generate novel data $d^* \sim p_\t$
+    \end{itemize}
+
+~
+\pause
+% Interaction
+\item What generative models do you know?
+\pause
+\info{GAN, VAE, Diffusion, for details see:}
+
+\citehere{2024-bishop-DeepLearningFoundations}
+
+~
+
+\item Relationship to IL
+    \begin{itemize}
+        \item If $D=\{(x^i_{1:T_i}, u^i_{1:T_i})\}_{i=1}^n$, we can learn \emph{conditional} distribution $p_\t(u_t | x_t)$
+        \item Can also generate solution trajectories (esp. in combination with ``classic'' methods)
+    \end{itemize}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\key{GAN}
+\slide{Generative Adverserial Network (GAN)}{
+
+\item Train two networks (generator and discriminator)
+
+\twocol{.5}{.4}{
+\show[0.9]{bishop_fig17_1}
+}{
+\citehere{2024-bishop-DeepLearningFoundations}
+\citehere{2017-weng-GANWGAN}
+}
+
+\item Loss function ($d_\phi$ should be 1 for real data):
+\begin{align*}
+\max_{\omega} \min_{\phi} -\frac{1}{N_{data}} \sum_{n\in \text{data}} \ln d_\phi(x_n) - \frac{1}{N_{gen}} \sum_{n\in\text{gen}} \ln (1-d_\phi(g_\omega(z_n)))
+\end{align*}
+
+% Interaction: what is this loss function -> cross-entropy for binary classification
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{GAN + Imitation Learning = (GAIL)}{
+
+\twocol{.65}{.3}{
+\show[0.9]{GAIL1}
+\show[0.9]{GAIL2}
+}{
+\item Generator is a policy $x\mapsto u$\\
+\item Discriminator has $x, u$ as input 
+\item Steps:
+\begin{enumerate}
+    \item \textbf{Rollout/Sample trajectories using generator (=policy)}
+    \item Update discriminator
+    \item Update policy
+\end{enumerate}
+}
+
+\citehere{2016-ho-GenerativeAdversarialImitationa}
+
+% Interaction: How is this different from DAgger?
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\key{VAE}
+\slide{Variational Autoencoder (VAE)}{
+
+\item Train two networks (encoder and decoder)
+
+\twocol{.6}{.3}{
+\show[1.0]{lilianweng-vae-gaussian}
+}{
+\citehere{2024-bishop-DeepLearningFoundations}
+\citehere{2018-weng-AutoencoderBetaVAE}
+\citehere{2024-chan-TutorialDiffusionModels}
+
+{\tiny ML Lecture, slides 8 and 9}
+}
+
+\item Loss function:
+\begin{align*}
+\min_{\theta, \phi} - \mathbb{E}_{\mathbf{z} \sim q_\phi(\mathbf{z}\vert\mathbf{x})} \log p_\theta(\mathbf{x}\vert\mathbf{z}) + D_\text{KL}( q_\phi(\mathbf{z}\vert\mathbf{x}) \| p_\theta(\mathbf{z}) )
+\end{align*}
+
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Variational Autoencoder (VAE)}{
+
+\item Training: SGD Updates for both networks
+
+\show[0.5]{bishop-VAE}
+
+\info{There is an error in the Bishop book (Alg. 19.1): $\mu$ and $\sigma$ are swapped at the highlighted line}
+
+\item Inference: Sample from Normal distribution and execute decoder
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Variational Autoencoder (VAE) + Imitation Learning}{
+
+\show[0.9]{ichter1}
+
+\cen{\showh[.4]{ichter3}\qquad\showh[.3]{ichter2}}
+
+\citehere{2018-ichter-LearningSamplingDistributions}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\key{Diffusion}
+\slide{Diffusion}{
+
+\item Train one network that ``removes'' noise
+
+\twocol{.6}{.3}{
+
+\show[0.9]{ddpm_fig2}
+
+Forward diffusion process: sample $\mathbf{x}_{0}$ and add iid Gaussian noise
+\begin{align*}
+    q(\mathbf{x}_{1:T} \vert \mathbf{x}_0) = \prod^T_{t=1} q(\mathbf{x}_t \vert \mathbf{x}_{t-1})\\
+    q(\mathbf{x}_t \vert \mathbf{x}_{t-1}) = \mathcal{N}(\mathbf{x}_t; \sqrt{1 - \beta_t} \mathbf{x}_{t-1}, \beta_t\mathbf{I})
+\end{align*}
+
+}{
+\citehere{2024-bishop-DeepLearningFoundations}
+\citehere{2021-weng-WhatAreDiffusion}
+\citehere{2024-chan-TutorialDiffusionModels}
+\citehere{2020-ho-DenoisingDiffusionProbabilistic}
+
+{\tiny ML Lecture, slide 11}
+}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Diffusion}{
+
+\item Train one network that ``removes'' noise
+
+\twocol{.6}{.3}{
+
+\show[0.9]{ddpm_fig2}
+
+Reverse process: learn $p_\theta(\mathbf{x}_{t-1} \vert \mathbf{x}_t)$
+\begin{align*}
+p_\theta(\mathbf{x}_{0:T}) = p(\mathbf{x}_T) \prod^T_{t=1} p_\theta(\mathbf{x}_{t-1} \vert \mathbf{x}_t)\\
+p_\theta(\mathbf{x}_{t-1} \vert \mathbf{x}_t) = \mathcal{N}(\mathbf{x}_{t-1}; \boldsymbol{\mu}_\theta(\mathbf{x}_t, t), \boldsymbol{\Sigma}_\theta(\mathbf{x}_t, t))
+\end{align*}
+
+}{
+\citehere{2024-bishop-DeepLearningFoundations}
+\citehere{2021-weng-WhatAreDiffusion}
+\citehere{2024-chan-TutorialDiffusionModels}
+\citehere{2020-ho-DenoisingDiffusionProbabilistic}
+
+{\tiny ML Lecture, slide 11}
+}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Diffusion: Training}{
+
+\show[0.65]{bishop_alg20_1}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Diffusion: Sampling}{
+
+\show[0.65]{bishop_alg20_2}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Diffusion + Imitation Learning}{
+
+\show[0.6]{diffusion-policy1}
+
+\show[0.9]{diffusion-policy2}
+
+\citehere{2023-chi-DiffusionPolicyVisuomotora}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Comparison of Generative Models}{
+
+\show[0.6]{lilianweng-generative-overview}
+
+% Interaction
+\item What are advantages / disadvantages? (e.g., sample quality, sample efficiency, distribution ``coverage'', ease of training)
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\key{Case Studies}
+\slide{Case Study: Deep Drone Acrobatics}{
+
+\show[0.8]{deepDroneAcrobatics}
+
+\citehere{2020-kaufmann-DeepDroneAcrobatics}
+
+{\urlfont\url{https://youtu.be/2N_wKXQ6MXA}}
+
+% show video
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Case Study: Deep Drone Acrobatics}{
+
+\item Input
+    \begin{enumerate}
+        \item \textbf{Abstraction} of sequence of last camera images (feature tracks)
+        \item \textbf{Preprocessed} sequence of IMU data
+        \item Reference trajectory
+    \end{enumerate}
+\item Output
+    \begin{itemize}
+        \item Desired body rates and thrust (to be tracked by attitude controller)
+    \end{itemize}
+\item Data
+\begin{itemize}
+    \item Purely from simulation (privileged expert = optimization-based MPC controller)
+\end{itemize}
+\item Learning
+\begin{itemize}
+    \item Privileged Teacher (here: given, not learned from human demonstrations)
+    \item DAgger
+\end{itemize}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Case Study: Deep Drone Acrobatics}{
+
+~
+
+\show[1.0]{deepDroneAcrobatics_fig4}
+
+~
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Case Study: Deep Drone Acrobatics}{
+
+Unique design choices:
+\begin{itemize}
+    \item Pre-processing of input for \textbf{sim-to-real transfer}
+    
+    \show[0.6]{DeepDroneAcrobatics_fig5}
+
+    \item Asynchronous network branch inference
+    \item Custom DAgger rollout for \textbf{sim-to-real transfer}: only use policy if similar to expert; also include random actions
+\end{itemize}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Case Study: Using ALOHA Data}{
+
+\show{aloha1}
+
+\citehere{2023-zhao-LearningFineGrainedBimanualc}
+
+{\urlfont\url{https://tonyzhaozh.github.io/aloha/}}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Case Study: Using ALOHA Data}{
+
+~
+
+\show[1.0]{aloha_fig3}
+
+~
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Case Study: Using ALOHA Data}{
+
+\item Conditional Variational Autoencoder (CVAE)
+    \begin{itemize}
+        \item Encoder: joint positions, expert action sequence ($k >> 1$)
+        \item Latent space: $z$ ``style'' (dim=32)
+        \item Decoder: observations (4 RGB images), joint positions, ``style'' $z$; output: planned action sequence
+    \end{itemize}
+
+\show{aloha_fig4}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Case Study: Using ALOHA Data}{
+
+\twocol{.6}{.4}{
+
+\item Inference: $z$ is always set to 0 (deterministic generator)
+\item Key insights: transformer architectures for encoder and decoder; MPC-style encoding (action chunks + temporal ensemble)
+
+\item Fun statistics:
+\begin{itemize}
+    \item 80 M parameters; 5h training (RTX 2080 Ti); 10ms inference
+    \item 50 demonstrations per task (about 20min of data)
+\end{itemize}
+}{
+    \show[0.9]{aloha_fig5}
+}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Case Study: Domain Adaptive Imitation Learning (DAIL)}{
+
+\show{DAIL}
+
+\item How to perform a task, given demonstrations from a different domain (viewpoint, embodiment, and/or dynamics mismatch)?
+
+
+\show[0.6]{DAIL_fig4}
+
+{\urlfont\url{https://youtu.be/l0tc1JCN_1M}}
+
+\citehere{2020-kim-DomainAdaptiveImitation}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Case Study: Domain Adaptive Imitation Learning (DAIL)}{
+
+\item Given: \textbf{unprocessed} examples for the same tasks for robots $x$ and $y$
+\begin{itemize}
+    \item $D_{x,y}=\{(D_{M_x, T_i}, D_{M_y, T_i}) \}_{i=1}^N$ for $N$ tasks $\{T_i\}_{i=1}^N$
+    \item Data is not paired/aligned, i.e., $s_x^{(t)}$ does not ``match'' $s_y^{(t)}$
+    
+    \show[0.5]{DAIL_fig1a}
+\end{itemize}
+\item Goal: Given a new demonstration of unseen task $T_j$ for $y$, transfer/execute directly (``zero-shot'') on robot $x$
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Case Study: Domain Adaptive Imitation Learning (DAIL)}{
+
+\item Learning Alignment from $D_{x,y}=\{(D_{M_x, T_i}, D_{M_y, T_i}) \}_{i=1}^N$: 
+    \begin{enumerate}
+        \item Learn $\pi_{y,T_i}^*$ for all $T_i$ (Behavior Cloning)
+        \item Learn mapping of states from $x$ to $y$: $f_{\theta_f}: x_x \mapsto x_y$
+        \item Learn mapping of actions from $y$ to $x$: $g_{\theta_g} u_y \mapsto u_x$
+        \item Learn dynamics/step function of $x$: $P_{\theta_P}^x: x_x, u_x \mapsto x_x$
+    \end{enumerate}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Case Study: Domain Adaptive Imitation Learning (DAIL)}{
+
+\item Adaption
+    \begin{enumerate}
+        \item Learn $\pi_{y,T_j}^*$ for new task $T_j$ (Behavior Cloning)
+        \item $\pi_{y,T_i}^*(x_x) = g_{\theta_g}(\pi_{y,T_j}^*(f_{\theta_f}(x_x)))$
+    \end{enumerate}
+
+% \item Approach: Generative Adversarial MDP Alignment (GAMA)
+
+\show{DAIL_fig1bc}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Case Study: Domain Adaptive Imitation Learning (DAIL)}{
+
+\item Alignment Approach: Generative Adversarial MDP Alignment (GAMA)
+\begin{itemize}
+    \item Discriminator tries to separate real transitions ($(x,u) \to x'$) from aligned transitions
+    \item ``Generator'' are $f$ and $g$ (deterministic)
+\end{itemize}
+
+\show[0.9]{DAIL_alg1}
+
+}
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% \slide{Case Study: NTE}{
+
+% \item TODO: perhaps better in the multi-robot learning class
+% \item alpha zero?
+% \item the locomotion paper guanya had?
+% \item maybe car racing paper?
+
+% }
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% \slide{To Do}{
+
+% privileged teaching examples: locomotion (?), drone acrobatics; put at beginning or end?
+
+
+% }
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Conclusion}{\label{lastpage}
+
+\item Imitation Learning works well for robotics
+    \begin{itemize}
+        \item Efficient, effective, stable training
+        \item Fast inference
+        \item State-of-the-art real-robot results (mobile robots, manipulation, planning)
+    \end{itemize}
+
+\item Main challenge: acquire labeled data
+    \begin{itemize}
+        \item Simulation possible (e.g., make slow algorithms fast) $\Rightarrow$ Use \textbf{DAgger} and/or \textbf{privileged teacher} paradigm
+        \item Only real data $\Rightarrow$ intuitive data collection interfaces, powerful generative and sequence models, transfer learning
+    \end{itemize}
+
+\item Details can be tricky (what to learn [policy, trajectory, value function], how to represent inputs, network architectures)
+
+\item Not discussed (yet): How to become better than the ``expert'' (notion of reward)
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\ttiny
+\ifthenelse{\isundefined{\scripthead}}{
+\bibliographystyle{plainurl-lis}
+\bibliography{b2-ImitationLearning}
+}{}
+
+\slidesfoot

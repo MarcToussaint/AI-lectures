@@ -1,0 +1,1037 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Robot Learning}
+\renewcommand{\coursepicture}{roblearn.png}
+\renewcommand{\coursedate}{Summer 2024}
+\renewcommand{\teacher}{Marc Toussaint}
+
+\renewcommand{\topic}{TAMP \& Language}
+\renewcommand{\keywords}{}
+
+\slides
+
+\input{macros-local}
+\providecommand{\SE}{\text{SE}}
+\renewcommand{\path}{{\text{path}}}
+\renewcommand{\succ}{{\text{succ}}}
+\newcommand{\goal}{{\text{goal}}}
+\newcommand{\switch}{{\text{switch}}}
+\newcommand{\pre}[1]{{\textsf{#1}}}
+\newcommand{\rt}{{\mathcal{T}}}
+\newcommand{\xv}{{\underline x}}
+\newcommand{\secmpc}{{\sc SecMPC}}
+\newcommand{\face}[2]{
+\begin{minipage}{11mm}
+\centering
+\showh[1]{faces/#1}\\
+\ttiny #2
+\end{minipage}
+}
+
+\slidestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Remaining Lectures}{
+
+\item June 25: TAMP \& Language
+\item July 2: Multi-Robot Learning
+\item July 9: Robot Learning Discussion -- Lecture Feedback -- Exam Info
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Outline}{
+
+\item Background on Task and Motion Planning (TAMP)
+
+\item Learning in TAMP
+
+\item Language in Robotics
+
+\item LLMs \& TAMP
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Task and Motion Planning}
+\slide{Task and Motion Planning (TAMP) examples:}{
+
+\tiny
+
+\twocol{.5}{.4}{\centering
+
+\movh[]{.7}{movies-marc/14-Mordatch-CIO}\\
+Mordatch et al: CIO (SIGGRAPH'12)
+
+\medskip
+
+\movh[]{.7}{movies-marc/20-Garret-PDDLStream}\\
+Garrett et al: PDDLStream (ICAPS'20)
+
+}{\centering
+
+\movh[]{.6}{movies-marc/RSS-concat600600}\\
+Toussaint at al: LGP (RSS'18)
+
+\medskip
+
+\movh[]{.9}{movies-marc/21-valentingRSSsubmission}\\
+Hartmann et al. (IROS 20)
+%\movh[]{.4}{movies-marc/OpenAI-game-pushAround}\\
+%\hfill OpenAI Hide \& Seek (arxiv'19)
+
+}
+
+%% \medskip
+
+%% \normalsize
+%% %% Mujoco?
+
+%% \cen{\emph{What does it take to generate such behavior?}}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Task and Motion Planning (TAMP)}{
+
+~
+
+\item What is the right level of ``abstraction'' to reason about
+manipulation?
+
+\pause
+
+\begin{items}
+\item Low-level motor commands? (Torques?)
+\item Mid-level kinematic commands? (6D endeff target
+position/velocity)
+\item Actions/skills? (Pick, place, push, throw, hit, \emph{how long
+is the list?})
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Abstractions}{
+
+\item What does the AI/RL researcher say about abstractions?
+\begin{items}
+\item Hierarchical MDPs, Options, Hierarchical RL
+\item (Classical AI: Landmarks in A* search)
+\item Abstraction learning is hard:
+\begin{items}
+\item Given action primitives $\to$ state abstractions clear
+(Konidaris' work)
+\item Given state abstractions $\to$ action primitives clear (``skill
+discovery'')
+\item Classical ideas for state abstractions: identifying bottlenecks
+(=doors in configuration space; McGovern, Barto 2001)
+\end{items}
+\item Modern view: Data-driven: Assume tons of demonstrations and
+cluster-segment them
+\end{items}
+
+~\pause
+
+\item What does the Roboticist say about abstractions?\pause
+\begin{items}
+\item Force level, motion level, task level
+\item Task level: discrete symbolic state and actions (STRIPS/PDDL)
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{STRIPS/PDDL}{
+
+\show{task_planning_example}
+
+\medskip
+
+\begin{items}
+\item A symbolic state $s_t$ is a set of grounded literals
+\item A symbolic action operators defines a precondition and effect
+\item Eventually, \textbf{his defines the set of possible successor states
+$s_{t\po} \in \succ(s_t)$}
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Task and Motion Planning}{
+
+\item Task-level is defined by
+\begin{items}
+\item symbols (predicates), objects (constants), and action operators
+\item initial state $s_0$, goal sentence, action operators imply $\succ(s_t)$
+\end{items}
+
+\item Motion-level is defined by
+\begin{items}
+\item world configuration space $\XX$, goal configurations $\XX_\text{goal}\subseteq\XX$
+\item feasible space $\XX_{s,\t} \subseteq\XX$ depending on logic state $s$
+and \emph{entry point} $\t$ (action parameter)
+
+\info{$\XX_{s,\t}$ is called \emph{foliation}, or multi-modal space ~
+$\to$ ~ \textbf{multi-modal motion planning (MMMP)}}
+\end{items}
+
+\item Path-Finding formulation of TAMP:
+\begin{items}
+\item Find sequence of $(s_i,\tau_i)$ of symbolic states and 
+continuous feasible paths $\tau_i$ that lead to goal:
+\item Paths: $\tau_i: [0,1] \to \XX_{s_i,\t_i}$
+\item Continuity: $\tau_i(0) = \tau_{i\1}(1)$
+\item Entry points: $\t_i = \tau_{i\1}(1)$ (e.g.\ action parameter,
+grasp, lower-dim feature of $\tau_{i\1}(1)$)
+\item Goal: $s_K \models \text{goal}, \tau_K(1) \in \XX_\text{goal}$
+\end{items}
+
+\citehere{2021-garrett-IntegratedTaskMotion}
+
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Logic-Geometric Program}
+\slide{TAMP as Logic-Geometric Program (LGP)}{
+
+\small
+
+\hspace*{-5mm}\twocol[.05]{.55}{.4}{
+
+\tiny
+\begin{align*}
+\hspace*{-5mm}\min_{s_{1:K} \atop x:[0,KT]\to \XX} & \int_0^{KT} c(\xv(t))~ dt  \\
+\hspace*{-5mm}\st~& x(0)=x_0,~ \\%\phi_\goal(X_T)\le0,~\\
+& \forall_{t\in[0,T]}:~
+   \bar\phi(\xv(t), s_{k(t)})\le0 \\
+& \forall_{k\in\{1,..,K\}}:~
+  \hat\phi(\xv(t_k), s_{k\1}, s_k)\le0 \\
+& s_K \models \text{goal},~ \forall_{k\in\{1,..,K\}}:~ s_k \in \succ(s_{k\1})
+\end{align*}
+
+\small
+
+\item {Skeleton} $s_{1:K}$ defines {schedule of physical
+   modes}
+
+\item {Constraints} $\hat\phi, \bar\phi$ {define correct physics \textbf{differentiable}}
+
+
+\ttiny\medskip
+
+[inequalities subsume equalities; $\xv=(x, \dot x, \ddot x)$]
+
+}{
+
+\pause
+
+\show[.75]{tampLogic}
+
+~
+
+\item Solving implies searching over $s_{1:K}$ and solving the corresponding NLP
+
+}
+
+\medskip
+
+%% \cit{Toussaint}{Logic-Geometric Programming: An Optimization-Based Approach to Combined Task and Motion Planning}{IJCAI'15}
+
+%% \cit{Toussaint, Lopes}{Multi-Bound Tree Search for Logic-Geometric Programming}{ICRA'17}
+
+%% \cit{Toussaint, Allen, Smith, Tenenbaum}{Differentiable Physics and Stable Modes for Tool-Use and Manipulation Planning}{R:SS'18}
+
+\citehere{2015-toussaint-LogicGeometricProgrammingOptimizationBased}
+
+\citehere{2018-toussaint-DifferentiablePhysicsStable}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{renderings(!) of example solutions...}{
+
+\threecol{.3}{.4}{.25}{\centering
+
+%\vspace*{-5mm}
+\movh[]{.9}{movies-marc/RSS-concat600600}%
+\anchor{-40,-7}{\ttiny(R:SS 18)}
+
+%~
+
+%%\movh[]{.9}{videos/19-forceBased-pushWithStickFloat3_COMP}
+\movh[loop]{.9}{videos/19-forceBased-pushWithStick-good_COMP}
+
+}{\centering
+
+\movh[loop]{.9}{movies-marc/21-valentingRSSsubmission}%
+\anchor{-40,-7}{\ttiny(IROS 20)}
+%20-IROS-BUGAassembly}
+
+\medskip
+
+\movh[loop]{.75}{videos/19-forceBased-liftRing-dynamic_COMP}%
+\anchor{-40,-7}{\ttiny(IROS 20)}
+
+}{\centering
+
+~
+
+\movh[loop]{.9}{movies-marc/20-DeepVisualReasoningData}%
+\anchor{-40,-7}{\ttiny(R:SS 20)}
+
+
+~
+
+\movh[loop]{.9}{videos/19-banana-03}
+
+~
+
+%\movh[]{.9}{videos/19-forceBased-bookOnShelf2_COMP}
+
+}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Abstractions}{
+
+~
+
+\item What does ``LGP'' say about abstractions?
+\pause
+\begin{items}
+\item There are two levels: the convex level (NLP), and the non-convex
+(discrete decisions)
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Outline}{
+
+\item Intro to Task and Motion Planning (TAMP)
+
+\item \textbf{Learning in TAMP}
+
+\item Language in Robotics
+
+\item LLMs \& TAMP
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Learning in TAMP}
+\slide{Is model-based TAMP a dead end?}{
+
+\item LGP formulates TAMP as model-based optimization problem
+\begin{items}
+\item Assumption of having a world model is unrealistic ~ (state
+estimation from vision ill-posed...)
+\item High computation time for large problems -- why plan from
+scratch every time?
+\end{items}
+
+~\pause
+
+\item Opportunities for learning:
+\begin{items}
+
+\item \textbf{Replace exact model by learned constraints $\phi(x)$}
+\begin{items}
+\item The LGP definition actually only needs constraints
+$\phi(x)$, no explicit world model
+\item Instead of hand-defining these from a model $\to$ image-conditional neural models $\phi_\t(x; \II)$
+\end{items}
+
+\item \textbf{Learn to predict plans}
+\begin{items}
+\item Instead of solving from scratch, learn to predict promising
+actions $a_{1:K}$ from the scene image
+\end{items}
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\item Replace exact model by learned constraints  $\phi(x)$:
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Constraints Learning}
+\slide{}{
+
+\show{22-ha1}
+
+\medskip
+
+\twocol[.05]{.45}{.45}{
+
+\item Learn $\phi(x,\II)$ with $V$ input images $\II$ s.t.:
+\begin{items}
+\item $\phi(x; \II)=0$ $\iff$ $x$ is correct grasp
+\item $\phi(x; \II)=0$ $\iff$ $x$ is correct hanging
+\end{items}
+
+}{
+
+\small
+
+\item Data generating in simulation:
+\begin{items}
+\item Collect trial-and-error data on correct grasps and hanging
+\end{items}
+
+%% \item (Pre-train backbone on shape reconstruction)
+
+}
+
+\medskip
+
+\citehere{2022-ha-DeepVisualConstraintsa}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Deep Visual Constraints: Network Architecture}{
+
+\medskip\small
+
+\twocol[.03]{.4}{.5}{
+
+\showh[.9]{jungsu2}
+
+~
+
+\showh[.9]{jungsu1}
+
+~
+
+\citehere{2022-ha-DeepVisualConstraintsa}
+
+}{
+
+\item Camera views $\II = \{(I^1, K^1), ..., (I^V, K^V)\}$
+
+Wanted: image-based constraint model
+
+\cen{$\phi(x; \II)$}
+
+~%\pause
+
+\item First train a $d$-dimensional \textbf{field representation}
+
+\cen{$y(p; \II) = \frac{1}{V}\Sum_i \text{MLP}(\text{UNet}(I^i, K^i(x)), K^i(x))$}
+
+\medskip
+{\tiny [$p\in\RRR^3$, pre-trained for shape decoding (SDF prediction)]}
+
+~%\pause
+
+\item Function is queried at finite set of \emph{interaction points} $p_1(x),..,p_K(x)$ to get the feature
+
+\cen{$\phi(x;\II) = \text{MLP}(y(p_1(x);\II),..,y(p_K(x);\II))$}
+
+\medskip
+{\tiny [fine-tuned for manipulation success (trial \& error in sim)]}
+
+}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Deep Visual Constraints}{
+
+{\tiny (No search over skeletons, no reactive MPC, just optimal path for given sequence of constraints.)}
+
+~
+
+%\twocol{.5}{.4}{
+
+\movc[]{.45}{videos/jungsu/MugHaningDemo}
+
+%% }{
+
+%% \movc[]{.7}{videos/jungsu/training-concat}
+
+%% }
+
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Similar: Learn Dynamics Constraints}{
+
+%% \medskip
+
+%% \cen{\showh[.45]{nerf1}\qquad\showh[.25]{nerf2}}
+
+%% ~
+
+\twocol[.05]{.45}{.45}{
+
+~
+
+\show[1]{nerfDyn1}
+
+\citehere{2023-driess-LearningMultiobjectDynamicsa}
+%% \face{Danny_Driess}{Danny Driess}\quad
+%% $\cdots$\quad
+%% \face{russ_tedrake}{Russ Tedrake}
+
+{\urlfont\url{https://dannydriess.github.io/compnerfdyn/}}
+
+~
+
+\show[1]{nerfDyn3}
+
+}{
+
+\show[1]{nerfDyn2}
+
+~\small
+
+\item Each object has a latent code $z_i^t$
+
+\item learn dynamics $z_{1:m}^t \mapsto z_i^{t\po}$!
+
+}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\item Learning to predict plans..
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Learning to predict plans}
+\slide{}{
+
+\twocol[.05]{.4}{.5}{
+
+\show[1]{20-danny1}
+
+\show{20-danny2}
+
+~
+
+\citehere{2020-driess-DeepVisualReasoning}
+
+}{\small
+
+\item Data collection $D = \{ \left(S^i, g^i, a^i_{1:K^i}, F^i\right) \}_{i=1}^n$
+\begin{items}
+\item with scene $S^i$, goal $g^i$, actions $a^i_{1:K^i}$,
+feasibility $F^i$
+\item random generated ``in simulation'', \textbf{model-based TAMP
+solver used to label feasibility}
+\end{items}
+
+~
+
+\item Train a sequential policy:
+
+{\tiny
+$\pi(a_k; g, a_{1:k\1}, S) =$\\
+$P(\exists_{K>K}\exists_{a_{k\po:K}}: a_{1:K} \text{feasible} \| a_k,
+g, a_{1:k\1}, S)$
+
+}
+\begin{items}
+\item Similar to language model: Predict next
+``token'' $a_k$ given previous $a_{1:k\1}$ conditional $g,S$
+\end{items}
+
+}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Deep Visual Reasoning: Network Architecture}{
+
+~
+
+\showh[.4]{talk-LGP/danny1}~\showh[.55]{talk-LGP/danny2}
+
+~\small
+
+\item Uses RNN -- modern version would use transformer
+
+\item Special encoding of predicates $\bar a, \bar g$ and references $O$ (as masks)
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Deep Visual Reasoning: Results}{
+
+~
+
+\twocol[.05]{.45}{.45}{
+
+\movc[externalviewer]{1.}{movies-marc/20-deepVisualReasoning}
+
+}{
+
+
+\show[.8]{talk-LGP/forMarc/results1}
+
+\show[.8]{talk-LGP/forMarc/results2}
+
+~\tiny
+
+\item Often, the first proposed action sequence is feasible
+
+}
+
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Outline}{
+
+\item Intro to Task and Motion Planning (TAMP)
+
+\item Learning in TAMP
+
+\item \textbf{Language in Robotics}
+
+\item LLMs \& TAMP
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Language in Robotics}
+\slide{}{
+
+\twocol[.05]{.45}{.45}{
+
+\show[1]{20-tellex1}
+
+~
+
+\citehere{2020-tellex-RobotsThatUse}
+
+}{
+
+\small
+
+\item Great survey on Natural Language Robot Interaction
+\begin{items}
+\item Using natural language to command robots, set tasks
+\item Using natural language to instruct robots, e.g.\ as part of
+demonstrations
+\item Different to standard NLP or dialog systems: \textbf{language
+needs to be physically grounded}
+\end{items}
+
+}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Natural Language Robot Interaction: Examples}{
+
+\medskip
+
+\twocol[.05]{.45}{.45}{
+
+\show[.9]{20-tellex3}
+
+\ttiny from \cite{2020-tellex-RobotsThatUse}
+
+}{
+
+\tiny
+
+\item robot asks for help
+\item human sets task (with language \& gesture)
+\item robot ``reads/comprehends'' wikihow
+\item demonstrations via dialog
+\item human sets task (nagivation)
+\item ...
+\item human sets task (object identification)
+\item human sets task (navigation)
+\item human sets task (manipulation)
+
+}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Natural Language Robot Interaction: Datasets}{
+
+\twocol[.05]{.5}{.35}{
+
+\show[.8]{20-tellex2}
+
+}{
+
+\tiny ``Data sets typically consist of natural language paired with some form of sensor-based context information about the physical
+environment''
+
+}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\small
+
+\item Previous survey highlights substantial literature on Natural Language Robot
+Interaction \emph{before} rise of LLMs
+
+\medskip
+
+\tiny Example: {\urlfont\url{https://youtu.be/VqSb-ZZuIwI?t=2523}}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Language-Image Models (CLIP, CLIPort, SayCan, PaLM-E, RT-2)}
+\slide{CLIP (Contrastive Language-Image Pre-training)}{
+
+~
+
+\twocol[.05]{.45}{.45}{
+
+\show[1]{clip1}
+
+~
+
+\citehere{2021-radford-LearningTransferableVisual}
+
+}{
+
+\tiny ``We demonstrate that the simple pre-training task of predict-
+ing which caption goes with which image is an
+efficient and scalable way to learn SOTA image
+representations from scratch on a dataset of 400
+million (image, text) pairs collected from the internet.''
+
+~
+
+\show[1]{CLIP1}
+
+}
+
+~
+
+\info{Contrastive Training: ``maximize the cosine similarity of the
+image and text embeddings of the $N$ real pairs in the batch while
+minimizing the cosine similarity of the embeddings of the $N^2 - N$ incorrect pairings.}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{CLIPort}{
+
+~
+
+\twocol[.05]{.45}{.45}{
+
+\show{CLIPort1}
+
+~
+
+\citehere{2022-shridhar-CliportWhatWhere}
+
+{\urlfont\url{https://cliport.github.io/}}
+
+}{
+
+\tiny
+
+``CLIPort: a language-conditioned imitation-learning agent that combines the broad semantic understanding (what) of CLIP
+with the spatial precision (where) of Transporter''
+
+}
+
+~
+
+\item Trains a policy $\pi: (y_i, l_l) \mapsto a_t$
+\begin{items}
+\item top-down orthographic RGB-D $y_t$, language
+instruction $l_t$, pick-n-place 2D coordinates $a_t$
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{SayCan}{
+
+~
+
+\twocol[.05]{.45}{.45}{
+
+Do As I Can, Not As I Say:
+Grounding Language in Robotic Affordances
+
+~
+
+\citehere{2023-brohan-CanNotSay}
+
+{\urlfont\url{https://say-can.github.io/}}
+
+}{
+
+\show[1]{SayCan2}
+
+}
+
+~
+
+\item Use a LLM (PaLM) to predict \emph{multiple} actions (with
+probabilities)
+\item Multiply each option with \emph{affordance prediction}
+(= probability of success)
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{PaLM-E}{
+
+~
+
+\twocol[.05]{.45}{.45}{
+
+\show[1]{palme1}
+
+~
+
+
+\citehere{2023-driess-PaLMEEmbodiedMultimodala}
+
+{\urlfont\url{https://palm-e.github.io/}}
+
+}{
+
+\show[.8]{palme-LLM}
+
+~\small
+
+\item Input: \emph{Multi-modal sentence:}
+\begin{items}
+\item Interleaves words, images (with segmentation), vectors, reference-keywords
+\item All token-encoded
+\item Various image encodings (ViT, object-centric ViT, OSRT, NeRFs pre-trained)
+\end{items}
+
+\item Output:
+\begin{items}
+\item Sequences of action primitives (previously trained, RT-1)
+\end{items}
+
+}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+~
+
+\tiny
+
+\twocol{.45}{.45}{\centering
+
+\movh[]{.7}{videos/23-palme-planning_4x_compressed}
+
+``Bring me the rice chips from the drawer''
+
+~
+
+\movh[]{.7}{videos/23-palme-green_star}
+
+``Bring me the green star''
+
+}{\centering
+
+\movc[]{.7}{videos/23-palme-red_blocks_to_coffee}
+
+``Push red blocks to the coffee cup''
+
+~
+
+\movh[]{.7}{videos/23-palme-green_blocks_to_turtle}
+
+``Push green blocks to the turtle''
+
+}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Example input/output}{
+
+~\small
+
+\item Prompt:\quad \texttt{Given <img>. Q: How to grasp the green object?.}
+
+Target:\quad \texttt{A: First grasp the orange object and place it on the table, then grasp the green object.}
+
+~
+
+\item Prompt:\quad \texttt{Given <img>. Q: How to stack the white object on top of the red object?.}
+
+Target:\quad \texttt{A: First grasp the green object and place it on the table, then grasp the white object and place it on the red object.}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{PaLM-E Evaluations}{
+
+\small
+
+\item Data sets:
+\begin{items}
+\item \textbf{TAMP data (generated by our LGP-TAMP planner)}
+\item Table data (previous RT1 paper)
+\item SayCan data
+\item Other visual/language data: WebLI, VQA, COCO, etc.
+\end{items}
+
+\item Pre-taining:
+\begin{items}
+\item LLM backbone: language, VQA (WebLI, VQA, COCO)
+\item Encodings: reconstruction, auto-encoding
+\end{items}
+
+\item Ablation studies:
+\begin{items}
+\item Varying transformer sizes
+\item generalization (to unseen object situations, esp.\ higher number of objects)
+\item freezing, refining, full-learning of backbone LLM or encodings
+\item with full/partial choice of data sets \& sizes
+\item various image encodings
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{PaLM-E evaluations}{
+
+\twocol{.45}{.45}{\centering
+
+\showh[.9]{palme-ex1}
+
+~
+
+\showh[.9]{palme-ex3}
+
+}{\centering
+
+\showh[.9]{palme-ex2}
+
+~
+
+\showh[.9]{palme-ex5}
+
+}
+
+%\showh[.9]{palme-ex4}
+
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Follow Up: RT-2}{
+
+~
+
+\twocol[.05]{.45}{.45}{
+
+\show{RT2-1}
+
+~
+
+\citehere{2023-zitkovich-Rt2VisionlanguageactionModels}
+
+}{
+
+\show[1]{RT2-2}
+
+~\tiny
+
+\item quasi-continuous actions (trained end-to-end):
+
+\show[1]{RT2-3}
+
+}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Conclusion}{\label{lastpage}
+
+\item Levels of abstraction: Force, motion, task
+
+\item Task and Motion ``Planning'': Core problem formulation of
+robotic AI
+\begin{items}
+\item TAMP theory \& solvers are fully model-based
+\item Clear opportunities for learning: constraint learning, learning
+to predict plans
+\end{items}
+
+\item Language $\oto$ task \& action level
+\begin{items}
+\item Lots of classical literature on \emph{language grounding}
+\item Connecting natural language with typical robot task descriptions (STRIPS/PDDL)
+\end{items}
+
+\item Huge recent focus on marrying LLMs + TAMP + robotics
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\ttiny
+\ifthenelse{\isundefined{\scripthead}}{
+\bibliographystyle{plainurl-lis}
+\bibliography{b7-TampLearning}
+}{}
+
+\slidesfoot

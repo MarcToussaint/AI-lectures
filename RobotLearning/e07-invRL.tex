@@ -1,0 +1,151 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Robot Learning}
+\renewcommand{\coursedate}{Summer 2024}
+\renewcommand{\exnum}{Weekly Exercise 7}
+
+\renewcommand{\teacher}{Marc Toussaint \& Wolfgang H{\"o}nig}
+\renewcommand{\addressTUB}{
+  Learning~\&~Intelligent~Systems Lab, Intelligent Multi-Robot Coordination Lab, TU~Berlin\\\small
+  Marchstr. 23, 10587 Berlin, Germany
+}
+
+\exercises
+
+\input{macros-local}
+\providecommand{\ttiny}{\tiny}
+
+\excludecomment{solution}
+
+\exercisestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Literature: Adversarial Inverse Reinforcement Learning}
+
+Here is an advanced paper on inverse RL applied to robotics problems:
+
+\bibentry{2018-fu-LearningRobustRewards}
+
+The paper was a big step forward in enabling Deep Learning methods for
+Inverse RL, namely by formulating a loss function similar to
+Generative Adversarial Networks (GANs) -- actually following the
+original idea formulating InvRL as a discriminative (max margin)
+problem \cite{2000-ng-AlgorithmsInverseReinforcement}. A followup paper \cite{2018-tucker-InverseReinforcementLearning}
+provides a nicer summary of the history of InvRL ideas and proposes improvement
+on Adversarial InvRL, but without robotics applications.
+
+The paper webpage
+{\urlfont\url{https://sites.google.com/view/adversarial-irl}} provides
+some videos. Here the questions:
+\begin{enumerate}
+\item Let's start with the experiments in Section 7.2: The setting of
+the evaluation is \emph{transfer learning}. Be able to explain Table
+1: What are the two domains and what kind of transfer is tested? What
+does ``TRPO, ground truth'' mean (TRPO is a standard RL method)?
+
+
+\item In Section 7.3, the setting of evaluation is \emph{imitation
+learning}. How is that different to the setting of 7.2? How does AIRL
+compare with GAIL (a pure imitation learning method) and the TRPO expert?
+
+
+\item The last equation in Sec. 4 (page 4) defines the discriminator
+$D_\t(s,a)$. In GANs, a discriminator outputs the probability of whether
+the input data point is from the ``original source'' instead of from the
+learned generative model. What exactly is the meaning of the output of
+the $D_\t(s,a)$ defined here?
+
+
+\info{Note that, as in GANs, Alg.~1 describes an algorithm that
+also improves the ``generative model'' (here the learned policy $\pi$)
+whenever the discriminative model was improved.}
+
+\item At first it might be unclear why learning $D_\t(s,a)$ is related
+to extracting an underlying reward function. The last equation in Sec
+6 (page 6) is quite crucial to understand this -- explain roughly why
+the two neural nets $g_\t(s)$ and $h_\phi(s)$ in Eq.(4) end up estimating
+reward and value functions.
+
+\end{enumerate}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Inverse RL on a Toy Control Problem}
+
+Consider a trivial control domain, with state $x\in\RRR$, controls
+$u\in[-1,1]$, and deterministic state transitions $x_{t\po} = x_t +
+u_t$.
+
+The expert policy $\pi^*$ is deterministic and chooses $\pi(x)
+= \text{clip}(-x)$, where $\text{clip}(x) = \max\{-1, \min\{+1,x\}\}$
+(a typical notation for clipping you should get used to).
+
+\begin{enumerate}
+\item What is a reward function $R(x)$ (depending on state only),
+such that the expert policy $\pi^*$ is optimal? Derive the Q-function
+$Q^{\pi^*}(x,u)$ for your reward function $R(x)$ and prove that
+$\pi^*$ is optimal. Assume a given discounting $\g\in[0,1)$. Is
+$\pi^*$ the only optimal policy for your $R(x)$, or do equally optimal
+policies exist?
+
+
+\item For a given $\g$, there exist many reward functions $R(x)$ such
+that $\pi^*$ is optimal. (Rescaling $R$ is trivial -- neglect this.) Describe a space of alternative reward
+functions such that $\pi^*$ is still optimal; e.g., find some
+(non-trivial) $F(x)$ such
+that for $R(x) \gets R(x) + F(x)$, $\pi^*$ is still optimal.
+
+
+\info{Note, this sounds like a question about reward shaping
+(=changing $R$ while guaranteeing invariance of the optimal
+policy) \cite{1999-ng-PolicyInvarianceReward}. However, this question
+is slightly different, as we have a concrete deterministic dynamics
+and do not require invariance w.r.t.\ all possible world dynamics.}
+
+\item Now, conversely, find a (minimal) variation $F(x)$ such
+that for $R(x) \gets R(x) + F(x)$, $\pi^*$ is not optimal anymore.
+
+\info{This illustrates how a choice of reward function can
+discriminate between policies; as is implicit in adversarial InvRL.}
+
+\end{enumerate}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Practical Exercise: Exploration in RL}
+
+In this exercise, we will revisit the Continuous Mountain Car problem from \texttt{gym}. Previously, running SAC with default parameters from StableBaselines3 did not perform well. This week, we will explore whether exploration can make things work better.
+
+One way to explore in RL is by adding noise to the actions taken. The paper \textit{Pink Noise Is All You Need: Colored Noise Exploration In Deep Reinforcement Learning} ({\urlfont\url{https://openreview.net/pdf?id=hQ9V5QN27eS}}) compares three types of noise:
+\begin{itemize}
+\item Gaussian (white) noise
+\item Ornstein-Uhlenbeck (OU) noise
+\item Pink noise
+\end{itemize}
+Our goal is to compare the effects of these noises on agent actions during training.
+
+\begin{enumerate}
+\item Review the \texttt{ActionNoise} wrapper from StableBaselines3 ({\urlfont\url{https://stable-baselines3.readthedocs.io/en/master/_modules/stable_baselines3/common/noise.html#ActionNoise}}), and the Pink Noise paper. Implement a child class \texttt{MyPinkNoise(ActionNoise)} that returns pink noise when called. Skeleton code is provided; you need to implement the call and reset methods.
+
+\item StableBaselines3 includes implementations of Gaussian and OU noise ({\urlfont\url{https://stable-baselines3.readthedocs.io/en/master/common/noise.html}}). Using your pink noise implementation, plot the different noise traces by plotting the 1D action on the y-axis and the time step on the x-axis with $\texttt{scale=0.3}$ for all noises.
+
+What do you observe?
+
+\item Use all three noise types to train SAC on MountainCarContinuous with default parameters. Using $\texttt{scale=0.3}$, train for $\texttt{total\_timesteps=2e4}$.
+
+What do you observe? Plot the learning curves of all training runs.
+
+HINT: It is not expected that all noises will lead to successful training. You do not need to adjust any SAC parameters.
+\end{enumerate}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\ifthenelse{\isundefined{\scripthead}}{
+\bibliographystyle{plainurl-lis}
+\bibliography{b3-ReinforcementLearning,b4-InverseRL}
+}{}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exerfoot

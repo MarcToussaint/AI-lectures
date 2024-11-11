@@ -1,0 +1,494 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Robot Learning}
+\renewcommand{\coursepicture}{roblearn.png}
+\renewcommand{\coursedate}{Summer 2024}
+\renewcommand{\teacher}{Marc Toussaint}
+
+\renewcommand{\topic}{Robotics Essentials}
+\renewcommand{\keywords}{}
+
+\slides
+
+\input{macros-local}
+\providecommand{\SE}{\text{SE}}
+\providecommand{\ang}{\text{ang}}
+\providecommand{\ul}{\underline}
+
+\slidestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Robotics Essentials Outline}{
+
+~
+
+\item A robot is an articulated multi-body system: ~ kinematics \& dynamics
+
+~
+
+\item Standard Control: ~ IK,~  path finding \& traj. opt, PD \& MPC
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Articulated Multibody System}
+\slide{Robot as Articulated Multibody System}{
+
+\item A robot is a multibody system. Each body
+\begin{items}
+\item has a pose $x_i\in\SE(3)$
+\item has inertia $(m_i, I_i)$ with mass $m_i\in\RRR$ and inertia tensor $I_i \in \RRR^{3\times 3}$ sym.pos.def.
+\item has a shape $s_i$ (formally: any representation that defines a pairwise signed-distance $d(s_i, s_j)$)
+\end{items}
+
+~
+
+\info{Useful: ``multibody system'' on Wikipedia}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Robot as Articulated Multibody System}{
+
+\item \textbf{Tree structure:}\anchor{200,-35}{\showh[.18]{geo-transforms-2}}
+
+\begin{items}
+\item Every body is linked to a parent body or the world
+\item We have relative transformations $Q_i \in \SE(3)$ from parent (or world)
+%\item \emph{Algorithm:} Computing pose $x_i$ is done by fwd chaining/concatenating all $Q_i$ from world to $i$
+\end{items}
+
+\info{If not tree-structured, we only represent a tree and use additional constraints to describe loops $\to$ more involved, but doable}
+
+
+~\pause
+
+
+\twocol[.02]{.65}{.28}{
+
+\item \textbf{Articulated Degrees of Freedom (dofs):}
+\begin{items}
+\item Some of the relative transformations $Q_i$ may have articulated (=motorized) \textbf{dofs} $q$ so that $Q_i(q)$
+
+\info{Different types of joints (hinge, prismatic, universal, ball) have different \# dofs and different mapping from dofs $q \mapsto Q_i(q)$}
+
+\item We stack all dofs of all relative transformations into a single\\ \textbf{joint vector} $q\in\RRR^n$
+\end{items}
+
+}{
+\showh[1]{kinematics-3}
+}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\cen{$x\in\SE(3)^m$: all body poses, \qquad $q\in\RRR^n$:~ joint vector}
+
+~
+
+~
+
+\begin{items}
+\item Forward kinematics: $q \mapsto x$,~ $\dot q \mapsto \dot x$,~ $\ddot q \mapsto \ddot x$
+\item Forward dynamics: $u \mapsto \ddot q$,~ inverse dynamics: $\ddot q \mapsto u$ \quad ($u\in\RRR^n$: joint torques)
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Forward Kinematics}
+\slide{Forward Kinematics ~ $q \mapsto x$}{
+
+\item Given $q$, what is the pose of any body $i$?
+
+$$q ~ \mapsto ~ \mat{c}{x_1\\x_2\\\vdots \\x_m} = \phi(q) \quad \in \SE(3)^m$$
+
+~
+
+\begin{items}
+\item \emph{Algorithm:} First determine all rel.\ trans. $Q_i(q)$, then forward chain them
+
+\item Often one cares only about position/orientation of one particular body $x_i$: the \textbf{``endeffector''}
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Forward Velocities \& Jacobian ~ $\dot q \mapsto \dot x$}{
+
+\item Given $\dot q$, what is the linear and angular velocity $(v_i, w_i)$ of any body $i$?
+
+$$\dot q \mapsto \mat{c}{v_1,w_1\\v_2,w_2\\\vdots \\v_m,w_m} = J(q)~ \dot q \quad\in \RRR^{m\times 6} $$
+
+\begin{items}
+\item with \textbf{Jacobian} $J(q)=\del_q \phi(q) ~ \in\RRR^{m\times 6\times n}$.
+
+\info{Since, $\phi$ is $\SE(3)$-valued, the Jacobian actually has output in its tangent space $se(3) \equiv \RRR^6$. In practise, code typically provides separate positional Jacobian $J^\pos \in \RRR^{m\times 3\times n}$ and angular
+Jacobian $J^\ang \in \RRR^{m\times 3\times n}$.}
+
+\pause
+
+\item Since we know how to compute $\phi(q)$, we can think of $J(q)$ as the ``autodiff'' of it
+\item However, positional/angular Jacobians are really very easy to provide without expensive autodiff
+
+\info{In practise, one only needs to figure out the $J^\pos, J^\ang$ for a rotational and translational joint -- all others follow from this.}
+%[Algorithmically all $\dot x_i$ can also be computed by forward propagating velocities along the three, without need to compute Jacobian first.]
+\end{items}
+
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Forward Accelerations ~ $\ddot q \mapsto \ddot x$}{
+
+\item Given $\ddot q$, what is the linear and angular acceleration $(\dot v_i, \dot w_i)$ of any body $i$?
+
+$$\ddot x = \dot J(q)~ \dot q + J(q)~ \ddot q ~\approx~ J(q)~ \ddot q$$
+
+~
+
+\begin{items}
+\item One typically approximates $\dot J = 0$
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{The word ``kinematics''}{
+
+\info{in parts from Wikipedia}
+
+~
+
+\begin{items}
+\item Mathematical description of possible motions of a (constrainted/multibody) system/mechanism \emph{without considering the forces}
+\item ``geometry of [possible] motions''
+\item Formally: Describe the space (manifold) of possible system poses and all possible paths in that space
+\item Read \textbf{generalized coordinates} on wikipedia: Understanding motion in terms of coordinates and (non-)holonomic constraints:
+\end{items}
+
+\cen{
+\showh[.15]{hexapod}\qquad
+\showh[.2]{deltaRobot}\qquad
+\showh[.15]{coordinates}
+}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Inverse Dynamics}
+\slide{Inverse dynamics ~ $\ddot q \mapsto u$}{
+
+\item Given $\ddot q$, what joint torques $u$ do we need to generate this $\ddot q$ (accounting for gravity)?
+
+~\pause
+
+\item Coupled Newton-Euler equations: For each body:\anchor{20,-40}{\showh[.3]{featherstoneRNE}\anchor{-35,-7}{\ttiny from Featherstone'14}}
+\begin{align*}
+F_i = \mat{c}{f_i \\ \tau_i}
+&= \mat{c}{m_i \dot v_i \\I_i \dot w_i + w_i\times I_i w_i} \\
+F^\text{back}_i
+&= F_i - F^\text{ext}_i + \sum_{j=\text{child(i)}} F^\text{back}_j \comma u_i = h_i^\T F^\text{back}_i
+\end{align*}
+
+\info{where $F^\text{ext}_i$ are external (e.g.\ gravity) forces; and $F^\text{back}_i$ is the force ``send back through the joint to the parent of $i$''; $h_i$ is the joint axis (picking up the torque)}
+
+\info{Can also be written as linear equation system between $\ddot q$, $F$, $F^\text{back}$, and $u$ (with sparse matrices only) -- and solved/inverted in $O(m)$.}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{\centering
+
+solved! \quad We can accelerate the thing as we like
+
+~\pause
+
+the rest is planning: How should I accelerate to reach some future goals?
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Standard Control Stack}
+\slide{Standard Template: Waypoint + Reference Motion + Controller}{
+
+\pause
+
+\item Standard problem setting: Control motors, so that at $t=T$ seconds the endeffector $x_i$ is at desired position $y^*\in\RRR^3$, i.e., $\phi(q_{t=T}) = y^*$
+
+\pause
+
+\item Problem decomposition:
+\begin{items}
+  \item Find a final robot pose $q_T$ that fulfills constraint 
+    $\phi(q_{t=T}) = y^*$ -- \textbf{inverse kinematics}
+  \item Find a nice \emph{reference} motion from current robot pose $q_0$ to $q_T$ -- \textbf{path finding, trajectory optimization, or trivial interpolation/PD}
+  \item Find a control policy $\pi: x_t \mapsto u_t$ that reactively sends motor commands to follow the reference motion -- \textbf{inverse dynamics, PD control, Riccati}
+\end{items}
+
+\info{You could think of this as three different time scales: rough future waypoint(s)/goal(s), continuous motion to next waypoint, short-term controls.}
+
+\info{There are other ways to approach this:
+You could remove step (1) and shift that issue into (2), or remove (1 \& 2) and shift all issues into (3) - morphing this into other approaches. E.g. directly defining a desired force/acceleration behavior in ``task space'' (=operational space control).}
+
+\info{continuous replanning/re-estimation can also make (1) and (2) reactive.}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Inverse Kinematics}
+\slide{Inverse Kinematics}{
+
+\item Find $q$ to fulfill $\phi(q) = y^*$ for differentiable fwd kinematics $\phi$.
+
+\begin{align*}
+&\min_{q\in\RRR^n} \norm{q-q_0}^2 \st \phi(q) = y^* \\
+\text{or}\quad&\min_{q\in\RRR^n} \norm{q-q_0}^2 + \m \norm{\phi(q) - y^*}^2 \quad\text{for large $\m$}
+\end{align*}
+
+~
+
+\item Solution for linearized $\phi$:
+\begin{align*}
+q^*
+&= q_0 +  J^\T (J J^\T + \textstyle\frac{1}{\mu} \Id)^\1 (y^*-\phi(q_0))
+\end{align*}
+
+~
+
+{\tiny\hfill Python Package: \url{https://marctoussaint.github.io/robotic/}}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Path Finding \& Trajectory Optimization}{
+
+\item Given current $q_0$ and future $q^*$, find a collision free \textbf{path}
+\begin{items}
+\item Wolfgang H\"onig's \& Andreas Orthey's lecture
+\item RRTs, PRMs, under constraints (kinodynamic)
+\end{items}
+
+~\pause
+
+\item \textbf{Trajectory} opimization
+\begin{items}
+\item Time continuous formulation:
+\tiny\begin{align*}
+  \min_{q(t)} ~& \int_0^T c(q(t),\dot q(t),\ddot q(t))~ dt ~\st~ q(0)=q_0,~ q(T) = q^*, \dot q(0)=\dot q(T)=0 ~,
+  \forall_{t\in[0,T]}: \bar\phi(q(t),\dot q(t),\ddot q(t)) \le 0 ~.
+\end{align*}
+
+\item Time-discretized, assuming $k$-order Markov coupling terms (KOMO):
+\cit{A tutorial on Newton methods for constrained trajectory optimization and relations to SLAM, Gaussian Process smoothing, optimal control, and probabilistic inference}{Marc Toussaint}{Springer 2017}
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Control around a Reference}{
+
+\item Use \textbf{Inverse Dynamics} directly
+\begin{items}
+\item We have $\ddot q^*(t)$ $\to$ map it to controls $u$ directly
+\item But what if you're off the reference a bit? \emph{How to steer back?}
+\end{items}
+
+\pause
+
+\item Use \textbf{PD law} to accelerate back to reference:
+\begin{items}
+\item Define a PD law $\ddot q^\text{desired} = \ddot q^*(t) + k_p (q^*(t) - q) + k_d(\dot q^*(t) - \dot q)$ with desired PD behavior back to reference
+\item Then use Inv dynamics $\ddot q^\text{desired} \mapsto u$
+\item (Also ok, but needs severe tuning: directly define a PD controller $\ddot u = M \ddot q^*(t) + K_p(q^*(t) - q) + K_d(\dot q^*(t) - \dot q)$.)
+\end{items}
+
+\pause
+
+\item Use \textbf{Riccati} to get an \textbf{Optimal Linear Regulator} around reference
+\begin{items}
+\item Define optimal control problem, e.g., $\min_{\pi:q,\dot q\mapsto u} \int_0^T c(q(t), \dot q(t), u(t))~ dt + \phi(x(T))$
+\item We can linearize dynamics around reference $\to$ has an analytic solution (Algebraic Riccati eq.)
+\item Resulting controller is a ``linear regulator'', i.e., a PD law where matrices $K_p, K_d$ depend on $t$ and are chosen optimally.
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Model-Predictive Control (MPC)}
+\slide{Model-Predictive Control (MPC)}{
+
+
+\item When getting far away from the reference, linearization of Riccati might break, and PD is too simple
+
+~\pause
+
+\item Continuously replan ($\sim$ 10-1000Hz): re-solve the optimal control problem
+\begin{items}
+\item Optimal Control problem can also include task constraints directly, not only following a reference
+\item As a compromise: typically limit horizon
+\end{items}
+
+~
+
+\cen{\textbf{This is a default way of ``thinking control'' in robotics}}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Summary}{
+
+~\pause
+
+\item A robot is an articulated multi-body system
+\begin{items}
+\item Fwd kinematics: $q \mapsto x$,~ $\dot q \mapsto \dot x$,~ $\ddot q \mapsto \ddot x$
+\item Fwd dynamics: $u \mapsto \ddot q$,~ inv dynamics: $\ddot q \mapsto u$ \end{items}
+
+~\pause
+
+\item Standard Control Template:
+\begin{items}
+\item IK (or constraint solving) to estimate future goal/waypoints
+\item Path Finding \& Trajectory Optimization to estimate Reference Motion
+\item PD, Linear Regulator, or MPC to control (around the reference)
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Challenges}
+\slide{How far can we get with this approach?}{
+
+~\pause
+
+\item What did we assume to \emph{know}?
+\begin{items}
+\item Structure of multi-body system, all shapes, inertias
+\item All goals/objectives modelled (=programmed) as differentiable costs/constraints
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Challenge 1: Interacting with the environment}{
+
+\item If we only care about the \textbf{robot itself} (all goals/objectives/models concern the robot directly) -- the above it totally fine
+
+~\pause
+
+\item Things get challenging when we care about \textbf{interacting with the environment}
+\begin{items}
+\item Models/goals/objectives of interaction (contact, grasp) are more complicated
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Challenge 1: Interacting with the environment}{
+
+\item Example: Locomotion
+\begin{items}
+\item Interaction: Making contact with the ground to generate ground forces
+
+\item Robot root is not attached to world, but free floating (complicates dynamics a bit)
+
+\item Dynamics heavily influenced by ground forces, which are \emph{contact complementary} hard on-off switching of forces at contact $\to$ hybrid/discrete structure, makes dynamics and solvers much much more complicated (hybrid control)
+\end{items}
+
+~\pause
+
+... more complicated than ``vanilla robot'', but still doable
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Challenge 1: Interacting with the environment}{
+
+\item Example: Manipulation
+\begin{items}
+\item Objects in the environment (part of the ``multibody system'') have their own DOFs, but are NOT ``articulated'' with motors: if not grasped or touched, they cannot move $\to$ their Jacobian $\del_q x_i = 0$
+
+\item Hard on-off switching of manipulability; hybrid dynamics \& problem
+
+\item Dynamics of object motions can be much more complicated than (also free-floating) robot dynamics: friction, stiction, slip, non-point contacts
+
+\item Waypoint constraints $\phi(x_t)$ much more complicated (correct grasping of complex shape, pushing, throwing)
+
+\item If objects are deformable, their form becomes DOF (e.g. neural latent code) -- becomes much much more complicated in above approach
+\end{items}
+
+~\pause
+
+\item In essence, things become much more complicated, but one still \emph{can} write down essential physics equations of object interaction, and use these equations in above approach
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Challenge 2: State Estimation}{
+
+\item All of the above requires to estimate states
+\begin{items}
+\item $q_0$ (includes pose of a mobile robot)
+\item $x_i$ (poses of objects in environment)
+\item shapes and inertias in the environment, dynamics parameters (e.g.\ friction)
+\end{items}
+
+~
+
+\info{Basic state estimation can often also be formulated as optimization problem (e.g.\ graph-SLAM) -- similar to motion optimization: Find estimates (also of past motion) that is \emph{most consistent} with sensor readings; minimze error between real readings and model-predicted readings. (Or as probabilistic inference.)}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Relation to Robot Learning}{\label{lastpage}
+
+\item On the formal/theory side, they share foundations:
+\begin{items}
+\item Optimal Control formulation $\oto$ Markov Decision Processes \& Reinforcement Learning
+\item More generally: optimality formulations $\to$ learning/black-box opt.\ approaches
+\end{items}
+
+~\pause
+
+\item Components can be \emph{replaced} or \emph{shortcut} by learning:
+\begin{items}
+\item Dynamic modelling $\oto$ system identification
+\item Optimal Control (e.g., MPC, Riccati) can be shortcut by learning $V$- or $Q$-function
+\item Need of inverse dynamics can be shortcut by learning $Q$-function instead of $V$-function
+\item Constraint solving (also IK) can be shortcut by directly learning a policy or sampler that fulfills constraint
+\pause
+\item \textbf{Shortcut state estimation:} Avoid all state-based models, learn direct sensor-based models (policies, value functions, planners, dynamics, etc)
+\item \textbf{End-to-end:} Shortcut the whole approach by learning images $\mapsto$ torques
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slidesfoot
+

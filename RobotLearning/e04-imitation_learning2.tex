@@ -1,0 +1,166 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Robot Learning}
+\renewcommand{\coursepicture}{roblearn.png}
+\renewcommand{\coursedate}{Summer 2024}
+\renewcommand{\exnum}{Weekly Exercise 4}
+
+\renewcommand{\teacher}{Marc Toussaint \& Wolfgang H{\"o}nig}
+\renewcommand{\addressTUB}{
+  Learning~\&~Intelligent~Systems Lab, Intelligent Multi-Robot Coordination Lab, TU~Berlin\\\small
+  Marchstr. 23, 10587 Berlin, Germany
+}
+
+\exercises
+
+\ifthenelse{\isundefined{\scripthead}}{
+  \usepackage{tikz}
+}{}
+
+\excludecomment{solution}
+
+\exercisestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Trajectory Distribution $\to$ Control}
+
+In the context of imitation learning, assume that from demonstration data you learned a trajectory distribution as well as an inverse dynamics model and now want to use these to ``execute what you learned'' on a robot. This question is about how to derive a control policy from a trajectory distribution and an inverse dynamics model.
+
+More specifically, assume you learned a trajectory distribution
+\begin{align}
+p(x_t) = \NN(x_t; \mu_t, \S_t) \comma t=1,..,T ~,
+\end{align}
+where for each time step $t$ you have a different mean $\mu_t$ (characterizing
+the mean trajectory) and covariance matrix $\S_t$, as well as an inverse dynamics model
+\begin{align}
+u = \hat f(x_{t\1}, x_t) ~.
+\end{align}
+(Both models, $p$ and $f$ were trained from the data using ML, but we neglect annotating parameters.) We assume $x_t\in\RRR^n$ and fully observable, and $u\in\RRR^d$.
+
+During execution, assume we are at time step $t$ and current state $x_t$:
+\begin{enumerate}
+\item Formulate an optimization problem to find a reference trajectory $x^*_{t\po:T}$ for the future execution. (You want that the reference ``starts'' (connects with) the current state $x_t$, but also that it is as consistent as possible with the learned trajectory distribution $p$.
+
+Think about the role of the covariance matrices $\S_t$ and the role of the inverse kinematics in this formulation.
+
+{\tiny (This would be called a model-predictive control (MPC) approach: One would solve this optimization problem in every control cycle and use inverse kinematics to decide on controls. Depending on how you formulated the problem, it could be solved very efficiently using Riccati methods.)
+
+}
+
+
+\item Now assume that the trajectory distribution you learned is actually bi-modal, namely
+\begin{align}
+p(x_t) = w_t \NN(x_t; \mu^1_t, \S^1_t) + (1-w_t) \NN(x_t; \mu^2_t, \S^2_t) ~, \end{align}
+where superscripts index the mode. How could you now formulate the optimization problem?
+
+\item Assume you are scared away from using MPC and optimization in each control cycle. Could you also define a PD law to follow the (multi-modal) trajectory distribution? How? What would be issues?
+\end{enumerate}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Multi-Modal Distributions}
+
+\twocol{.65}{.3}{
+  Consider a circular single integrator robot with 2D single integrator dynamics ($q=(x,y)$, $u=(v_x, v_y)$, $\dot q = f(q,u) = u = (v_x, v_y)$).
+  The robot is equipped with a LIDAR and processes the resulting point cloud to get observation $o=(d_x, d_y)$, i.e., a vector pointing to the closest boundary point of any obstacle, see the figure for some examples (dotted lines).
+  From experts, we obtained five example trajectories for a given scenario with a single circular obstacle in the middle, see the figure for these trajectory (black lines). Our goal is to learn a policy that directly maps observations to controls ($\pi: o \mapsto u$).
+}{
+\show[.8]{multi-modal.png}
+}
+
+\begin{enumerate}
+\item Discretize the observation into 8 parts (4 directional ranges and 2 magnitude ranges). For each of these possible input ranges, we ``learn'' the optimal action assuming an MSE loss. Draw the resulting action vectors (one for each possible observation) qualitatively.
+
+\show[0.5]{multi-modal2.png}
+
+
+\item Use the learned policy from a) and draw the resulting solution trajectory qualitatively.
+
+\item Now consider that we learn a Gaussian Mixture Model (GMM) with two modes per discretized observation instead. Draw the resulting action distributions (one for each observation) qualitatively.
+
+\item Explain how you can use the learned policy from c). Draw the resulting solution trajectory distribution qualitatively.
+
+
+\item What changes if we do not discretize the observation? Explain what possible policy function approximators you might use, what learning algorithms are applicable, and what the expected outcomes compared to b) and d) are.
+
+\end{enumerate}
+
+% Given:
+% - circular robot with single Integrator 2D dynamics; simplified lidar (reports distances for 3 directions)
+% - training data (map with one circular obstacle); some where robot passes on the left, some where on the right [explicitly listed, e.g., n=6 with 3 floats state and 2 floats control each]
+
+
+% OR: sense vector to closest obstacle (and expert policy is similar to artificial potential, i.E. a linear model suffices)
+
+% Goal:
+% 1. "Train" a MSE policy on paper
+% 2. Execute an example, show that there will be a collision
+% 3. Repeat 1 and 2, but with multi-modal policy
+
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% (COMMENTED OUT FOR NOW, SINCE THOSE MIGHT BE BETTER FOR LATER WHEN MORE TECHNIQUES HAVE BEEN LEARNED.)
+% \exsection{Application Problems}
+
+% \emph{This is a discussion question, where there is no single correct solution.}
+
+
+% Consider the following robotics problems, where our goal is to use imitation learning to mimic the outcome of an expert effectively and efficiently. For each problem, define i) what exactly should be learned, ii) how to gather the data, iii)  and how to train the model.
+
+% \begin{enumerate}
+% \item A model-car that is racing on a fixed off-road track. The car has an IMU and RGBD camera. The expert is an external high-performance computer running nonlinear MPC with access to a tracking system that can accurately estimate the pose of the car. The goal to race using on-board sensors, only.
+
+% In addition to the general questions above: What needs to change if iv) the track is not fixed?
+
+% \item A robotic manipulator with two endeffectors tasked with folding laundry. The robot has force/torque sensors on each joint and a overhead RGBD camera. The experts are humans with direct line-of-sight (but without access to the on-board sensors).
+% \end{enumerate}
+
+% % Provide two scenarios and let students define everything that is needed to apply learning to solve the problem (What to learn, how to get data, which ML algorithms to use).
+
+% % Examples:
+% % - Model-car off-road racing on a fixed track.
+% % - Folding laundry with a (fixed) manipulator.
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Mountain Car Imitation Learning}
+
+\emph{This is a coding exercise. Please bring your laptop and connect to the HDMI in the tutorial to show your results. (If you upload a pdf, just include a screenshot of results in the pdf.)}
+
+We use the same mountain car example as in Exercise 2 and 3, so look for more detailed instructions there, if you have not set it up, yet.
+
+In addition to the ``policy'' from last week, we now have a second expert that solves the problem as follows:
+\begin{code}
+\begin{Verbatim}[numbers=none,fontsize=\footnotesize]
+def expert2(t):
+    if t < 50:
+        return np.array([1.0])
+    elif t < 100:
+        return np.array([0.0]) # save some energy!
+    elif t < 150:
+        return np.array([1.0])
+    return np.array([1.0])
+\end{Verbatim} 
+\end{code}
+
+Note that this expert decided to use a positive acceleration at the beginning, rather than the negative one that the previous expert used.
+
+\begin{enumerate}
+  \item Collect data from expert2 and verify that your approach from last week is able to imitate that expert.
+  
+  \item Now mix your datasets, such that you have an equal amount of examples from expert1 (see Exercise 3) and expert2. Compare the loss and the success rate of solving the mountain car problem with this policy compared to just using data from a single expert.
+
+  \item Use diffusion to learn a stochastic policy using the dataset of b). Verify that your policy can solve the mountain car problem. Verify that you get a mixture of solutions mimicking both expert1 and expert2, for example by visualizing the histogram of generated control actions for the example state $x=(-0.5,0.0)$.
+  
+  \textbf{Hint:} We provide example code for training and sampling diffusion models for a simple noisy circular trajectory. The primary difference to your task above is that you now have to learn to sample from a \emph{conditional} distribution $p(u_t|x_t)$. The simplest way to do so is to add the condition as an additional input to your neural network.
+  
+\end{enumerate}
+
+% Option1: DAgger for the mountain car (would need to have a different expert generator, e.g., human-in-the-loop)
+% Option2: Generative model to learn a distribution (e.g., CVAE, diffusion); should have a second expert policy (e.g., first accelerating the other direction) to show multi-modal distribution learning
+% Option3: Combination of the two options.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exerfoot

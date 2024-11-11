@@ -1,0 +1,580 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Robot Learning}
+\renewcommand{\coursepicture}{roblearn.png}
+\renewcommand{\coursedate}{Summer 2024}
+\renewcommand{\teacher}{Wolfgang H{\"o}nig}
+
+\renewcommand{\topic}{Safe Learning}
+% \renewcommand{\keywords}{Inspired by Guanya Shi's Lecture 6}
+
+\slides
+
+\input{macros-local}
+\providecommand{\bm}[1]{\boldsymbol{#1}}
+
+\slidestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Safety}{
+
+~
+
+What might ``safety'' refer to in safe learning?
+
+~
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Motivation}{
+
+\show[1.0]{safe_learning_survey_fig1.png}
+
+\citehere{2022-brunke-SafeLearningRobotics}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Outline}{
+
+~
+
+\item Definitions of Safety and Safe Learning
+
+~
+
+\item Overview of Existing Solutions (\& Case Studies)
+
+
+~
+
+\item Discussion / Open Challenges
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{What is learned?}{
+
+~\anchor{220,-20}{\showh[.45]{robLearn1}}
+
+~
+
+~\small
+
+\item Consider policy $\pi: x_t \mapsto u_t$
+\begin{itemize}
+\item Safety means (intuitively) that if we rollout $\pi$ ($x_{t+1}=f(x_t,\pi(x_t))\quad \forall t$), we never end up in a ``bad'' state (e.g., collision, crash, stability/tracking) for ``valid'' start states $x_0$
+\item In some cases, safety should apply while learning as well
+\end{itemize}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\key{Safety Definitions}
+\slide{Definition of Safety (1)}{
+
+\item Dynamics $x_{k+1} = f_k(x_k, u_k, w_k)$
+\begin{itemize}
+    \item $x_k \in \mathcal X$ (state)
+    \item $u_k \in \mathcal U$ (action)
+    \item $w_k \sim \mathcal W$ (process noise)
+    \pause
+    \item Why $f_k$ and not $f$?
+\end{itemize}
+
+\pause
+
+\item Objective $J(x_{0:N}, u_{0:N-1}) = l_N(x_N) + \sum_{k=0}^{N-1} l_k(x_k, u_k)$
+
+\item Safety constraints
+    \begin{itemize}
+        \item State constraints (e.g., no collisions)
+        \item Input constraints (e.g., actuation limits)
+        \item Stability guarantees (e.g., robot converging to desired reference path)
+    \end{itemize}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Definition of Safety (2)}{
+
+\show[1.0]{safe_learning_survey_fig3.png}
+
+\citehere{2022-brunke-SafeLearningRobotics}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Definition of Safety (3)}{
+
+\item Hard constraints (safety level 3)
+
+\begin{align*}
+    c_k^j(x_k, u_k, w_k) \leq 0 \quad \forall k \quad \forall j
+\end{align*}
+
+\item Chance constraints (safety level 2)
+
+\begin{align*}
+    Pr(c_k^j(x_k, u_k, w_k) \leq 0) \geq p^j \quad \forall k \quad \forall j \quad p^j \in [0,1]
+\end{align*}
+
+\item Soft constraints (safety level 1)
+
+\begin{align*}
+    c_k^j(x_k, u_k, w_k) \leq \epsilon_j \quad \forall k \quad \forall j\\
+    l_\epsilon(\boldsymbol{\epsilon}) \geq 0 \text{ (Cost function term)}
+\end{align*}
+
+
+% \note{$j$ is the constraint index}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Definition of Safe (Control) Learning}{
+
+% \item Let $f_k(x_k, u_k, w_k) = \bar f_k(x_k, u_k) + \hat f_k(x_k, u_k, w_k)$ ($\bar f_k$ prior model; $\hat f_k$ uncertain dynamics)
+
+
+% TODO: add equation 9
+
+% \item Collected data $(x, u, c, l)$ may inform/update dynamics ($\hat f_k$), safety constraints ($c$), or cost ($l$)
+
+\show[1.0]{safe_learning_talk_1.png}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Relationship to (Classic) Controls}{
+
+\item Robust control
+    \begin{itemize}
+        \item Assume disturbance bounds known
+        \item Find \emph{fixed} controller that works even in the worst-case
+    \end{itemize}
+
+\item Adaptive controls
+\begin{itemize}
+    \item Assume environment has \emph{varying} parameters $\Th$ ~ (not directly observed) 
+    \item Controller changes \emph{online} (e.g., by estimating $\Th$)
+\end{itemize}
+
+\item Tube-based Model Predictive Control (MPC)
+\begin{itemize}
+    \item Robust control in MPC framework: use tighter constraints to account for unmodeled dynamics
+\end{itemize}
+
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Relationship to (Classic) Controls}{
+
+\show[1.0]{safe_learning_talk_2.png}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% \slide{Relationship to (Classic) RL}{
+
+% \item Constrained MDPs (CMDPs)
+% \item Robust MDPs
+
+% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Relationship to (Classic) RL}{
+
+\show[1.0]{safe_learning_talk_3.png}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Outline}{
+
+~
+
+\item Definitions of Safety and Safe Learning
+
+~
+
+\item \textbf{Overview of Existing Solutions (\& Case Studies)}
+
+
+~
+
+\item Discussion / Open Challenges
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Existing Solution Strategies}{
+
+~
+
+\begin{enumerate}
+\item Safely Learn Uncertain Dynamics
+\item RL that Encourages Safety and Robustness
+\item Safety Certification
+\end{enumerate}
+
+~
+
+\info{Online Adaption/Learning (dynamics, cost function, constraints, control parameters) vs Offline (update in batches)}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Existing Solution Strategies}{
+
+\show[0.7]{safe_learning_survey_fig4.png}
+
+\citehere{2022-brunke-SafeLearningRobotics}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\key{Safety Certification}
+\slide{Strategy III: Safety Certification: Constraint Set}{
+
+\item Key idea
+    \begin{itemize}
+    \item Learn policy ``as usual''
+    \item At runtime, apply a safe action $u_{\text{safe}} = \argmin_{u} \norm{u - u_{\text{learned}}}^2$ such that $x_{k+1}$ is safe
+    \end{itemize}
+
+\item Safe states can be computed by
+    \begin{itemize}
+        \item Control Barrier Functions (CBFs)
+        \item Hamilton-Jacobi Reachability Analysis
+        \item Predictive safety filters\\
+        \info{keep track of safe control inputs that could steer back to a known safe state}
+    \end{itemize}
+
+% interaction
+% Advantages / Disadvantages ?
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Strategy III: Safety Certification: Constraint Set}{
+
+\item More Advanced
+
+\begin{itemize}
+    \item If safety layer is differentiable $\rightarrow$ end-to-end training (e.g. \cite{2020-riviere-GLASGlobaltoLocalSafe})
+    \item Learn safety filters directly
+\end{itemize}
+
+\show[0.3]{2023-wabersich-DataDrivenSafetyFilters.png}
+\citehere{2023-wabersich-DataDrivenSafetyFilters}
+
+
+% TODO: refer to that other tutorial paper
+
+% interaction
+% what safety levels can be achieved?
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Strategy III: Safety Certification: Stability}{
+
+\item Stability: (informal) Can the robot track the reference, even with (small) disturbances?
+    \info{Formal proofs via Lyapanov functions or contraction theory}
+
+\item Typical assumptions:
+\begin{itemize}
+    \item Bounded disturbance
+    \item Bounded change in disturbance (Lipschitz continuous with known Lipschitz bound)
+    \item Unbounded control authority
+\end{itemize}
+
+\item Lipschitz-based: Treat neural network as ``disturbance''; limit magnitude and Lipschitz bound during training (\emph{Spectral Normalization}) (e.g., \cite{2019-shi-NeuralLanderStable})
+
+\item Region of Attraction: Lyapunov Neural Networks \cite{2018-richards-LyapunovNeuralNetwork}
+
+%Stability Certification (Lipschitz-based, Learning Regions of Attractions)
+
+
+% CASE STUDY: Neural Lander
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Case Study: Neural Lander (based on slides from Shi)}{
+
+\show{2024-shi-lec22-neurallander1}
+
+Video: {\urlfont\url{https://youtu.be/FLLsG0S78ik}}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Case Study: Neural Lander (based on slides from Shi)}{
+
+\show[1.0]{2024-shi-lec22-neurallander3}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\key{Safety Encouraging RL}
+\slide{Strategy II: RL that Encourages Safety and Robustness}{
+
+\item 1. Safe Exploration and Optimization
+
+\item 2. Risk-averse RL and uncertainty-aware RL
+
+\item 3. RL for Constrained MDPs (CMDPs)
+
+\item 4. RL for Robust MDPs
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Strategy II: RL that Encourages Safety: Safe Exploration}{
+
+\item Safe Exploration: only allow the policy to explore safe states
+
+
+\show{2012-moldovan-SafeExplorationMarkov}
+
+\show[0.45]{2012-moldovan-SafeExplorationMarkov_fig1}
+
+\citehere{2012-moldovan-SafeExplorationMarkov}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Strategy II: RL that Encourages Safety: Safe Exploration}{
+
+\item Safe Exploration: only allow the policy to explore safe states
+
+\show[1.0]{2012-moldovan-SafeExplorationMarkov_fig4}
+
+\citehere{2012-moldovan-SafeExplorationMarkov}
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Strategy II: RL that Encourages Safety: Safe Exploration}{
+
+\item Safe Optimization: Minimize cost function without sampling inputs that violate safety constraints, e.g., SafeOpt \cite{2016-berkenkamp-SafeControllerOptimization}
+
+\show[0.9]{2016-berkenkamp-SafeControllerOptimization_fig2.png}
+
+Safe set $\mathcal S_n$ (red): Could be potential maximizers $\mathcal M_n$ (green) or expanders $\mathcal G_n$ (magenta)
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Case Study: SafeOpt}{
+
+\twocol[.02]{.45}{.45}{
+\show[1.0]{2016-berkenkamp-SafeControllerOptimization_alg1.png}
+}{
+\begin{itemize}
+\item Update sets using GPs
+\item From the union of safe potential maximizers or expanders, measure where the uncertainty is highest
+\end{itemize}
+}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Case Study: SafeOpt}{
+
+Application: Safe controller gain tuning
+
+\show[0.5]{2016-berkenkamp-SafeControllerOptimization_fig3.png}
+
+Video: {\urlfont\url{https://youtu.be/GiqNQdzc5TI}}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Strategy II: RL that Encourages Safety: Safe Exploration}{
+
+\item Learning a safety critic: learn a Q-function that predicts ``safety'', e.g., \cite{2021-thananjeyan-RecoveryRLSafe}
+
+\show[0.9]{2021-thananjeyan-RecoveryRLSafe_fig2.png}
+
+%interaction: which safety levels can be achieved
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Strategy II: RL that Encourages Safety: Risk-averse RL}{
+
+\item Learn/estimate \emph{risks} (e.g., probability of a collision)
+\item At runtime, prefer actions with low risk (e.g., MPC planner)
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Case Study: Agile But Safe \cite{2024-he-AgileSafeLearning}}{
+
+\show{2024-he-AgileSafeLearning_fig2.png}
+
+Web: {\urlfont\url{https://agile-but-safe.github.io/}}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Strategy II: RL that Encourages Safety: RL for CMDPs}{
+
+``However, most of the work in this area remains confined to naive simulated tasks, motivating further research on their applicability in real-world control.''
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Strategy II: RL that Encourages Safety: RL for Robust MDPs}{
+
+\item Robust Adversarial RL \cite{2017-pinto-RobustAdversarialReinforcement}
+
+\twocol[.02]{.45}{.45}{
+    \show{2017-pinto-RobustAdversarialReinforcement_fig7.png}
+}{
+\begin{itemize}
+\item Train two policies: a robust policy and a destabilizing adversary (that can apply random forces on the robot)
+\item Trained iteratively
+\end{itemize}
+}
+
+\item Domain Randomization
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\key{Safe Dynamics Learning}
+\slide{Strategy I: Safely Learn Uncertain Dynamics}{
+
+\item 1. Learning Adapative Control
+
+\item 2. Learning Robust Control
+
+\item 3. Learning Robust MPC
+
+\item 4. Safe Model-based RL
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Outline}{
+
+~
+
+\item Definitions of Safety and Safe Learning
+
+~
+
+\item Overview of Existing Solutions (\& Case Studies)
+
+~
+
+\item \textbf{Discussion / Open Challenges}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\key{Open Challenges}
+\slide{Open Challenges}{
+
+\item Broader class of robots (hybrid dynamics, multi-robot, soft-robot, ...)
+
+\item Scalability \& Sampling/Computational Efficiency
+
+\item Imperfect State Measurements
+
+\item Verification of Safety-Related Assumptions
+
+\item Automatic Inference about What is Safe
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Discussion}{
+
+\item What about other learning problems?
+    \begin{itemize}
+        \item Learning planners that output waypoints/trajectories (rather than a policy that outputs one action)?
+        \item Using humans as input (e.g., through language)?
+        \item Including perception (e.g., $y \mapsto u$)
+        \item We discussed Safe RL and safe dynamics learning; What would Safe Imitation Learning be? What would Safe Inverse RL be?
+    \end{itemize}
+
+\item How would you safely learn how to fly from scratch?
+% purposefully explore a limited set of "unsafe" actions not really used
+
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% \slide{To Do}{
+
+% \item Safe exploration in active learning (estimating failure prob. with GPs, chance constraints)
+
+% \item Safe exploration in RL (returnability, Pieter Abbeel)
+
+% \item Schoellig survey paper
+
+% \item adverserial problem formulations (Drew Bagnell [robust control])
+
+% Leutenegger (classic pipeline for safety)
+
+% }
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Conclusion}{\label{lastpage}
+
+\item Three Safety Levels: soft constraints, chance constraints, hard constraints
+
+\item Safety filters can be easily used, but are difficult to design for uncertain dynamics
+
+\item Encouraging safety has other advantages (e.g., sim-to-real transfer)
+
+\item Many practical challenges remain, especially for full robotic solutions
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\ttiny
+\ifthenelse{\isundefined{\scripthead}}{
+\bibliographystyle{plainurl-lis}
+\bibliography{b5-SafeLearning}
+}{}
+
+\slidesfoot

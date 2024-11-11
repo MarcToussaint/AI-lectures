@@ -1,0 +1,305 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Robot Learning}
+\renewcommand{\coursepicture}{roblearn.png}
+\renewcommand{\coursedate}{Summer 2024}
+\renewcommand{\teacher}{Marc Toussaint}
+
+\renewcommand{\topic}{Discussion, Exam Info, \& Feedback}
+\renewcommand{\keywords}{}
+
+\slides
+
+\input{macros-local}
+
+\slidestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Outline}{
+
+\item 1 slide Robot Learning discussion
+
+\item Exam Info
+
+\item Feedback
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\item Check out the ``script'' (collection of all slides \& exercises
+with TOC)
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\item We had a whole lecture about Robot Learning
+
+But was there a single paper/demo where \emph{``a robot learned something''},
+like literally? :-)
+
+~\pause
+
+\item From our initial lecture plan:
+\begin{items}
+\item How realize online adaptation/learning?
+\item Ok: Online adaptive control and parameter estimation. But online
+RL?
+\item livelong learning?
+\end{items}
+
+~\pause
+
+\item \emph{What other Robot Learning types were we missing?}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Outline}{
+
+\item 1 slide Robot Learning discussion
+
+\item \textbf{Exam Info}
+
+\item Feedback
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Exam Info}{
+
+\item 90 mins, around 8 to 10 questions
+
+\medskip\pause
+\emph{Kinds of questions:}
+\medskip
+
+\item Knowledge: ($\sim$70\%)
+\begin{items}
+\item brief answers, e.g.\ reproducing statements, definitions, equations from slides
+\item example formats for answers:
+\begin{items}
+\item triology of definitions: data set, what function (input/output),
+loss function
+\item multiple choice, brief text answers
+\item pseudo code
+\end{items}
+\end{items}
+\item Application: ($\sim$30\%)
+\begin{items}
+\item Text answers
+\item ``Assume you are in a situation.... how can you leverage learning...''
+\item also creative ``How could you use \emph{this or that} method to ...''
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Exam Info -- Example Knowledge Question}{
+
+~
+
+{\tiny
+
+\textbf{Dynamics Learning}
+
+Denoting states by $x_t$, observations by $y_t$, and controls by $u_t$,
+\begin{enumerate}\tiny
+\item For learning deterministic dynamics in the case of observable
+state, define the data set, the function (input/output), and a typical
+loss function.
+
+\item When state $x_t$ is not observed, but observations $y_t$, we need a different function
+model. Choose one and again, provide a definition for a data set,
+function (input/output), and loss function to train it.
+
+\item Which NN architectures would you choose to represent $f_\t$ in
+question (b)?
+
+\end{enumerate}
+
+~\pause
+
+possible answers:
+\begin{enumerate}\tiny
+\item data $D=\{(x_t, x_{t\1}, u_{t\1})\}_{t=1}^T$
+
+function $f_\t: ~ x_{t\1}, u_{t\1} \mapsto x_t$
+
+loss $L(\t) = \sum_{t} \norm{x_t - f_\t(x_{t\1}, u_{t\1})}^2$
+
+\item
+window approach with history length $H$
+
+data $D=\{(y_t, y_{t\myminus H:t\1}, u_{t\myminus H:t\1})\}_{t=1}^T$
+
+function $f_\t: ~ y_{t\myminus H:t\1},u_{t\myminus H:t\1} \mapsto y_t$
+
+loss $L(\t) = \sum_{t} \norm{y_t - f_\t(y_{t\myminus H:t\1},u_{t\myminus H:t\1})}^2$
+
+\item Not recurrent (is not consistent to the window approach).
+
+Plain MLP, or Transformer.
+\end{enumerate}
+
+}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Exam Info -- Example Application Question}{
+
+~
+
+{\tiny
+
+\textbf{Vacuum Cleaning Robot}
+
+Consider a vacuum cleaning robot, i.e. a differential drive robot with the following dynamics (TODO: give dynamics). The robot has a 2D LIDAR, a binary sensor that can detect if it's on carpet (1=carpet, 0=hard floor), and a binary bump sensor (1 if the chassis hit an obstacle anywhere, 0 otherwise). 
+
+\begin{enumerate}\tiny
+\item Consider learning a more accurate dynamics model by learning the residual dynamics. Describe how you would collect data for this case. Mathematically define the data set, including the computation of the required variables (if not directly collected). Define a suitable learning method and loss function.
+
+\item Now consider learning a policy that directly maps the current sensor readings to the motor outputs. Mathematically define this problem as a reinforcement learning instance. Be specific about states, actions, transitions, and reward. Briefly state how you would train a suitable policy and what challenges might occur when using the policy on a physical robot.
+
+\item Now consider the same policy as in b), but as imitation learning problem. Describe the required data set and loss function. How could one address challenges that arise with out-of-distribution inputs when deploying on a real robot?
+\end{enumerate}
+
+}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Exam Info}{
+
+\item Relevance of exercise sheets (little):
+\begin{items}
+\item Questions may be related to concrete papers -- not in that much depth
+as in exercise literature reading -- but same depth as on slides
+\item no concrete coding/python questions
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Outline}{
+
+\item 1 slide Robot Learning discussion
+
+\item Exam Info
+
+\item \textbf{Feedback}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Lehrevaluation \& ISIS feedback}{
+
+\item 8 and 5 users
+
+\item ISIS feedback, very good grades
+\begin{items}
+\item erforderliche Wissensstand ist teilweise sehr hoch; Vorlesungen
+teilweise etwas überladen, Tempo oft hoch
+\item More programming would have been nice; tasks from the begining
+which build upon each other were nice.. [should build further]
+\end{items}
+
+\item Lehrevaluation, fine grades
+\begin{items}
+\item very intresting topics; It is an intensive lecture, but I also have the feeling I learn a
+lot. That's why I really enjoy this lecture
+
+\item VL-Ü: Es wäre gut diese eine Woche zu versetzen.
+
+\item exercises quite time intensive
+
+\item often the solutions provided are very short
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\emph{Your feedback?}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Our questions to you}{
+
+\item Should we require hard prerequisites?
+
+\item More (ML? robotics?) method lectures?
+
+\item More coding exercises/examples?
+\begin{items}
+\item Our view: Coding exercises worked well until the point when, to do it properly, one would
+     need to seriously train networks
+\end{items}
+
+\item (recording ok, but how deal with black board)
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Planned Lectures}{\label{lastpage}
+
+\small
+
+\item Taxonomy (today)
+
+\item Robotics Primer \& Machine Learning Primer
+
+\item Dynamics Learning / System Identification
+
+\item Imitation Learning
+
+\item \emph{Method Lecture:} Diffusion \& other policy representations
+
+\item Reinforcement Learning \& variants (several lectures)
+
+\tiny
+
+\item Safe Learning, Multi-Robot Learning
+
+\item Constraint Learning, Grasping/Manipulation Learning, Affordance Learning
+
+\item \emph{Method Lecture:} Robotics/3D ML: Rotation encodings, PointNet, SE(3)-Equivariant
+
+\item \emph{Method Lecture:} Black-Box Optimization, CMA, CEM
+
+\item Plan Prediction Learning (from MPC to Language Models)
+
+\item Online adaptation
+
+\item \emph{Method Lecture:} Generative models (PCA, auto encoder, VAE, GANs, diffusion, stochastic outputs in transformers)
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\ttiny
+\ifthenelse{\isundefined{\scripthead}}{
+\bibliographystyle{plainurl-lis}
+\bibliography{b6-Manipulation}
+}{}
+
+\slidesfoot

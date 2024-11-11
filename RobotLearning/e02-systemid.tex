@@ -1,0 +1,177 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Robot Learning}
+\renewcommand{\coursepicture}{roblearn.png}
+\renewcommand{\coursedate}{Summer 2024}
+\renewcommand{\exnum}{Weekly Exercise 2}
+
+\renewcommand{\teacher}{Marc Toussaint \& Wolfgang H{\"o}nig}
+\renewcommand{\addressTUB}{
+  Learning~\&~Intelligent~Systems Lab, Intelligent Multi-Robot Coordination Lab, TU~Berlin\\\small
+  Marchstr. 23, 10587 Berlin, Germany
+}
+
+\exercises
+
+\input{macros-local}
+
+\excludecomment{solution}
+
+\exercisestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Work with the Literature}
+
+[The links to literature sometimes point to journal sites, but they should be accessible from within TU Berlin.]
+
+\begin{enumerate}
+\item Have a look at Eq.\ (1) of
+
+%\bibentry{1990-chen-NonlinearSystemIdentification}
+\bibentry{1997-siegelmann-ComputationalCapabilitiesRecurrent}
+
+This paper describes a classical ``NARX'' model. Consider the discrete time dynamics
+\begin{align}
+v_{t\po} &= v_t + u_{t-3} \\
+p_{t\po} &= p_t + \tau v_{t-2} \\
+y_t &= p_t ~,
+\end{align}
+with variables $(p_t, v_t)$, controls $u_t$, and sensor observation $y_t$. $\tau\in\RRR$ is a fixed constant. (In words: the control directly adds to the velocities -- but with a delay of 3 steps! And the velocities add to the position -- but with a delay of 2 steps! And we only observe position $p_t$, not velocities.)
+
+Could the ``NARX'' model described in the paper above learn this dynamics? How would you have to choose $n_u$ and $n_y$?
+
+
+\item Also have a look at Eq.\ (1) of
+
+\bibentry{2015-deisenroth-GaussianProcessesDataEfficient}
+
+This is also called a state-space model. How can you define $x_t$ for our dynamics above so that it can be represented in that form (1)?
+
+
+
+
+%% \item (BONUS) Have a look at the 2nd paragraph of Section ``III. Background'' of
+
+%% \bibentry{2017-finn-DeepVisualForesight}
+
+%% The authors describe that they learn a model $p_M(I_{2:H_p} | I_{0:1}, x_{0:1}, a_{1:H_p})$ (the details of the architecture don't matter for us). Is this different to a NARX model?
+
+\end{enumerate}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+\exsection{System Identification of a Simple Car}
+
+
+\twocol{.65}{.3}{
+Consider the dynamics model of a first order car with states $q=(x,y,\t)^\T$ (position and orientation), actions/controls $u=(s,\phi)^\T$ (speed and steering wheel angle), and known dynamics 
+\begin{align}
+  \dot q = f(q, u) = \mat{c}{
+  s \cos \t \\
+  s \sin \t \\
+  \frac{s}{L} \tan \phi
+  }.
+\end{align}
+
+Here, $L$ is the distance between the wheels and not known.
+}{
+\show[.8]{cspace-car}
+}
+
+\begin{enumerate}
+\item Assume you have an example trajectory $D=\{(x_t,y_t,\t_t,s_t,\phi_t)\}_{t=1}^n$, where individual datapoints were sampled at 10Hz. Formulate an optimization problem that computes the ``best'' $L$ for the given data.
+
+
+\item Find a closed-form solution for your optimization problem in a).
+
+
+%% \item \textbf{(Programming)} You can also solve the optimization problem in a) with a nonlinear optimizer such as stochastic gradient descent. Implement such an approach in pyTorch, where your ``Module'' is not a neural network but the forward propagation of your dynamics with $L$ as a parameter to be optimized.
+
+\end{enumerate}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Mountain Car Dynamics Learning}
+
+This is a coding exercise. Please bring your laptop and connect to the HDMI in the tutorial to show your results. (If you upload a pdf, just include a screenshot of results in the pdf.)
+
+Install the mountain car simulation of \emph{gymnasium} (\url{https://gymnasium.farama.org/}) using
+\begin{code}
+\begin{Verbatim}[numbers=none,fontsize=\footnotesize]
+pip install gymnasium[classic-control]
+\end{Verbatim}
+\end{code}
+
+The following code simulates a few steps and collects data for a dynamics learning problem:
+\begin{code}
+\begin{Verbatim}[numbers=none,fontsize=\footnotesize]
+import gymnasium as gym
+import numpy as np
+env = gym.make('MountainCarContinuous-v0', render_mode='human')
+
+# for this problem observation=state
+
+u_dim = env.action_space.shape[0]
+x_dim = env.observation_space.shape[0]
+data_input = np.zeros((0,x_dim+u_dim))
+data_target = np.zeros((0,x_dim))
+n_data = 200
+
+x_state, info = env.reset()
+
+for t in range(n_data):
+    # u_controls = env.action_space.sample()  # agent policy that uses the observation and info
+    u_controls = np.sin([.01*t])
+    x_prev = x_state
+    x_state, reward, terminated, truncated, info = env.step(u_controls)
+    # terminated = a terminal state (often goal state, sometimes kill state, typically with pos/neg reward) is reached;
+    #    formally: the infinite MPD transitions to a deadlock nirvana state with eternal zero rewards
+    # truncated = the simulation is 'artificially' truncated by some time limited - that's actually formally inconsistent to the definition of an infinite MDP
+
+    data_input = np.vstack([data_input, np.concatenate([x_prev, u_controls])])
+    data_target = np.vstack([data_target, x_state])
+
+    if terminated or truncated:
+        if truncated:
+            print('-- truncated -- should not happen!')
+        else:
+            print('-- terminated -- goal state reached')
+        x_state, info = env.reset()
+
+env.close()
+
+print('input data:', data_input.shape)
+print('output data:', data_target.shape)
+\end{Verbatim}
+\end{code}
+
+\begin{enumerate}
+\item Increase the amount of data you collect (e.g.\ to $n=1000$) and learn a regression from the input to output. Use whatever ML techniques you learned about in previous courses. Also linear regression is an option, which should work particularly well if you happen to include $\cos(3 x_0)$ as a feature (where $x_0$ is the first entry of $x$: the position; see the domain documentation).
+
+\item The above might not work well (in the sense of generalizing to the full state space), because the controller generating the data (\verb@u_controls = np.sin([.01*t])@) is not very explorative. Play around with alternatives that generate much better data for learning.
+
+
+\item Assume that you could only observe the position $x_0$ of the car, not the velocity $x_1$. As the state is not fully observable, you'll need to learn an autoregression model with longer input window. Modify the code above so that the data only contains positions and controls as input, and predicts the next position.
+
+
+\item {}[Added for the tutorial session, to show you an easy way of how to make use of a learned model.] First, since we know this is a physical system with observed position $q$ and velocity $\dot q$, let's also treat is like that: The \emph{forward} dynamics is a mapping $q, \dot q, u \mapsto \ddot q$, while the \emph{inverse} dynamics is the mapping $q, \dot q, \ddot q \mapsto u$. Learn the inverse dynamics function (define $\ddot q$ as the change in velocity by a simulation step). Then use the inverse dynamics to impose a PD behavior
+
+$$\ddot q^* = k_p (q^* - q) - k_d \dot q$$
+
+with $q^* = 2$ and $k_p = m/\tau^2 ~, k_d = 2m\xi/\tau$ (exactly as in last exercise solution), and $\tau = 50$, $\xi = 0.9$.
+
+\end{enumerate}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\ifthenelse{\isundefined{\scripthead}}{
+\bibliographystyle{plainurl-lis}
+\bibliography{b1-DynamicsLearning}
+}{}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exerfoot

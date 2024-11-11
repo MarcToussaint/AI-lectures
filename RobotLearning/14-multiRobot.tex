@@ -1,0 +1,689 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Robot Learning}
+\renewcommand{\coursepicture}{roblearn.png}
+\renewcommand{\coursedate}{Summer 2024}
+\renewcommand{\teacher}{Wolfgang H{\"o}nig}
+
+\renewcommand{\topic}{Multi-Robot Learning}
+
+\slides
+
+\input{macros-local}
+
+\providecommand{\bm}[1]{\boldsymbol{#1}}
+
+% Tikz support
+\ifthenelse{\isundefined{\scripthead}}{
+\usepackage{tikz,tkz-euclide}
+\usetikzlibrary{shapes.geometric, arrows, shadows.blur, shadows, shapes.multipart}
+\usetikzlibrary{positioning}
+\usetikzlibrary{intersections}
+\usetikzlibrary{tikzmark}
+}{}
+
+% custom definitions
+\ifthenelse{\isundefined{\scripthead}}{
+  \usepackage{breqn}
+  \usepackage{bm}
+}{}
+\newcommand{\B}[1]{\mathbf{#1}}
+\newcommand{\fav}{\B{f}_a}
+\newcommand{\faf}{f_a}
+\newcommand{\tauav}{\bm{\tau}_a}
+\newcommand{\tauaf}{\tau_a}
+\newcommand{\famax}{f_{a,\mathrm{max}}}
+\newcommand{\tauamax}{\tau_{a,\mathrm{max}}}
+\newcommand{\favhat}{\hat{\B{f}}_a}
+\newcommand{\tauavhat}{\hat{\bm{\tau}}_a}
+\newcommand{\fnom}{\bm{\Phi}}
+\newcommand{\set}{\mathbf{r}}
+\newcommand{\env}{\mathrm{env}}
+\newcommand{\sm}{\mathrm{small}}
+\newcommand{\la}{\mathrm{large}}
+
+\slidestitle
+
+
+\slide{Motivation: Multi-Robot Systems}{
+
+\item Multiple robots (typically in a team) with a common goal
+
+\item Typical promises:
+    \begin{itemize}
+        \item Achieve goal faster
+        \item Achieve goal more robustly
+        \item Higher flexibility (esp. heterogeneous systems)
+        \item Cheaper (?)
+    \end{itemize}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Motivation: Multi-Robot Systems}{
+
+\item Successful (industrial) solutions
+
+    \begin{itemize}
+        \item Warehouse logistics (Amazon Robotics, former Kiva systems)
+
+        % https://youtu.be/TUx-ljgB-5Q
+        \movh[]{.6}{movies-wolfgang/amazon-warehouses}
+
+        \item Aerial Drone shows (Intel, Verity Studios)
+    \end{itemize}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\slide{Motivation: Multi-Robot System Challenges}{
+
+\item Controls: additional constraint for inter-robot collision avoidance
+
+\item Decision Making: information sharing, task assignment, curse-of-dimensionality for centralized approaches, safety/robustness for decentralized systems
+
+\item Perception: sensing team members, sensor fusion
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\slide{Outline}{
+
+\item \textbf{Handling Dynamic Neighbors}
+
+\begin{itemize}
+    \item LSTMs
+    \item CNNs
+    \item DeepSets
+    \item Graph Neural Networks
+\end{itemize}
+
+\item Multi-Agent Reinforcement Learning (MARL)
+
+\item Discussion / Open Challenges
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Dynamic Neighbors}{
+
+\item Team of robots has time-varying neighbors/observations/communication links
+
+\item Often need to learn with time-varying input dimensionality
+\begin{itemize}
+  \item Example: (Distributed) collision avoidance maps observation of neighboring robots to actions $f(\mathcal Y) \to u$
+\end{itemize}
+
+\item Learned functions need to be \textbf{permutation-invariant} and support \textbf{dynamic domain cardinality}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{LSTMs \cite{2018-everett-MotionPlanningDynamic}}{
+
+\show{2018-everett-MotionPlanningDynamic.png}
+
+\item Key idea: Feed observations of neighbors into an LSTM (closest neighbor last)
+
+\show[0.5]{2018-everett-MotionPlanningDynamic-fig3.png}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{CNNs \cite{2019-sartoretti-PRIMALPathfindingReinforcement}}{
+
+\twocol{.6}{.4}{
+  \show[1.0]{2019-sartoretti-PRIMALPathfindingReinforcement.png}
+
+  \begin{itemize}
+      \item Key idea: Encode neighbor information as a picture
+      \item Videos: {\urlfont\url{https://goo.gl/T627XD}}
+    \end{itemize}
+}{
+    \show{2019-sartoretti-PRIMALPathfindingReinforcement-fig2.png}
+}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\key{Deep Sets}
+\slide{Deep Sets \cite{2017-zaheer-DeepSets}}{
+
+    \begin{itemize}
+    \item Any continuous, permutation-invariant function $f(\mathcal X)$ can be approximated:
+      \vspace{15mm}
+      \begin{equation*}
+        f(\mathcal X) \approx 
+          \tikzmark{rho}\rho \left( 
+            \tikzmark{sum}\sum_{x\in\mathcal X} 
+          % \tikz[baseline]{\node[draw=black,ellipse,thick,anchor=base] (phi) {$\phi(x)$};}  
+          \tikzmark{phi}\phi(x)  
+        \right)
+      \end{equation*}
+      \vspace{10mm}
+    \item Improvement over Convolutional NN (\textbf{CNN}): continuous space, efficiency
+    \item Example:\\[2mm]
+      \includegraphics[width=0.6cm]{deepsets/digit5.png} + \includegraphics[width=0.6cm]{deepsets/digit4.png} = 9\\[2mm]
+      \includegraphics[width=0.6cm]{deepsets/digit9.png} + \includegraphics[width=0.6cm]{deepsets/digit6.png} + \includegraphics[width=0.6cm]{deepsets/digit5.png} = 20
+
+  \end{itemize}
+
+  \begin{tikzpicture}[
+    remember picture,
+    overlay,
+    expl/.style={draw=black,fill=black!10,rounded corners,text width=5cm},
+    arrow/.style={line width=1.5mm,->,>=stealth},
+  ]
+  \node [expl, above right=of pic cs:phi] (hs) {Learns \textbf{representation} of each element};
+  \draw[arrow,line width=0.5mm, black, bend right] (hs.west) to ([xshift=0.4em,yshift=0.5em]pic cs:phi);
+
+  \node [expl, below=of pic cs:sum] (sp) {\textbf{superposition} in hidden state};
+  \draw[arrow,line width=0.5mm, black] (sp) to ([xshift=0.4em,yshift=-1.5em]pic cs:sum);
+
+  \node [expl, above left=of pic cs:rho] (agg) {Learns \textbf{aggregation} of hidden state};
+  \draw[arrow,line width=0.5mm, black, bend left] (agg.east) to ([xshift=0.4em,yshift=0.5em]pic cs:rho);
+
+
+  \end{tikzpicture}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Case Study: GLAS \cite{2020-riviere-GLASGlobaltoLocalSafe}}{
+
+\item Goal: imitate (slow) centralized controller using only local observations: $\pi: y \mapsto u$
+
+\item Data: Example trajectories by solving many multi-robot motion planning instances with a centralized planner
+
+\item Approach: Behavior Cloning + Privileged Teacher
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Case Study: GLAS \cite{2020-riviere-GLASGlobaltoLocalSafe}}{
+
+\show[0.8]{glas/data_expert_gen.png}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Case Study: GLAS \cite{2020-riviere-GLASGlobaltoLocalSafe}}{
+
+\show[0.8]{glas/data_mask_nonlocal.png}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Case Study: GLAS \cite{2020-riviere-GLASGlobaltoLocalSafe}}{
+
+\item Train (5 small feedforward networks trained jointly)
+
+\show[0.8]{glas/architecture_simple.pdf}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Case Study: GLAS \cite{2020-riviere-GLASGlobaltoLocalSafe}}{
+
+\item How would one train this in practice in pyTorch?
+\info{variable number of neighbors vs. batching}
+
+} 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Case Study: Neural-Swarm2 \cite{2022-shi-NeuralSwarm2PlanningControl}}{
+
+\item Goal: predict aerodynamic interaction
+\info{unmodeled physics, as a function of neighbors' positions}
+
+\show[0.4]{neuralswarm2/fig1b.jpg}
+
+\item Data: Real flight tests (synchronized trajectories with poses of robots and measured accelerations and motor commands)
+
+\item Approach: Behavior Cloning
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Case Study: Neural-Swarm2 \cite{2022-shi-NeuralSwarm2PlanningControl}: Heterogeneous Deep Sets}{
+
+  \twocol{.45}{.45}{
+      \vspace{-2.0cm}
+      \begin{equation*}
+        \favhat^{(i)}
+        \approx
+        \tikzmark{rhoh}\bm{\rho}_{\mathcal{I}(i)}\left(\tikzmark{sumh}\sum_{k=1}^K\sum_{\B{x}^{(ij)}\in \set_{\mathrm{type}_k}^{(i)}}\tikzmark{phih}\bm{\phi}_{\mathcal{I}(j)}(\B{x}^{(ij)})\right)
+      \end{equation*}
+
+
+      \begin{tikzpicture}[
+        remember picture,
+        overlay,
+        expl/.style={draw=black,fill=black!10,rounded corners,text width=3cm},
+        arrow/.style={line width=1.5mm,->,>=stealth},
+      ]
+      \node [expl, above=of pic cs:phih] (hs) {Learns \textbf{representation} from type $\mathcal{I}(j)$ neighbor};
+      \draw[arrow,line width=0.5mm, black] (hs.south) to ([xshift=0.4em,yshift=0.5em]pic cs:phih);
+
+      \node [expl, below=of pic cs:sumh] (sp) {\textbf{superposition} in hidden state};
+      \draw[arrow,line width=0.5mm, black] (sp) to ([xshift=0.4em,yshift=-1.5em]pic cs:sumh);
+
+      \node [expl, above=of pic cs:rhoh] (agg) {Learns \textbf{aggregation} for type $\mathcal{I}(i)$};
+      \draw[arrow,line width=0.5mm, black] (agg.south) to ([xshift=0.4em,yshift=0.5em]pic cs:rhoh);
+      \end{tikzpicture}
+
+  }{
+      \includegraphics[width=\linewidth]{neuralswarm2/fig1a.pdf}
+      \begin{multline*}
+        \fav^{(3)} \approx \bm{\rho}_{\la}\left(\bm{\phi}_{\sm}(\B{x}^{(31)})+\\
+        \bm{\phi}_{\sm}(\B{x}^{(32)}) +\bm{\phi}_{\env}(\B{x}^{(34)})\right)
+      \end{multline*}
+  }
+  \begin{itemize}
+    \item \textbf{Expressiveness}: can approximate any $K$-Group permutation-invariant function
+    \item \textbf{Efficient}: only $2K$ networks need to be trained
+  \end{itemize}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Case Study: Neural-Swarm2 \cite{2022-shi-NeuralSwarm2PlanningControl}}{
+
+  \vspace{5mm}
+  \twocol{.5}{.15}{
+    \includegraphics[height=0.8\textheight]{neuralswarm2/heatmap-ssls.png}
+  }{
+    \includegraphics[height=0.8\textheight]{neuralswarm2/heatmap-legend.png}
+  }
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Case Study: Neural-Swarm2 \cite{2022-shi-NeuralSwarm2PlanningControl}}{
+
+\url{https://youtu.be/Y02juH6BDxo}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\key{GNNs}
+\slide{Graph Neural Networks (GNNs)}{
+
+\item Inspiration: CNNs as graph
+
+\show{2024-bishop-DeepLearningFoundations-fig13.3.png}
+
+\citehere{2024-bishop-DeepLearningFoundations}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Graph Neural Networks (GNNs)}{
+
+\item Graph $\mathcal G = (\mathcal V, \mathcal E)$
+
+\item Basic case: learn features for each node $n\in\mathcal V$
+
+\item Use $L$ layers with $D$-dimensional vector $h_n^{(l)}$
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Graph Neural Networks (GNNs)}{
+
+\show{2024-bishop-DeepLearningFoundations-alg13.1.png}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Graph Neural Networks (GNNs)}{
+
+\item Examples for Aggregate/Update:
+\begin{itemize}
+  \item Aggregate($\{ h_m^{(l)}: m\in \mathcal N(n) \}$) = $MLP_\rho \left( \sum_{m\in\mathcal N(n)} MLP_\phi(h_m^{(l)})\right)$
+  \item Update($h_n^{(l)}, z_n^{(l)}$) = $f(W_{self} h_n^{(l)} + W_{neigh} z_n^{(l)} + b)$
+\end{itemize}
+
+\item Extensions to have input/output features per edge and graph
+  \info{See e.g., \cite{2024-bishop-DeepLearningFoundations}}
+
+
+\item Training ``as usual'' (on whole graphs)
+
+\item In practice: PyG {\urlfont\url{https://www.pyg.org/}} or DGL {\urlfont\url{https://www.dgl.ai/}}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Case Study: Learning to Communicate for Multi-Robot Path Finding \cite{2020-li-GraphNeuralNetworks}}{
+
+\show[1.0]{2020-li-GraphNeuralNetworks.png}
+
+\item Goal: Learn how to communicate to imitate a centralized Multi-Agent Path Finding expert
+
+\item Data: Trajectories computed by a centralized expert
+
+\item Approach: IL w/ DAgger
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Case Study: Learning to Communicate for Multi-Robot Path Finding \cite{2020-li-GraphNeuralNetworks}}{
+
+\show[0.9]{2020-li-GraphNeuralNetworks-fig1.png}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Case Study: Multi-Robot Perception \cite{2022-zhou-MultiRobotCollaborativePerception}}{
+
+
+\twocol{.4}{.6}{
+\show[1.0]{2022-zhou-MultiRobotCollaborativePerception.png}
+
+
+\item Goal: Learn what to communicate for depth estimation or segmentation
+
+\item Data: Labeled Data mostly from simulator; some from real flights
+
+\item Approach: Behavior Cloning
+}{
+\show{2022-zhou-MultiRobotCollaborativePerception-fig1.png}
+
+}
+
+\item Video: {\urlfont\url{https://youtu.be/2bdhLI3dqo0}}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{GNN Applications}{
+
+\item Flocking (in simulation) \cite{2020-tolstaya-LearningDecentralizedControllers,2021-kortvelesy-ModGNNExpertPolicy,2022-gama-SynthesizingDecentralizedControllers}
+
+\item Navigation (simulation + RL) \cite{2022-yu-LearningControlAdmissibility}
+
+\item Graph Control Barrier Function (simulation + IL w/ DAgger) \cite{2023-zhang-NeuralGraphControl}
+
+\item Learning to Communicate Variations \cite{2021-li-MessageAwareGraphAttention,2022-gama-SynthesizingDecentralizedControllers}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\slide{Outline}{
+
+\item Handling Dynamic Neighbors
+
+\begin{itemize}
+    \item LSTMs
+    \item CNNs
+    \item DeepSets
+    \item Graph Neural Networks
+\end{itemize}
+
+\item \textbf{Multi-Agent Reinforcement Learning (MARL)}
+
+\item Discussion / Open Challenges
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\key{MARL}
+\slide{MARL Definition}{
+
+\item Single Robot: MDP $(\SS, \AA, P, R, P_0, \g)$ with state space $\SS$, action space $\AA$, transition probabilities $P(s_{t\po} \| s_t,a_t)$, reward fct $r_t = R(s_t,a_t)$, initial state distribution $P_0(s_0)$, and discounting factor $\g\in[0,1]$.
+\pause
+
+\item Multi-Robot: Markov game $(N, \SS, \AA, P, R, P_0, \g)$ with $N$ robots, $\SS$ \emph{joint} state space, $\AA=A_1 \times A_2 \times \ldots \times A_N$ \emph{joint} action space, reward fct $r_1,\ldots,r_N = R(s,a)$
+
+\item Goal: Find policy (or policies) that maximize expected reward
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Rewards}{
+
+\item \textbf{Fully cooperative}: $r_1 = r_2 = \ldots = r_N$
+\info{No credit assignment; difficult to train}
+
+\item \textbf{Competitive}: zero-sum games ($\sum_i r_i = 0$), prey-predator games (cooperative per team; competitive per game)
+
+\item \textbf{Mixed Cooperative-Competitive}: (local) reward shaping, to achieve a common goal
+
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Learning}{
+
+\item \textbf{Centralized} model as stacked robot (centralized training \& inference)
+
+\item \textbf{Independent Learning} each robot learns own policy (decentralized training \& inference)
+
+\item \textbf{Centralized Training Decentralized Execution (CTDE)}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Challenges}{
+
+\item Non-Stationarity: if policy of other agents can't be observed, the Markov assumption is violated (e.g., distributed Q-Learning)
+
+\item Scalability: in standard policy gradient algorithms, the probability of estimating the policy gradient correctly might decrease exponentially with the number of agents
+\info{Concrete example: appendix of \cite{2017-lowe-MultiAgentActorCriticMixed}}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Approaches}{
+
+\item Centralized critic, e.g., Multi-Agent deep deterministic policy gradient (MADDPG, \cite{2017-lowe-MultiAgentActorCriticMixed})
+
+\item Factorized value functions, e.g., Value Decomposition Networks (VDN, \cite{2018-sunehag-ValueDecompositionNetworksCooperative})
+
+\item Communication Learning
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Practical Considerations}{
+
+\item VMAS (Vectorized Multi-Agent Simulator for Collective Robot Learning) {\urlfont\url{https://github.com/proroklab/VectorizedMultiAgentSimulator}}
+\info{Simple 2D physics engine build in pyTorch}
+
+\item MARLlib {\urlfont\url{https://github.com/Replicable-MARL/MARLlib}}
+
+\item More Details/Overview about MARL:
+
+\citehere{2022-wang-DistributedReinforcementLearning}
+
+\citehere{2023-orr-MultiAgentDeepReinforcement}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Case Study: Distributed Collision Avoidance (Ground) \cite{2020-fan-DistributedMultirobotCollision}}{
+
+\show[0.6]{2020-fan-DistributedMultirobotCollision.png}
+
+\twocol{.3}{.7}{
+  \show[1.0]{2020-fan-DistributedMultirobotCollision-fig4.png}
+}{
+  \show{2020-fan-DistributedMultirobotCollision-fig3.png}
+}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Case Study: Distributed Collision Avoidance (Ground) \cite{2020-fan-DistributedMultirobotCollision}}{
+
+\item Goal: find decentralized policy: $\pi: y, g \mapsto u$
+
+\item Data: Collected in simulation during RL (input LIDAR, relative goal, velocity; output: action)
+
+\item Approach: PPO (centralized learning, decentralized execution; shared policy)
+
+\item Video: {\urlfont\url{https://sites.google.com/view/hybridmrca}}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Case Study: Distributed Collision Avoidance (UAVs) \cite{2024-huang-CollisionAvoidanceNavigation}}{
+
+\item Goal: find decentralized policy: $\pi: y, g \mapsto u$
+
+\item Data: Collected in simulation during RL (input state, nearby obstacles, nearby neighbors; output: thrust per rotor)
+
+\item Approach: IPPO (centralized learning, decentralized execution; shared policy)
+
+\item Video: {\urlfont\url{https://sites.google.com/view/obst-avoid-swarm-rl}}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Case Study: Neural Tree Expansion \cite{2021-riviere-NeuralTreeExpansion}}{
+
+\item Goal: find decentralized policies for multi-team games (e.g., reach-target avoid)
+
+
+\twocol{.45}{.45}{
+\showh[1.0]{2021-riviere-NeuralTreeExpansion-fig1.png}
+}{
+  \begin{itemize}
+    \item Data: Collected with a neural-biased ``expert'' (large Monte-Carlo Tree Search)
+
+    \item Approach: MCTS + IL + DAgger (essentially: AlphaZero in continuous state spaces)
+    
+    \item Video: {\urlfont\url{https://youtu.be/mklbTfWl7DE}}
+  \end{itemize}
+}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\slide{Outline}{
+
+\item Handling Dynamic Neighbors
+
+\begin{itemize}
+    \item LSTMs
+    \item CNNs
+    \item DeepSets
+    \item Graph Neural Networks
+\end{itemize}
+
+\item Multi-Agent Reinforcement Learning (MARL)
+
+\item \textbf{Discussion / Open Challenges}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\key{DiNNO}
+
+\slide{DiNNO: Distributed Neural Network Optimization \cite{2022-yu-DiNNODistributedNeural}}{
+
+\show[0.45]{2022-yu-DiNNODistributedNeural-fig1.png}
+
+\item Collect data locally, local augmented Lagrangian update, share resulting weights via consensus
+
+\item Works for IL and RL
+
+\item Web: {\urlfont\url{https://msl.stanford.edu/projects/dist_nn_train}}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{LLMs and Multi-Robots \cite{2024-chen-WhySolvingMultiagent}}{
+
+\show[0.5]{2024-chen-WhySolvingMultiagent.png}
+
+\item (Arxiv, Jan. 2024)
+
+\show[1.0]{2024-chen-WhySolvingMultiagent-fig1.png }
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\slide{LLMs and Multi-Robots \cite{2024-chen-WhySolvingMultiagent}}{
+
+\show{2024-chen-WhySolvingMultiagent-fig2.png}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\slide{Open Challenges}{
+
+\item Deployment to real robots (especially RL)
+
+\item Safety (esp. partially unknown dynamics, perception)
+
+\item Interpretability (of communication)
+
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Conclusion}{\label{lastpage}
+
+\item Multi-Robot brings new challenges
+  \begin{itemize}
+    \item Large state space (or violation of Markov assumption)
+    \item Dynamic number of neighbors
+    \item Reasoning about communication
+  \end{itemize}
+
+\item Deep Sets: permutation invariant architecture that is easy to train and computationally efficient
+\info{useful for $\pi: x, \mathcal N \mapsto u$}
+
+\item GNN: Generalization of deep sets
+\info{useful for learning communication}
+
+\item Learning a decentralized policy from a centralized expert works well (IL + DAgger)
+
+\item Deployment to real robot teams remains challenging
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\ttiny
+\ifthenelse{\isundefined{\scripthead}}{
+\bibliographystyle{plainurl-lis}
+\bibliography{b8-MultiRobotLearning}
+}{}
+
+\slidesfoot

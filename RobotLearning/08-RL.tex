@@ -1,0 +1,802 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Robot Learning}
+\renewcommand{\coursepicture}{roblearn.png}
+\renewcommand{\coursedate}{Summer 2024}
+\renewcommand{\teacher}{Marc Toussaint}
+
+\renewcommand{\topic}{Reinforcement Learning}
+\renewcommand{\keywords}{}
+
+\slides
+
+\input{macros-local}
+\newcommand{\rmax}{{\textsc{R-max}}}
+
+\slidestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{I. What is learned?}{
+
+~\anchor{220,-20}{\showh[.45]{robLearn1}}
+
+~
+
+~\small
+
+\item So far we discussed dynamics and imitation learning
+\begin{items}
+\item The mappings we learned concerned $x, y, u$ (including also dynamics parameters $\Theta$ and constraints $\phi(x)$)
+\item Demonstration data was given, or dynamics data well-collected
+\item There is no external task/cost evaluation
+\end{items}
+
+\item In RL, we assume \textbf{rewards $r$ given}, which opens a new dimension
+\begin{items}
+\item We will learn state values ($V$-, $Q$-function) and a policy maximizing expected discounted rewards
+\item RL is more autonomous in that it explores the world and generates its own data
+\item But it relies on an externally given reward function
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Outline}{
+
+~
+
+\item First essentials towards modern Deep RL methods
+
+~
+
+\item Then a discussion of challenges
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Markov Decision Process}
+\slide{Markov Decision Process}{
+
+\item \emph{The world:} An MDP $(\SS, \AA, P, R, P_0, \g)$ with state space $\SS$, action space $\AA$, transition probabilities $P(s_{t\po} \| s_t,a_t)$, reward fct $r_t = R(s_t,a_t)$, initial state distribution $P_0(s_0)$, and discounting factor $\g\in[0,1]$.
+\pause
+
+\item \emph{The agent:} A parameterized policy $\pi_\t(a_t|s_t)$.
+
+~\pause
+
+\item Together they define the path distribution $(\xi=(s_{0:T\po},a_{0:T}))$
+\anchor{10,-40}{\showh[.25]{mdp1}}
+$$P_\t(\xi) = P(s_0)~ \prod_{t=0}^T \pi_\t(a_t|s_t)~ P(s_{t\po}|s_t,a_t)\qquad\qquad$$
+
+\pause
+
+and the \textbf{expected discounted return} ~ (\tiny with \emph{discounting factor $\g\in[0,1)$})
+$$J(\t) = \EEE_{\xi\sim P_\t}\big\{\underbrace{\Sum_{t=0}^\infty \g^t r_t}_{R(\xi)}\big\}
+= \int_\xi P_\t(\xi)~ R(\xi)~ d\xi$$
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Value Function, Bellman, Q-Iteration}
+\slide{Value functions}{
+
+\info{The following assumes a deterministic policy $a=\pi(s)$; stochastic $\pi(a|s)$ is handled with expectations over $a$.}
+
+\item The \defn{value function} of a policy $\pi_\t$ gives the return when started in state $s$:
+\begin{align*}
+V^\pi(s)
+&= \Exp{ \Sum_t \g^t r_t \| s_0\=s } \\
+V^\pi(s)
+&= R(s,\pi(s)) + \g \Exp[s'|s,\pi(s)]{V^\pi(s')} && \text{\tiny(Bellman Equation)}
+\end{align*}
+
+~\pause
+
+\item The \defn{Q-function} gives the return when starting in state $s$
+and taking first action $a$:
+\begin{align*}
+Q^\pi(s,a)
+&= \Exp{ \Sum_t \g^t r_t \| s_0\=s, a_0\=a } \\
+Q^\pi(s,a)
+&= R(s,a) + \g \Exp[s'|s,a]{ Q^\pi(s',\pi(s')) } && \text{\tiny(Bellman Equation)}
+\end{align*}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{Optimal Value Function and Policy}{
+
+%% ~
+
+%% \item A policy $\pi^*$ is \defn{optimal} iff
+%% \begin{align*}
+%% \forall s:~ V^{\pi^*}(s) = V^*(s)\comma
+%% \text{ where } ~ V^*(s) = \max_\pi V^\pi(s) ~,
+%% \end{align*}
+%% \small
+%% i.e., simultaneously maximises the value in all states
+
+%% {\tiny (In MDPs there always exists (at least one) optimal deterministic
+%% policy.)}
+
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{}{
+
+%% \twocol{.3}{.3}{
+%% An example for a \\
+%% value function...
+%% }{\center
+
+%% \showhs[5]{15x20holes}
+
+%% }
+
+%% ~
+
+%% {\hfill\tiny\texttt{demo: test/mdp runVI}}
+
+%% ~
+
+%% ~
+
+%% \cen{\textbf{Values provide a gradient towards desirable states}}
+
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{Value function}{
+
+%% ~
+
+%% \item The value functions $V$ or $Q$ is a central concept in all of RL!
+
+%% {\small\medskip
+
+%% Many algorithms can directly be derived from properties of the value
+%% function.
+
+%% }
+
+%% ~
+
+%% \item In other areas (stochastic optimal control) it is also
+%% called \emph{cost-to-go} function ($\text{cost}=-\text{reward}$)
+
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Bellman Optimality Equation}{
+
+\small
+\item Bellman equations ($\oto$ \emph{Policy Evaluation}):
+\begin{align*}
+V^\pi(s)
+&= R(s,{\color{blue}\pi(s)}) + \g \Exp[s'|s,{\color{blue}\pi(s)}]{V^\pi(s')} &&\qquad\\
+Q^\pi(s,a)
+&= R(s,a) + \g \Exp[s'|s,a]{ Q^\pi(s',{\color{blue}\pi(s')}) }
+\end{align*}
+
+\pause
+
+\item Bellman optimality equations: ($\oto$ Q-Iteration/Value Iteration)
+\begin{align*}
+V^*(s)
+&= {\color{blue}\Max_a} \[R(s,{\color{blue}a}) + \g \Exp[s'|s,{\color{blue}a}]{ V^*(s') }\] 
+~= \Max_a Q^*(s,a) \\
+Q^*(s,a)
+&= R(s,a) + \g \Exp[s'|s,a]{ {\color{blue}\Max_{a'}} Q^*(s', {\color{blue}a'}) } \\
+\pi^*(s)
+&= \textstyle\argmax_a Q^*(s,a)
+\end{align*}
+
+\hfill{\ttiny 
+\showh[.1]{bellmanOpt}\qquad
+\showh[.1]{bellman}\quad
+Richard E. Bellman (1920--1984)
+}
+
+\info{Sketch of proof: If $\pi^*$ would be other than
+$\argmax_a[\cdot]$, then $\pi'=\pi$
+everywhere except $\pi'(s)=\argmax_a[\cdot]$ would be better.}
+
+
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\item The core question is how to actually compute them
+
+~
+
+\item Model-based: ~ (if we know or estimated the models $P(s'|s,a), R(s,a), P(s_0)$)
+\begin{items}
+\item Q-Iteration, Policy Iteration
+\end{items}
+
+~
+
+\item Data-based: ~ (if we directly use data $D=\{ (s_i,a_i,r_i,s_{i\po}) \}_{i=0}^n$)
+\begin{items}
+\item ``Reinforcement Learning''
+\item TD-Learning, Q-learning, Actor-Critic
+\item Modern: DDPG, TC3, SAC, etc
+\end{items}
+
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Model-based: Q-Iteration}{
+
+\item Bellman Optimality equation for $Q^*$:
+\begin{align*}
+Q^*(s,a)
+&= R(s,a) + \g \Expno[s'\|s,a] \big\{ \underbrace{\max_{a'} Q^*(s', a')}_{V^*(s')} \big\}
+\end{align*}
+
+~\pause
+
+\item \textbf{Q-Iteration:} \quad initialize $Q_{k\=0}(s,a)=0$, then iterate:
+\begin{align*}
+\forall_{s}:~ V_{k\po}(s) &= \max_{a'} Q_k(s,a') \\
+\forall_{s,a}:~ Q_{k\po}(s,a) &= R(s,a) + \g \Exp[s'|s,a]{ V_{k\po}(s') }
+\end{align*}
+stopping criterion: \quad $\max_{s,a} |Q_{k+1}(s,a) - Q_k(s,a)| \le \e$
+
+\info{Note: Using $V_{k\po}$ in this iteration is like a buffer -- cf.\ the ``target network'' in neural RL.}
+
+\item \textbf{Theorem:} Q-Iteration converges to the optimal state-action value function $Q^*$
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Proof of convergence of Q-Iteration}
+\slide{Q-Iteration -- Proof of convergence}{
+
+\small
+
+\item Let $\D_k = \norm{Q^* - Q_k}_\infty = \Max_{s,a} |Q^*(s,a) - Q_k(s,a)|$
+\begin{align*}
+\hspace*{-10mm}Q_{k+1}(s,a)
+ &= R(s,a) + \g \Exp[s'|s,a]{ \Max_{a'} Q_k(s',a') } \\
+ &\le R(s,a) + \g \Exp[s'|s,a]{ \Max_{a'}\[ Q^*(s',a') + \D_k \] } \\
+ &= \[ R(s,a) + \g \Exp[s'|s,a]{ \Max_{a'} Q^*(s',a') }\] + \g \D_k \\
+ &= Q^*(s,a) + \g \D_k
+\end{align*}
+
+similarly: $Q_{k+1} \ge Q^* - \g \D_k$
+
+~
+
+\item The proof translates directly also to value iteration
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{Comments \& Relations}{
+
+%% \small
+
+%% \item Value Iteration is a form of \textbf{Dynamic Programming}, which propagates values \emph{backward}
+%% \begin{items}
+%% \item In deterministic worlds, Value Iteration is the same as
+%% \emph{Dijkstra backward}; it labels all nodes with the value
+%% ($\oto$ cost-to-go).
+%% \end{items}
+
+%% ~\pause
+
+%% \item In \emph{control theory}, the Bellman equation is formulated for
+%% continuous state $x$ and continuous time $t$ and ends-up:
+%% $$
+%% -\frac{\del}{\del t} V(x,t)
+%%  = \min_u \[c(x, u) + \frac{\del V}{\del x} f(x,u) \]
+%% $$
+%% which is called \emph{Hamilton-Jacobi-Bellman} equation. For linear quadratic systems, this becomes the \emph{Riccati equation}
+
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Policy Iteration}
+\slide{Model-based: Policy Iteration}{
+
+\item \textbf{Policy Evaluation:} Dynamic Programming for $Q^\pi$ instead of $Q^*$: Iterate:
+\begin{align*}
+\forall_{s}:~ V_{k\po}(s) &= Q_k(s,{\color{red}\pi(s)}) \\
+\forall_{s,a}:~ Q_{k\po}(s,a) &= R(s,a) + \g \Exp[s'|s,a]{ V_{k\po}(s') }
+\end{align*}
+stopping criterion: \quad $\max_{s,a} |Q_{k+1}(s,a) - Q_k(s,a)| \le \e$
+
+~
+
+\item \textbf{Policy Improvement:} Then update the policy to become better:
+\begin{align*}
+\pi(s) \gets \argmax_a Q(s,a)
+\end{align*}
+
+~
+
+\item Iterating the two steps above is guaranteed to converge
+
+\item This is also called \textbf{actor-critic} (with $\pi$=actor, and $Q^\pi$=critic)
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\small
+
+\item The two discussed methods (Q-Iteration and Policy Iteration) can
+compute optimal policies, but require a known (or estimated) model
+
+\item To approximately do the same from data, we follow two strategies
+\begin{items}
+\item Whenever there was an expectation $\Exp{\cdot}$ in these equations, we replace it by sample data
+\item Whenever there was a full function update (e.g.\ $\forall_{s,a}: Q(s,a) \gets \cdots$ or policy improvement) we need to replace it by a \textbf{data-based loss functions} and do gradient steps.
+\end{items}
+
+~\pause
+
+\item For simplicity, the following focusses on Policy Iteration (or \emph{actor-critic}) approaches
+
+\info{Similar strategies can be applied for ``Deep Q-Learning'':\\ \citehere{2015-mnih-HumanlevelControlDeep} But major RL methods nowadays follow actor-critic approaches}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Bellman Residual Loss}
+\slide{Data-based: Bellman Loss for the Q-function}{
+
+\item Recall 
+$$Q^\pi(s,a) = R(s,a) + \g \Exp[s'|s,a]{ Q^\pi(s',\pi(s')) }$$
+
+\medskip
+
+\item Given data $D=\{ (s_i,a_i,r_i,s_{i\po}) \}_{i=0}^T$, define the \textbf{Bellman residual}:
+$$\BB^\pi(Q_\t, \bar Q) = \Exp[(s,a,r,s')\sim D]{~ [Q_\t(s,a) - r - \g \bar Q(s', \pi(s'))]^2 ~} $$
+
+\pause
+
+\item This defines a supervised ML problem for $Q_\t$! We have $Q$-gradients and can do standard SGD.
+\begin{items}
+\item Actually we want $\bar Q \equiv Q_\t$, and could compute gradients also accounting for $\g \bar Q(s', \pi(s'))$. This is called \textbf{Bellman residual minimization}, and known since the 80ies, but has challenges \cite{2010-maillard-FinitesampleAnalysisBellman,2017-geist-BellmanResidualBad}
+\item So instead, during training we fix $\bar Q$ to some ``old version'' of $Q_\t$: We set $\bar Q = Q_{\bar\t}$ where $\bar \t$ is a low-pass filter of $\t$ (a \textbf{delayed} version of the current parameters $\t$). This stabilizes training.
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%\cite{2003-lagoudakis-LeastsquaresPolicyIterationa}
+
+\slide{}{
+
+\item So, for a given policy $\pi$, ~ $\BB^\pi(Q_\t, \bar Q)$ defines a loss for $Q_\t$
+
+\item How can we also define a loss function for the policy?
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Data-based: Return Maximization for the Policy}{
+
+\item To train the policy, we choose to directly maximize expected return:
+$$J(\t) = \EEE_{\xi\sim P_\t}\big\{\underbrace{\Sum_{t=0}^\infty \g^t R(s_t,a_t)}_{R(\xi)}\big\}
+= \Int_\xi P_\t(\xi)~ R(\xi)~ d\xi$$
+
+\begin{items}
+\item This is not really an error, but exactly what we aim to maximize
+\item All we need is the gradient $\Del \t J(\t)$
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Policy Gradient}
+\slide{Policy Gradient $\Del \t J(\t)$}{
+
+\info{The word ``policy gradient'' means gradient of $J(\t)$ w.r.t.\ the policy parameters $\t$.}
+
+~
+
+\item For a deterministic policy $a = \pi_\t(s) \in\RRR^d$:
+\begin{align*}
+\Del \t J(\t)
+&=
+\Exp[s\sim P_{\t}]{\Del a Q^{\pi_\t}(s,a)\big|_{a=\pi_\t(s)} \Del \t \pi_\t(s)}
+\end{align*}
+
+\info{Derived here: 
+\cite{2014-silver-DeterministicPolicyGradient}, and led to the \textbf{Deep Deterministic Policy Gradient (DDPG)} method
+\cite{2019-lillicrap-ContinuousControlDeep}. Is the foundation of many followups. This gradient is somewhat noisy, D4PG is an improvement.}
+
+~\pause
+
+\item For a stochastic policy $\pi_\t(a|s)$: (standard ``Policy Gradient Theorem''):
+{\tiny\begin{align*}
+\hspace*{-5mm}
+&\Del \t J(\t)
+=
+\Del \t
+\int P_\t(\xi)~ R(\xi)~ d\xi
+= \int P_\t(\xi) \Del \t \log P_\t(\xi) R(\xi) d\xi \\
+\hspace*{-5mm}
+&=
+\Exp[\xi\sim P_\t]{\Del \t \log P_\t(\xi) R(\xi)}
+ = \Expno[\xi\sim P_\t] \Big\{ \Sum_{t=0}^H \g^t~ [\Del \t \log\pi_\t(a_t|s_t)]~
+ \underbrace{\Sum_{t'=t}^H \g^{t'-t} r_{t'}}_{Q^{\pi_\t}(s_t,a_t)} \Big\}
+\end{align*}}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{RL: Interleaving training with data collection}{
+
+\twocol{.45}{.45}{
+\showh[.8]{TD3}
+}{
+
+ 
+\item Actor-Critic style Deep RL:
+\begin{items}
+\item $\Del \t \BB(Q_\t, \bar Q)$ provides gradient steps for $Q_\t$
+\item $\Del \t J(\t)$ provides gradient steps for $\pi_\t$
+\item gradually training both is interleaved with collecting more data
+\end{items}
+
+~
+
+\citehere{2018-fujimoto-AddressingFunctionApproximation}
+
+}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Deep RL}
+\slide{Techniques to improve methods}{
+
+\item Papers on techniques in state-of-the-art methods:
+\begin{items}
+\item In Deep Q-Learning (DQN) approaches: \cite{2018-hessel-RainbowCombiningImprovements} (Rainbow paper)
+\item In Actor-Critic approaches: \cite{2018-fujimoto-AddressingFunctionApproximation} (TD3 paper)
+\item A state-of-the-art actor-critic method: \cite{2018-haarnoja-SoftActorcriticOffpolicy} (SAC paper)
+\end{items}
+
+\pause
+
+\item Many ideas:
+\begin{items}\tiny
+\item Replay buffers (``experience replay''): Limited buffer of experiences to train on (approximates $P_\t(s,a,r,s')$)
+\item Double Q-Learning: maintain 2 indep. Q-functions $Q_{1,2}(s,a)$ (and use min in policy update)
+\item Delayed targets: low pass filter $\bar Q$ of $Q$ as target
+\item Smoothed policy samples: add (clipped) noise when sampling policy in Bellman loss
+\item Prioritized Replay: (pick replay data where Bellman error is largest)
+\item Dueling Networks: (decompose Q in value and advantage)
+\item Multi-Step Learning: ($n$-step updates)
+\item Distributional RL: (let Q-function predict return \emph{distribution}, not mean)
+\item Noisy Nets: (replace $\e$-greedy exploration by ``learnt noise'')
+\end{items}
+
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Discussion}{
+
+\item The previous material should enable you to read about modern Deep RL methods (TD3, D4PG, SAC)
+
+~
+
+\item Rest of this lecture is discussion
+\begin{items}
+\item Why do we actually learn $Q$ and not $V$?
+\item What if we have partial observability?
+\item How is the data collected?
+\item How are reward functions engineered?
+\item Why not just use black-box optimization?
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Why do we actually learn $Q$ and not $V$?}{
+
+~\pause
+
+\item $Q(s,a)$ tells us what is the best action $a = \argmax_a Q$
+
+\pause
+
+\item In control, value functions are also estimated, but never $Q$ (I think). Why?
+
+\info{E.g. the Hamilton-Jacobi-Bellman Eq: $
+-\frac{\del}{\del t} V(x,t)
+ = \min_u \[c(x, u) + \frac{\del V}{\del x} f(x,u) \]
+$.}
+
+~\pause
+
+\item Without Q-function, we'd somehow have to learn how to walk up-hill on $V$:
+\begin{items}
+\item Learn an \emph{inverse model} $(s, \Delta s) \mapsto a$
+\item Learn a ``flow'' policy $\pi: s \mapsto \Delta s \approx \Del s V(s)$
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{What if we have partial observability?}{
+
+\item Policy has only access to observations $y_{0:t}$
+
+~\pause
+
+\item[\color{black}$\to$] Make the $Q$ function a recursive NN
+
+~
+
+\twocol{.4}{.5}{
+
+\show[.6]{DRQN}
+
+}{
+
+\citehere{2015-hausknecht-DeepRecurrentQlearning}
+
+}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Data Collection in RL}
+\slide{How is the data collected?}{
+
+~\pause
+
+\item A core challenge in modern RL!
+
+\item Many modern methods \emph{require} that the data is collected from the current $\pi_\t$!
+\begin{items}
+\item So that $\Exp{\cdot}$ can be replaced by the data in the Bellman equations
+\item This is called \textbf{on-policy} -- we'll discuss off-policy next time
+\item But $\pi$ is so uninformed! So non-exploring! So iid. in each step ($\sim$ Brownian noise)
+\item Check pseudo codes of mentioned methods (SAC, DDPG, TD3, etc)
+\end{items}
+
+~\pause
+
+\item In old RL (discrete state-action spaces), things were much better!
+\begin{items}
+\item \textbf{Explicit Exploit or Explore} \cite{2002-kearns-NearoptimalReinforcementLearning} -- a \emph{must read!}
+\item \rmax{} \cite{2002-brafman-RmaxaGeneralPolynomial}, Optimistic value initialization, Bayesian RL
+\item These methods design policies to systematically explore, typically by \textbf{systematically rewarding exploration}
+\item Optimism in the face of uncertainty: Rewarding decisions with uncertain outcomes!
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{How is the data collected?}{
+
+\item In Deep RL: Structured noise instead of Brownian:
+
+\citehere{2022-eberhard-PinkNoiseAll}
+
+\item Parameter-space noise: (add noise to $\t$ instead of $a$)
+
+\citehere{2018-plappert-ParameterSpaceNoise}
+
+\pause
+
+\item Guided Policy Search\\ \citehere{2013-levine-GuidedPolicySearch}
+\begin{items}
+\item Use model-based trajectory optimization to generate data
+\end{items}
+
+\item Demonstration Guided \cite{2021-pertsch-DemonstrationGuidedReinforcementLearning}
+
+\item Or just give up:
+\begin{items}
+\item Offline Reinforcement Learning: Assume the data was generated somehow externally
+\item Imitation Learning \& Inverse RL: Learn from demonstrations
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Reward Engineering}
+\slide{How are reward functions engineered?}{
+
+\item Reward shaping theory: You can add potentials without changing optimal policy
+
+\citehere{1999-ng-PolicyInvarianceReward}
+
+~\pause
+
+\item Reward engineering:
+
+\medskip
+
+\twocol{.4}{.5}{
+\show[.5]{ballInCup1}
+}{
+\showh{ballInCup2}
+}
+
+\citehere{2009-kober-LearningMotorPrimitives}
+{\urlfont\url{https://www.youtube.com/watch?v=qtqubguikMk}}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Why not just use black-box optimization?}{
+
+\item Eventually, $\max_\t J(\t)$ is an optimization problem
+\begin{items}
+\item Instead of deriving gradients (via Bellman, and $Q$-functions), why not treat as black-box or \textbf{derivative-free optimization} problem?
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\show[.6]{openai-ES1}
+
+\citehere{2017-salimans-EvolutionStrategiesScalable}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{}{
+
+%% \item The ES they employ:
+
+%% ~
+
+%% \show{openai-ES3}
+
+%% \begin{items}
+%% \item Is an instance of our ``General Stochastic Search'' scheme:
+
+%% \quad $\t$ is the mean; $\l=n$ samples $x_t \sim \NN(\t, \s^2 I)$; evaluations $f(x_i)$
+
+%% \item The update is more like a stochastic gradient step rather than selection
+
+%% \quad In expectation, $F_i\e_i \dot= (F_\t + \na F^\T \s\e_i)\e_i \approx 0 + \s \na F$.
+
+%% \end{items}
+
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\item \small Ratio of ES timesteps to TRPO timesteps needed to reach various percentages of TRPO's learning progress at 5 million timesteps:
+
+~
+
+\show[.6]{openai-ES2}
+
+}
+
+%% go through paper
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\show[.5]{clune-ES3}
+
+\citehere{2018-such-DeepNeuroevolutionGenetic}
+
+~
+
+\item Roughly: ``Do you spend your time training nets, or simulating?''
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{}{
+
+%% \show{clune-ES1}
+
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\show[.5]{clune-ES2}
+
+~
+
+\item Conclusion: It varies from problem to problem what is better.
+
+And it is suprising that ``naive'' black-box ES can beat elaborate RL-methods
+
+}
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{}{
+
+%% \item Salimans, T., Ho, J., Chen, X., Sidor, S., \& Sutskever, I. (2017). Evolution strategies as a scalable alternative to reinforcement learning. arXiv preprint arXiv:1703.03864.
+
+%% \item Such, F. P., Madhavan, V., Conti, E., Lehman, J., Stanley, K. O., \& Clune, J. (2017). Deep neuroevolution: Genetic algorithms are a competitive alternative for training deep neural networks for reinforcement learning. arXiv preprint arXiv:1712.06567.
+
+%% \item Stulp, F., \& Sigaud, O. (2013). Robot skill learning: From reinforcement learning to evolution strategies. Paladyn, Journal of Behavioral Robotics, 4(1), 49-61.
+
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{Lots of Terminology}{
+
+%% \item In RL, the following terminologies are important to distinguish:
+%% \begin{items}
+%% \item model-free RL vs.\ model-based RL vs.\ policy search
+%% \item on-policy vs.\ off-policy methods
+%% \item standard RL vs.\ batch RL vs.\ offline RL
+%% \end{items}
+
+%% ~
+
+%% \item We'll summarize these later
+%% \begin{items}
+%% \item First learn the basics: model-free RL
+%% \end{items}
+
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{\label{lastpage}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\ttiny
+\ifthenelse{\isundefined{\scripthead}}{
+\bibliographystyle{plainurl-lis}
+\bibliography{b3-ReinforcementLearning}
+}{}
+
+\slidesfoot

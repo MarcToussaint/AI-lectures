@@ -1,0 +1,14 @@
+\ifthenelse{\isundefined{\scripthead}}{
+
+\providecommand{\info}[1]{\smallskip{\ttiny [#1]\par}}
+
+\usepackage{bibentry}
+\nobibliography*
+
+\ifthenelse{\isundefined{\setbeamertemplate}}{}{
+  \setbeamertemplate{bibliography item}{\insertbiblabel}
+}
+
+\providecommand{\citehere}[1]{{\fontsize{5}{1}\selectfont\bibentry{#1}\par}}
+
+}{}

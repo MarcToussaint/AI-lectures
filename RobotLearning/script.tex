@@ -1,0 +1,150 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Robot Learning}
+\renewcommand{\coursepicture}{roblearn.png}
+\renewcommand{\coursedate}{Summer 2024}
+\renewcommand{\teacher}{Marc Toussaint \& Wolfgang H{\"o}nig}
+
+\script
+
+\newcommand{\setbeamertemplate}[2]{}
+
+\usepackage{ifthen}
+%\newboolean{inheader}
+%\setboolean{inheader}{true}
+%\newboolean{loadbib}
+%\setboolean{loadbib}{false}
+
+\providecommand{\info}[1]{\smallskip{\ttiny [#1]\par}}
+\usepackage{bibentry}
+\setbeamertemplate{bibliography item}{\insertbiblabel}
+\nobibliography*
+
+\providecommand{\citehere}[1]{{\fontsize{5}{1}\selectfont\bibentry{#1}\par}}
+
+\excludecomment{solution}
+%\usepackage{etoolbox}
+%\setboolean{inheader}{false}
+
+  \usepackage{tikz}
+  \usetikzlibrary{shapes,snakes}
+  \usepackage{tkz-base}
+  \usepackage{tkz-euclide}
+  %% \usetikzlibrary{shapes.geometric, arrows, shadows.blur, shadows, shapes.multipart}
+  %% \usetikzlibrary{positioning}
+  %% \usetikzlibrary{intersections}
+  \usetikzlibrary{tikzmark}
+  %% \tikzstyle{arrow} = [line width=1.5mm,->,>=stealth]
+  %% \usepackage{breqn}
+  %% \usepackage{bm}
+
+%%%%%%%%%%
+\newlength\rightmargintoc
+\setlength\rightmargintoc{\linewidth}
+\addtolength\rightmargintoc{-7em}
+
+\makeatletter
+\def\subsubsectocline#1#2#3#4#5{%
+\parshape 2 4em \rightmargintoc \dimexpr\parindent+4em\relax \rightmargintoc
+\@tempdima#3
+\ifdim\lastskip=1sp;\hskip1ex\relax\ \else\fi{\footnotesize#4}\hskip1sp%
+}
+\renewcommand*\l@subsubsection{\subsubsectocline{1}{0em}{2.8em}}
+\makeatother
+
+\pretocmd{\chapter}{\addtocontents{toc}{\par}}{}{}
+\pretocmd{\section}{\addtocontents{toc}{\par}}{}{}
+
+\AtEndDocument{%
+\ifnum\value{subsubsection}>0\relax
+  \addtocontents{toc}{\par}
+  \fi}
+%%%%%%%%%%
+  
+\author{\teacher}
+\renewcommand{\theauthor}{\teacher}
+
+\renewcommand{\slides}[1][]{
+  %  \clearpage
+  \subsection{\topic}
+  \index{\topic}
+  {\small #1}
+  (slides by \teacher)
+  \setcounter{mypage}{0}
+  \smallskip\nopagebreak\hrule\medskip
+}
+
+\scripttitle
+
+\emph{This is a direct concatenation and reformatting of lecture
+    slides and exercises.}
+
+\tableofcontents
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\clearpage
+\slidefont
+\fancyhfoffset{0mm}
+
+\section{Lectures}
+
+\input{01-introduction.tex}
+\input{02-taxonomy.tex}
+\input{03-roboticsEssentials.tex}
+\input{04-machineLearningEssentials.tex}
+\input{05-dynamicsLearning.tex}
+\input{06-ImitationLearning.tex}
+\input{07-ImitationLearning2.tex}
+\input{08-RL.tex}
+\input{09-RL2.tex}
+\input{10-invRL.tex}
+\input{11-safeLearning.tex}
+\input{12-manipulation.tex}
+\input{13-plan.tex}
+\input{14-multiRobot.tex}
+%15-discussion.tex
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\clearpage
+\fancyhfoffset{0mm}
+\parindent 0ex
+\parskip 1ex
+
+\section{Exercises}
+
+\input{e01-robotics-ML.tex}
+\input{e02-systemid.tex}
+\input{e03-imitation_learning.tex}
+\input{e04-imitation_learning2.tex}
+\input{e05-RL.tex}
+\input{e06-RL.tex}
+\input{e07-invRL.tex}
+\input{e08-SL.tex}
+\input{e09-grasping.tex}
+\input{e10-tamp.tex}
+\input{e11-multiRobot.tex}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \clearpage
+%% \phantomsection
+%% \addtocontents{toc}{\par}
+%% \addcontentsline{toc}{section}{Index}
+%% \printindex
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\bibliographystyle{plainurl-lis}
+\bibliography{b1-DynamicsLearning.bib,%
+b2-ImitationLearning.bib,%
+b3-ReinforcementLearning.bib,%
+b4-InverseRL.bib,%
+b5-SafeLearning.bib,%
+b6-Manipulation.bib,%
+b7-TampLearning.bib,%
+b8-MultiRobotLearning.bib}
+
+\end{document}
+

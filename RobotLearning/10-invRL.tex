@@ -1,0 +1,520 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Robot Learning}
+\renewcommand{\coursepicture}{roblearn.png}
+\renewcommand{\coursedate}{Summer 2024}
+\renewcommand{\teacher}{Marc Toussaint}
+
+\renewcommand{\topic}{Inverse RL}
+\renewcommand{\keywords}{}
+
+\slides
+
+\input{macros-local}
+
+\slidestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Outline}{
+
+\item Value Alignment
+
+\item Inverse RL
+
+\item Preference-based RL
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\twocol[.05]{.45}{.45}{
+
+\show[.6]{20-russell}
+
+
+}{
+
+
+\item Stuart Russell
+\begin{items}
+\item Russell \& Norvig: \emph{Artificial Intelligence: A Modern
+Approach} (1995)
+\item Decision \& Game Theory
+\end{items}
+
+~
+
+\citehere{2019-russell-HumanCompatibleAI}
+
+}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Value Alignment}
+\slide{Russell: Value Alignment}{
+
+\item ``Standard model of AI''
+\begin{items}
+\item Define fixed objective; maximize
+\end{items}
+
+~\pause
+
+\item Difficulty in defining objectives
+\begin{items}
+\item Consequences (aspects of optimal behavior) unclear
+\item Humans are bad at defining objectives
+\end{items}
+
+~\pause
+
+\item Russell's proposal:
+\begin{items}
+\item Systems should infer human preferences from behavior
+\item Avoid overfitting
+\item Large apriori uncertainty (incl.\ noise assumption in human behavior) to avoid overfitting
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\twocol[.05]{.45}{.45}{
+
+%\show{10-abbeel}
+\show[.9]{16-hadfield-menell}
+
+~
+
+\citehere{2016-hadfield-menell-CooperativeInverseReinforcement}
+
+}{
+
+\item Game-theoretic formalization of \emph{Value Alignment}
+\begin{items}
+\item ..is just one possible formulation
+\item example for efforts to make ``Value Alignment'' more rigorous
+\end{items}
+
+}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Outline}{
+
+\item Value Alignment
+
+\item \textbf{Inverse RL}
+
+\item Preference-based RL
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Inverse Reinforcement Learning}{
+
+\item Instance of \textbf{Imitation Learning}; recall:
+\begin{items}
+\item Given expert demonstration data $D=\{(s^i_{1:T_i}, a^i_{1:T_i})\}_{i=1}^n$
+without external rewards, objectives, costs defined
+\item Extract the ``relevant information/model/policy'' to reproduce
+demonstrations
+\end{items}
+
+~\pause
+
+\item Recap: Types of Imitation Learning
+\begin{items}
+\item Behavior Cloning
+
+\item Trajectory Distribution Learning (\& Constraint Learning)
+
+\item Direct (Interactive) Policy Learning (DAgger)
+
+\item \textbf{Inverse Reinforcement Learning}
+\begin{items}
+\item Builds on the full formalism of RL
+\end{items}
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Inverse Reinforcement Learning}{
+
+\item General Idea:
+\begin{items}
+\item Given expert demonstration data $D=\{(s^i_{1:T_i}, a^i_{1:T_i})\}_{i=1}^n$
+\item \textbf{infer the reward function} assuming the demonstrated
+behavior is (approx.) optimal
+\end{items}
+
+~\pause
+
+\item Benefits of understanding the reward function \emph{behind}
+demonstrations:
+\begin{items}
+\item Can apply and generalize to fully different domains, leading to
+different policy
+\item Can be better than demonstrator
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Inverse Reinforcement Learning}{
+
+\item Methods we discuss:
+\begin{items}
+\item Max Margin IRL (Apprenticeship Learning)
+\item Max Entropy IRL
+\item Adversarial IRL
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{General Approach}
+\slide{IRL: General Approach}{
+
+\small
+
+\item Recall the value of a policy $\pi$
+$$J(\pi) = \Exp[\xi\sim P_\pi]{\Sum_{t=0}^\infty \g^t R(s_t,a_t) }$$
+
+\pause
+
+\item Given a demonstration policy $\pi^*$, we want to find $R$ such
+that for any other policy $\pi$:
+$$J(\pi^*) \ge J(\pi) \quad\iff\quad \Exp[\xi\sim P_{\pi^*}]{\Sum_{t=0}^\infty \g^t R(s_t,a_t) }
+\ge \Exp[\xi\sim P_\pi]{\Sum_{t=0}^\infty \g^t R(s_t,a_t) }$$
+
+~\pause
+
+\item To simplify this, let's assume $R(s,a)$ is \textbf{linear in
+features} $\phi(s,a)$:
+\begin{align}
+R(s,a)
+&= w^\T \phi(s,a) = \sum_i w_i \phi_i(s,a) \\
+\To\quad J(\pi)
+&= w^\T \Exp[\pi]{\Sum_{t=0}^\infty \g^t \phi(s_t,a_t) } \stackrel\Delta= w^\T \mu(\pi)
+\end{align}
+and we want
+$$\forall_{\pi\not=\pi^*}:~ w^\T \mu(\pi^*) \ge w^\T\mu(\pi)$$
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Max Margin IRL}
+\slide{Apprenticeship Learning}{
+
+~
+
+\show[.6]{04-abbeel}
+
+~
+
+\citehere{2004-abbeel-ApprenticeshipLearningInversea}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Apprenticeship Learning}{
+
+\item First, $\pi^*$ is not really given but
+\begin{items}
+\item we estimate $\mu(\pi^*)
+= \Exp[\pi^*]{\Sum_{t=0}^\infty \g^t \phi(s_t,a_t) }$ from the
+demonstration data $D$
+\item This $\mu(\pi^*)$ is the only information used from the
+demonstrations
+\end{items}
+
+\item Second, we generate a series of other policies $\pi_i$ against
+which we discriminate $\pi^*$
+
+\item Third, formulate ``discrimination'' as a max margin problem:
+\begin{algorithmic}[1]
+\State initialize $\pi_0$
+\For{$i=0,1,2,\ldots$}
+\State $w,t \gets \argmax_{w,t\in\RRR}
+t \st \norm{w}\le 1\comma \forall_{j\in\{0,..,i\}}:~ w^\T\mu(\pi^*) \ge
+w^\T \mu(\pi_j)+t$
+\State $\pi_{i\po} \gets \argmax_\pi J(\pi)$ \quad\textbf{RL problem!}
+\EndFor
+\end{algorithmic}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Max Entropy IRL}
+\slide{Maximum Entropy IRL}{
+
+\show[.6]{08-ziebart}
+
+\citehere{-ziebart-MaximumEntropyInverse}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Maximum Entropy IRL}{
+
+\info{skipping details}
+
+\item First, the expert might be noisy, demonstrations $\xi$ are assumed
+$$P(\xi; w) = \frac{\exp\{w^\T \mu(\xi)\}}{\Int \exp\{w^\T \mu(\xi')\}~ d\xi'}$$
+
+\item Second, find $w$ that leads to max entropy $P(\cdot; w)$ but
+matches demonstrations:
+\begin{align*}
+\min_w
+& \int P(\xi;w) \log P(\xi;w)~ d\xi \\
+\st
+& \Exp[\xi\sim P(\xi;w)]{\mu(\xi)} = \mu(\pi^*)
+\end{align*}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Adversarial IRL}
+\slide{Adversarial IRL}{
+
+\item Recall idea of GANs:
+
+$$\min_G \max_D \Exp[x\sim p_\text{data}]{\log D(x)} + \Exp[y=G(z),
+z\sim p_z]{\log[1-D(y)]} $$
+
+\begin{items}
+\item Train a discriminator $D$ to label data positive, and
+generator's samples negative
+\item Train a generator $G$ to maximize likelihood of being classified
+data
+\end{items}
+
+\citehere{2014-goodfellow-GenerativeAdversarialNets}
+
+~\pause
+
+\item The max margin idea is very similar:
+\begin{items}
+\item Find a reward function that discriminates $\pi^*$ optimal from
+all others
+\item Find other policies $\pi_i$ iteratively to discriminate against
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Adversarial IRL}{
+
+\twocol[.05]{.45}{.45}{
+
+\show[1]{18-fu}
+
+~
+
+\citehere{2018-fu-LearningRobustRewards}
+
+}{
+
+\show[1]{18-fu2}
+
+}
+
+\tiny Earlier similar work: \cite{2016-finn-GuidedCostLearning}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Adversarial IRL}{
+
+\show[.6]{18-fu3}
+
+\small
+
+\item The discriminator $D_{\t,\phi}(s,a,s')$ operates on triplets and
+is parameterized as
+\begin{align*}
+D_{\t,\phi}(s,a,s')
+&= \frac{\exp\{f_{\t,\phi}(s,a,s')\}}{\exp\{f_{\t,\phi}(s,a,s')\}
++ \pi(a|s)} \\
+f_{\t,\phi}(s,a,s')
+&= g_\t(s,a) + \g h_\phi(s') - h_\phi(s) \\
+&\approx \underbrace{r(s,a) + \g V(s')}_{Q(s,a)} - V(s) = A(s,a)
+\end{align*}
+\begin{items}
+\item This particular decomposition is crucial!
+\item Training this way $g_\t(s,a)$ automatically gets ``reward
+semantics'', and $h_\phi$ ``value semantics''
+\item $A(s,a)$ is called \emph{advantage function}
+%\item Interesting \emph{generalization} experiments
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Inverse RL Summary}{
+
+\item Conceptually highly interesting
+
+\item The max-margin/discrimination/adversarial idea is core to many
+approaches
+\begin{items}
+\item Max entropy is alternative way of thinking
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Outline}{
+
+\item Value Alignment
+
+\item Inverse RL
+
+\item \textbf{Preference-based RL}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Preference-based RL}
+\slide{Preference-based Learning}{
+
+\item In ML:
+\begin{items}
+\item Given data of
+preference tuples $D = \{ (x^i_1\succ x^i_2) \}_{i=1}^n$ ~ (each tuple
+means a user preference )
+\item learn a mapping $f: X \mapsto \RRR$ to minimize, e.g.
+$$\sum_{i=1}^n [f(x^i_2) - f(x^i_1)]_+$$
+\end{items}
+
+~\pause
+
+\begin{items}
+%\item This is a ReLu loss -- others more common
+\item Read about \emph{label ranking, instance ranking, object ranking}
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Preference-based RL}{
+
+\item Given \emph{trajectory segment} data $D=\{(s^i_{1:T_i},
+a^i_{1:T_i})\}_{i=1}^n = \{\xi^i\}_{i=1}^n$ and \emph{preferences}
+$\xi^i \succ \xi^j$ for some pairs $(i,j)$, find a reward function s.t.
+
+$$\xi^i\succ \xi^j \quad\To\quad \sum_{t=1}^T R(s^i_t,a^i_t) > \sum_{t=1}^T R(s^j_t,a^j_t) $$
+
+~\pause
+
+\item Long history, e.g.
+
+\citehere{2012-akrour-APRILActivePreference}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Deep RL from Human Preferences}{
+
+\twocol[.05]{.45}{.45}{
+
+\show[1]{17-christiano}
+
+~
+
+\citehere{2017-christiano-DeepReinforcementLearning}
+
+}{
+
+\show[1]{17-christiano2}
+
+}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Deep RL from Human Preferences}{
+
+\item Iteratively update a policy $\pi$ and reward function $R_\psi$:
+\begin{items}
+\item Run RL algorithm to update $\pi$ with $R$; collect episodes
+
+\item Select segments $\xi^i$
+from these episodes; let a human specify preferences $\xi^i \succ \xi^j$
+
+
+\item Update $R$ to minimize ``preference loss''
+\end{items}
+
+\item Assume human preferences are noisy (Bradley-Terry model)
+$$P(\xi^i\succ \xi^j;R) = \frac{\exp\{\sum_{t=1}^T
+R(s^i_t,a^i_t)\}}{\exp\{\sum_{t=1}^T R(s^i_t,a^i_t)\} + \exp\{\sum_{t=1}^T R(s^j_t,a^j_t)\}}$$
+\begin{items}
+\item Maximize likelihood $\max_\psi \sum_{\xi^i \succ \xi^j} \log
+P(\xi^i\succ \xi^j; R_\psi)$ for all human provided preferences
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Robotics Application}{\label{lastpage}
+
+\twocol[.05]{.45}{.45}{
+
+\show[1]{23-hejna}
+
+
+~
+
+\citehere{2023-hejnaiii-FewshotPreferenceLearning}
+
+}{
+
+\show[1]{23-hejna2}
+
+{\urlfont\url{https://sites.google.com/view/few-shot-preference-rl/home}
+
+}
+
+}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\ttiny
+\ifthenelse{\isundefined{\scripthead}}{
+\bibliographystyle{plainurl-lis}
+\bibliography{b3-ReinforcementLearning,b4-InverseRL}
+}{}
+
+\slidesfoot

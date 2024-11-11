@@ -1,0 +1,686 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Robot Learning}
+\renewcommand{\coursepicture}{roblearn.png}
+\renewcommand{\coursedate}{Summer 2024}
+\renewcommand{\teacher}{Marc Toussaint}
+
+\renewcommand{\topic}{RL II: Offline RL \& Sim2Real}
+\renewcommand{\keywords}{}
+
+\slides
+
+\input{macros-local}
+
+\slidestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Outline}{
+
+\item Some RL application papers
+
+\item Offline RL ~ (on-policy vs.\ off-policy)
+
+\item Sim2Real
+\begin{items}
+\item Domain Randomization
+\item Privileged Training \& Imitation Learning
+\item Domain Adaptation
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Outline}{
+
+\item \textbf{Some RL application papers}
+
+\item Offline RL ~ (on-policy vs.\ off-policy)
+
+\item Sim2Real
+\begin{items}
+\item Domain Randomization
+\item Privileged Training \& Imitation Learning
+\item Domain Adaptation
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\twocol[.05]{.45}{.45}{
+
+\show[1]{10-abbeel}
+
+~
+
+\citehere{2010-abbeel-AutonomousHelicopterAerobatics}
+
+}{
+
+\show{10-abbeel-2}
+
+\hfill{\urlfont\url{http://heli.stanford.edu/}}
+
+}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\twocol[.05]{.45}{.45}{
+
+\show[.9]{22-wurman}
+
+~
+
+\citehere{2022-wurman-OutracingChampionGran}
+
+}{
+
+\show[.9]{22-wurman-2}
+
+\hfill{\urlfont\url{https://sonyresearch.github.io/gt_sophy_public/}}
+
+}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\twocol[.05]{.45}{.45}{
+
+%\show{10-abbeel}
+\show[.9]{23-kaufmann}
+
+~
+
+\citehere{2023-kaufmann-ChampionlevelDroneRacing}
+
+}{
+
+\show[.9]{23-kaufmann-2}
+
+\hfill{\urlfont\url{https://www.youtube.com/watch?v=fBiataDpGIo}}
+
+}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Outline}{
+
+\item Some RL application papers
+
+\item \textbf{Offline RL ~ (on-policy vs.\ off-policy)}
+
+\item Sim2Real
+\begin{items}
+\item Domain Randomization
+\item Privileged Training \& Imitation Learning
+\item Domain Adaptation
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{On-Policy vs.\ Off-Policy Methods}{
+
+\item \textbf{On-policy:} estimate $V^\pi$ or $Q^\pi$ while executing
+$\pi$ ~ (e.g., Policy Evaluation)
+\begin{items}
+\item The value-function updates directly depend on the policy
+$\pi$
+\end{items}
+
+\item \textbf{Off-policy:} estimate $Q^*$ while executing $\pi$ ~ (e.g., Q-learning)
+\begin{items}
+\item The actually executed (data-collecting) policy $\pi$ is also called ``behavioral policy''
+\item In contrast, values $Q^*$ are estimated for the optimal policy $\pi^*$
+\end{items}
+
+\pause
+
+\item \small Off-policy is considered more efficient, as it can
+use off-policy-distribution data
+
+~\pause
+
+\info{More technically: Consider you have data $D=\{
+(s_i,a_i,r_i,s_{i\po}, a_{i\po}) \}_{i=0}^n$ collected with behavior policy
+$\pi$. When you make $Q$- or $V$-updates, do you take only
+expectations w.r.t. $D$? Or do you take conditional expectations
+$a_{i\po} \sim \pi^*(a|s_{i\po})$ w.r.t.\ another policy? (E.g.\
+greedy policy.)}
+
+\info{SAC is called off-policy, because when training $V$ it takes
+expectations w.r.t.\ $a_t\sim\pi_\t$ (instead of w.r.t.\ data collected previously).}
+
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Offline RL}
+\slide{Offline RL}{
+
+\item Motivation:
+\begin{items}
+\item Separation of Concerns!
+\item Separate thinking about Data Collection, and thinking about \textbf{what
+best to make of given data}
+\item Real-world data is expensive!
+\item Data collection (exploration) in RL is an issue anyway
+\item No matter how RL collects data, it makes sense to study
+ what best to make of given data
+
+~\pause
+
+    %% side note: ``exploration-exploitation dilemma'' yes, ok. But in principle we understood this theoretically: Bayesian RL, POMDPs, E^3 -- but in practise (with NN function approximation) remains a practical problem because efficient RL methods assume on-policy data distribution
+\item \textbf{The data could come from anywhere:} huge data sets of other observed agents, of human behavior, perhaps extracted from abundant video
+\item The data is not collected by ``our AI agent'' itself -- but
+can still be used to learn a $Q^*$-function and train our agent for
+optimal behavior
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Offline RL}{
+
+\item Naive problem formulation: Given data $D=\{
+(s_i,a_i,r_i,s_{i\po}) \}_{i=0}^n$, find $\t$ to
+\begin{align*}
+\min_\t\quad &\Exp[(s,a,r,s')\sim D]{~ [Q_\t(s,a) - r - \g
+Q_{\bar \t}(s', \pi(s'))]^2 ~} \\
+\st & \bar\t \approx \t \\
+&\pi \approx \argmax_\pi \Exp[(s,a)\sim D]{Q_\t(s,a)}
+\end{align*}
+In words:
+\begin{items}
+\item minimize the empirical Bellman residual, with delayed
+$Q_{\bar\t}$-target
+\item ...where eventually $\pi$ becomes optimal and $\bar\t$ converges
+\end{items}
+
+~\pause
+
+\item That's a well-defined problem
+\begin{items}
+\item We have gradients for everything: Bellman gradient, 
+deterministic policy gradient -- let's go!
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Offline RL}{
+
+\item Resulting policy fails badly, due to distribution shift, just as
+in imitation learning:
+
+~
+
+\show[.3]{offtrack1}
+\hfill{\tiny Also called \textbf{Compound Error} \qquad (Shi's lecture 5)}
+
+\item In the naive problem formulation
+\begin{items}
+\item there is no penalty for ``dreaming'' crazy $Q$-values outside the
+data distribution
+\item the trained policy is likely to exploit these arbitrary
+$Q$-values
+\end{items}
+
+\pause
+
+\item We don't have the DAgger option: Can't collect more data to
+cover reached states!
+
+\pause
+
+\item[\color{black}$\to$] We need to \textbf{add a penalty for leaving
+the data
+distribution}!
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Regularization}
+\slide{Offline RL}{
+
+\item We need to add a penalty for leaving the data
+distribution...
+\begin{items}
+\item Many different ideas, incl.\ literally penalizing ``distribution
+distance'' (divergence regularization)
+\item Modern versions found simple approaches:
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{TD3+BC}{
+
+\twocol[.05]{.4}{.5}{
+
+\show[.9]{21-fujimoto}
+
+~
+
+\citehere{2021-fujimoto-MinimalistApproachOffline}
+
+}{\small
+
+\item Use TD3 (twin delayed deep deterministic..)
+
+\item Simply add a BC term to the policy objective!
+$$\pi \approx \argmax_\pi \Exp[(s,a)\sim D]{\l Q_\t(s,a) +
+(\pi(s)-a)^2 }$$
+
+}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{S4RL}{
+
+\twocol[.05]{.4}{.5}{
+
+\showh[.9]{22-sinha}
+
+~
+
+\citehere{2022-sinha-S4rlSurprisinglySimple}
+
+}{\small
+
+\item Include a strong data augmentation in the $Q$-function loss
+
+~
+
+\hspace*{-15mm}{\ttiny$\min_\t \Exp[(s,a,r,s')\sim D]{~ [\Frac 1I \Sum_i Q_\t(\TT_i(\tilde s|s),a) - r - \g
+\Frac 1I \Sum_i Q_{\bar \t}(\TT_i(\tilde s'|s'), \pi(s'))]^2 ~} $}
+
+~
+
+where $\TT_i$ generates a variant of $s$ (they propose 7 alternative,
+including spatial smoothing and adversarial)
+
+}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Offline RL Application}{
+
+~
+
+\twocol[.05]{.45}{.45}{
+
+\show[.9]{23-kumar}
+
+~
+
+\citehere{2023-kumar-PreTrainingRobotsOffline}
+
+}{
+
+\show[.9]{23-kumar-2}
+
+~
+
+\hfill{\urlfont\url{https://sites.google.com/view/ptr-final/}}
+
+}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Offline RL Conclusions}{
+
+\item Scientifically important ~ (separation of concerns)
+
+\item Opens new dimension: Train optimal behaviors
+from \emph{any} data
+
+\item Promising future applications ~ (leverage massive data, reward re-labelled data)
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Outline}{
+
+\item Some RL application papers
+
+\item Offline RL ~ (on-policy vs.\ off-policy)
+
+\item \textbf{Sim2Real} ~ (slides based on Shi's lecture)
+\begin{items}
+\item Domain Randomization
+\item Privileged Training \& Imitation Learning
+\item Domain Adaptation
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Sim2Real}
+\slide{}{
+
+\item Why train in Simulation?
+\begin{items}
+\item Real-world data is expensive!
+\item Many RL methods require millions of samples
+\item Simulation is fast
+\item Simulation is safe, can be fully explored
+\item Simulation provides ground truth labels (e.g.\ train priviledged policy)
+\item Simulations get better and better, including simulating sensors
+(image rendering)
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\showh[.7]{shi-sim2real-1}
+\hfill\tiny{from Shi's lecture}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\item What are Sim2Real issues?
+\begin{items}
+\item Simulation never matches real world exactly; policies overfit to
+simulation and fail in real
+\item \textbf{Parameteric mismatches:} Other dynamics parameters,
+e.g.\ friction, inertias
+\item \textbf{Non-parameteric mismatches:} Physical effects not
+simulated: Wind, exact fluids, sand/dust
+\end{items}
+
+~\pause
+
+\item Approaches to tackle this:
+\begin{items}
+\item Domain Randomization
+\item Privileged Training \& Imitation Learning
+\item Domain Adaptation
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Domain Randomization}
+\slide{Domain Randomization}{
+
+~
+
+\twocol[.05]{.45}{.45}{
+
+\show[.9]{17-tobin}
+
+~
+
+\citehere{2017-tobin-DomainRandomizationTransferring}
+
+}{\small
+
+\item Train a single policy to perform well in many domain variants
+
+\item Original paper focussed on perception, but works equally for any
+other parameter $\Th$
+
+}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Domain Randomization}{
+
+\item Let $\Th$ be a simulation parameter:~ $x_{t\po} = f(x_t,
+u_t; \Th)$
+
+\item Randomly sample $\Th\sim p(\Th)$ at the start of each episode
+
+\item Otherwise, use standard RL
+\begin{items}
+\item But since the world is ``more uncertain'', the RL problem
+becomes harder
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\item What if we train a policy $\hat\pi(s_t, \Th)$ that get's $\Th$ as input?
+
+~
+
+Is that cheating? ~ \cite{2020-chen-LearningCheating}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Privileged Training \& Imitation Learning}
+\slide{Privileged Training \& Imitation Learning}{
+
+\pause
+
+\item Priviledged RL Training:
+\begin{items}
+\item We first train $\hat\pi(s_t, \Th)$ using standard RL
+\item Much easier than without access to $\Th$
+\end{items}
+
+\medskip
+
+\item Sensorimotor Imitation using DAgger:
+\begin{items}
+\item Then we train a policy $\pi(s_t)$ to imitate $\hat\pi(s_t, \Th)$
+\item As we can query $\hat\pi(s_t, \Th)$, we can use DAgger! Much
+more efficient than plain BC
+\end{items}
+
+~\pause
+
+\item This approach is a core paradigm beyond RL:
+\begin{items}
+\item First develop a method to solve a problem using full
+information (could be a planner)
+\item Then train a policy to imitate that method with only available (sensor) information
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Privileged Training \& Imitation Learning}{
+
+~
+
+\twocol[.05]{.45}{.45}{
+
+%\show{10-abbeel}
+\show[.9]{20-lee}
+
+~
+
+\citehere{2020-lee-LearningQuadrupedalLocomotion}
+
+}{
+
+\show[.8]{20-lee-2}
+
+\hfill{\urlfont\url{https://youtu.be/txjqn8h6pjU}}
+
+\hfill{\urlfont\url{https://youtu.be/Xnn4sVSpSh0}}
+
+}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Privileged Training \& Imitation Learning}{
+
+~
+
+\twocol[.05]{.4}{.5}{
+
+\show[.9]{20-lee-3}
+
+%% ~
+
+%% \citehere{leeLearningQuadrupedalLocomotion2020b}
+
+}{\small
+
+\item The privileged policy gets full information as input: Exact $\Th$ and
+state $s_t$, including terrain model
+
+\item The sensorimotor policy only sensor obs.\ $y_t$
+
+$\to$ the sensorimotor policy needs to use the sequence $y_{0:t}$,
+e.g.\ recursive or transformer
+
+}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\item The sensorimotor policy uses full observation sequence $y_{0:t}$
+to output controls $u_t$...
+\begin{items}
+\item What else could it predict based on $y_{0:t}$?
+\end{items}
+
+~\pause
+
+\cen{\emph{The unobserved physics parameters $\Th$!}}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Adaptive Control}{
+
+\item Large area within Control Theory
+
+\item Assumes environment has \emph{varying} parameters $\Th$ ~
+(not directly observed)
+
+~\pause
+
+\item One approach: Estimate $\Th$ from past observations and use for
+control
+
+\item Robust control: Estimate posterior belief $p(\Th|y_{0:T})$ over
+possible $\Th$ and use control robust to all possibilities
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Domain Adaptation}
+\slide{Domain Adaptation}{
+
+\item In the Robot Learning community, the word \emph{Domain
+Adaptation} is used for any controller that adapts (to varying
+unobserved $\Th$) based on past observations $y_{0:t}$.
+
+~\pause
+
+\item Explicit approach:
+\begin{items}
+\item Train an estimator $\psi: y_{0:t} \mapsto \hat\Th$
+\item Then train a policy $\pi(y_{0:t}, \psi(y_{0:t}))$ for fixed $\psi$
+\end{items}
+
+~
+
+\item Implicit approach:
+\begin{items}
+\item As in Lee et al'20
+\item Just train $\pi(y_{0:t})$, but potentially imposing a
+representation that is also predictive for $\Th$
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Sim2Real Conclusions}{
+
+\item (Pre-)Training in Sim became a standard in modern Robot Learning
+
+~
+
+\item Sim2Real is not considered a blocker anymore:
+\begin{items}
+\item Domain Randomization, Privileged Training \& Sensorimotor are
+powerful approaches
+\item Even if policies do not directly transfer $\to$ Real-World
+finetuning requires much less data
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Side note: Privileged Training for Imitation Learning}{\label{lastpage}
+
+\item The paper below used same approach, but in the context
+of Imitation Learning:
+\begin{items}
+\item The privileged policy imitated a human demonstrator using full
+access to the driving simulation
+\item The sensorimotor policy imitated the privileged policy
+\end{items}
+
+\citehere{2020-chen-LearningCheating}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\ttiny
+\ifthenelse{\isundefined{\scripthead}}{
+\bibliographystyle{plainurl-lis}
+\bibliography{b3-ReinforcementLearning}
+}{}
+
+\slidesfoot

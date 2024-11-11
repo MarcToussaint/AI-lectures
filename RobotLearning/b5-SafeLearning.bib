@@ -1,0 +1,454 @@
+@article{-bagnell-RobustSupervisedLearning,
+  title = {Robust {{Supervised Learning}}},
+  author = {Bagnell, J Andrew},
+  abstract = {Supervised machine learning techniques developed in the Probably Approximately Correct, Maximum A Posteriori, and Structural Risk Minimiziation frameworks typically make the assumption that the test data a learner is applied to is drawn from the same distribution as the training data. In various prominent applications of learning techniques, from robotics to medical diagnosis to process control, this assumption is violated. We consider a novel framework where a learner may influence the test distribution in a bounded way. From this framework, we derive an efficient algorithm that acts as a wrapper around a broad class of existing supervised learning algorithms while guarranteeing more robust behavior under changes in the input distribution.},
+  langid = {english},
+  file = {/home/whoenig/Zotero/storage/L53EFPKI/Bagnell - Robust Supervised Learning.pdf}
+}
+
+@article{-berkenkamp-SafeModelbasedReinforcement,
+  title = {Safe {{Model-based Reinforcement Learning}} with {{Stability Guarantees}}},
+  author = {Berkenkamp, Felix and Schoellig, Angela P and Turchetta, Matteo and Krause, Andreas},
+  abstract = {Reinforcement learning is a powerful paradigm for learning optimal policies from experimental data. However, to find optimal policies, most reinforcement learning algorithms explore all possible actions, which may be harmful for real-world systems. As a consequence, learning algorithms are rarely applied on safety-critical systems in the real world. In this paper, we present a learning algorithm that explicitly considers safety, defined in terms of stability guarantees. Specifically, we extend control-theoretic results on Lyapunov stability verification and show how to use statistical models of the dynamics to obtain high-performance control policies with provable stability certificates. Moreover, under additional regularity assumptions in terms of a Gaussian process prior, we prove that one can effectively and safely collect data in order to learn about the dynamics and thus both improve control performance and expand the safe region of the state space. In our experiments, we show how the resulting algorithm can safely optimize a neural network policy on a simulated inverted pendulum, without the pendulum ever falling down.},
+  langid = {english},
+  file = {/home/whoenig/Zotero/storage/XMG3N757/Berkenkamp et al. - Safe Model-based Reinforcement Learning with Stabi.pdf}
+}
+
+@article{-berkenkamp-SafeModelbasedReinforcementa,
+  title = {Safe {{Model-based Reinforcement Learning}} with {{Stability Guarantees}}},
+  author = {Berkenkamp, Felix and Schoellig, Angela P and Turchetta, Matteo and Krause, Andreas},
+  abstract = {Reinforcement learning is a powerful paradigm for learning optimal policies from experimental data. However, to find optimal policies, most reinforcement learning algorithms explore all possible actions, which may be harmful for real-world systems. As a consequence, learning algorithms are rarely applied on safety-critical systems in the real world. In this paper, we present a learning algorithm that explicitly considers safety, defined in terms of stability guarantees. Specifically, we extend control-theoretic results on Lyapunov stability verification and show how to use statistical models of the dynamics to obtain high-performance control policies with provable stability certificates. Moreover, under additional regularity assumptions in terms of a Gaussian process prior, we prove that one can effectively and safely collect data in order to learn about the dynamics and thus both improve control performance and expand the safe region of the state space. In our experiments, we show how the resulting algorithm can safely optimize a neural network policy on a simulated inverted pendulum, without the pendulum ever falling down.},
+  langid = {english},
+  file = {/home/whoenig/Zotero/storage/RTQ2CN2E/Berkenkamp et al. - Safe Model-based Reinforcement Learning with Stabi.pdf}
+}
+
+@article{-dai-LyapunovstableNeuralnetworkControl,
+  title = {Lyapunov-Stable Neural-Network Control},
+  author = {Dai, Hongkai and Landry, Benoit and Yang, Lujie and Pavone, Marco and Tedrake, Russ},
+  abstract = {Deep learning has had a far reaching impact in robotics. Specifically, deep reinforcement learning algorithms have been highly effective in synthesizing neural-network controllers for a wide range of tasks. However, despite this empirical success, these controllers still lack theoretical guarantees on their performance, such as Lyapunov stability (i.e., all trajectories of the closed-loop system are guaranteed to converge to a goal state under the control policy). This is in stark contrast to traditional model-based controller design, where principled approaches (like LQR) can synthesize stable controllers with provable guarantees. To address this gap, we propose a generic method to synthesize a Lyapunov-stable neural-network controller, together with a neural-network Lyapunov function to simultaneously certify its stability. Our approach formulates the Lyapunov condition verification as a mixed-integer linear program (MIP). Our MIP verifier either certifies the Lyapunov condition, or generates counter examples that can help improve the candiyear controller and the Lyapunov function. We also present an optimization program to compute an inner approximation of the region of attraction for the closed-loop system. We apply our approach to robots including an inverted pendulum, a 2D and a 3D quadrotor, and showcase that our neural-network controller outperforms a baseline LQR controller. The code is open sourced at https://github.com/StanfordASL/neural-network-lyapunov.},
+  langid = {english},
+  file = {/home/whoenig/Zotero/storage/FJQ9FPME/Dai et al. - Lyapunov-stable neural-network control.pdf}
+}
+
+@article{-gillula-ReducingConservativenessSafety,
+  title = {Reducing {{Conservativeness}} in {{Safety Guarantees}} by {{Learning Disturbances Online}}: {{Iterated Guaranteed Safe Online Learning}}},
+  author = {Gillula, Jeremy H and Tomlin, Claire J},
+  abstract = {Reinforcement learning has proven itself to be a powerful technique in robotics, however it has not often been employed to learn a controller in a hardware-in-the-loop environment due to the fact that spurious training data could cause a robot to take an unsafe (and potentially catastrophic) action. One approach to overcoming this limitation is known as Guaranteed Safe Online Learning via Reachability (GSOLR), in which the controller being learned is wrapped inside another controller based on reachability analysis that seeks to guarantee safety against worst-case disturbances. This paper proposes a novel improvement to GSOLR which we call Iterated Guaranteed Safe Online Learning via Reachability (IGSOLR), in which the worst-case disturbances are modeled in a state-dependent manner (either parametrically or nonparametrically), this model is learned online, and the safe sets are periodically recomputed (in parallel with whatever machine learning is being run online to learn how to control the system). As a result the safety of the system automatically becomes neither too liberal nor too conservative, depending only on the actual system behavior. This allows the machine learning algorithm running in parallel the widest possible latitude in performing its task while still guaranteeing system safety. In addition to explaining IGSOLR, we show how it was used in a real-world example, namely that of safely learning an altitude controller for a quadrotor helicopter. The resulting controller, which was learned via hardware-inthe-loop reinforcement learning, out-performs our original handtuned controller while still maintaining safety. To our knowledge, this is the first example in the robotics literature of an algorithm in which worst-case disturbances are learned online in order to guarantee system safety.},
+  langid = {english},
+  file = {/home/whoenig/Zotero/storage/67H3C96C/Gillula and Tomlin - Reducing Conservativeness in Safety Guarantees by .pdf}
+}
+
+@article{-herbert-ScalableLearningSafety,
+  title = {Scalable {{Learning}} of {{Safety Guarantees}} for {{Autonomous Systems}} Using {{Hamilton-Jacobi Reachability}}},
+  author = {Herbert, Sylvia and Choi, Jason J and Qazi, Suvansh and Gibson, Marsalis and Sreenath, Koushil and Tomlin, Claire J},
+  abstract = {Autonomous systems like aircraft and assistive robots often operate in scenarios where guaranteeing safety is critical. Methods like Hamilton-Jacobi reachability can provide guaranteed safe sets and controllers for such systems. However, often these same scenarios have unknown or uncertain environments, system dynamics, or predictions of other agents. As the system is operating, it may learn new knowledge about these uncertainties and should therefore upyear its safety analysis accordingly. However, work to learn and upyear safety analysis is limited to small systems of about two dimensions due to the computational complexity of the analysis. In this paper we synthesize several techniques to speed up computation: decomposition, warm-starting, and adaptive grids. Using this new framework we can update safe sets by one or more orders of magnitude faster than prior work, making this technique practical for many realistic systems. We demonstrate our results on simulated 2D and 10D near-hover quadcopters operating in a windy environment.},
+  langid = {english},
+  file = {/home/whoenig/Zotero/storage/T4NRD24N/Herbert et al. - Scalable Learning of Safety Guarantees for Autonom.pdf}
+}
+
+@article{-ray-BenchmarkingSafeExploration,
+  title = {Benchmarking {{Safe Exploration}} in {{Deep Reinforcement Learning}}},
+  author = {Ray, Alex and Achiam, Joshua and Amodei, Dario},
+  abstract = {Reinforcement learning (RL) agents need to explore their environments in order to learn optimal policies by trial and error. In many environments, safety is a critical concern and certain errors are unacceptable: for example, robotics systems that interact with humans should never cause injury to the humans while exploring. While it is currently typical to train RL agents mostly or entirely in simulation, where safety concerns are minimal, we anticipate that challenges in simulating the complexities of the real world (such as human-AI interactions) will cause a shift towards training RL agents directly in the real world, where safety concerns are paramount. Consequently we take the position that safe exploration should be viewed as a critical focus area for RL research, and in this work we make three contributions to advance the study of safe exploration. First, building on a wide range of prior work on safe reinforcement learning, we propose to standardize constrained RL as the main formalism for safe exploration. Second, we present the Safety Gym benchmark suite, a new slate of high-dimensional continuous control environments for measuring research progress on constrained RL. Finally, we benchmark several constrained deep RL algorithms on Safety Gym environments to establish baselines that future work can build on.},
+  langid = {english},
+  file = {/home/whoenig/Zotero/storage/6MMHDV5X/Ray et al. - Benchmarking Safe Exploration in Deep Reinforcemen.pdf}
+}
+
+@article{-taylor-ControlLyapunovPerspective,
+  title = {A {{Control Lyapunov Perspective}} on {{Episodic Learning Via Projection}} to {{State Stability}}},
+  author = {Taylor, Andrew and Dorobantu, Victor and Krishnamoorthy, Meera and Le, Hoang M and Yue, Yisong and Ames, Aaron D},
+  abstract = {The goal of this paper is to understand the impact of learning on control synthesis from a Lyapunov function perspective. In particular, rather than consider uncertainties in the full system dynamics, we employ Control Lyapunov Functions (CLFs) as low-dimensional projections. To understand and characterize the uncertainty that these projected dynamics introduce in the system, we introduce a new notion: Projection to State Stability (PSS). PSS can be viewed as a variant of Input to State Stability defined on projected dynamics, and enables characterizing robustness of a CLF with respect to the data used to learn system uncertainties. We use PSS to bound uncertainty in affine control, and demonstrate that a practical episodic learning approach can use PSS to characterize uncertainty in the CLF for robust control synthesis.},
+  langid = {english},
+  file = {/home/whoenig/Zotero/storage/9EFPKPNG/Taylor et al. - A Control Lyapunov Perspective on Episodic Learnin.pdf}
+}
+
+@inproceedings{2012-moldovan-SafeExplorationMarkov,
+  title = {Safe Exploration in {{Markov}} Decision Processes},
+  booktitle = {Proceedings of the 29th {{International Coference}} on {{International Conference}} on {{Machine Learning}}},
+  author = {Moldovan, Teodor Mihai and Abbeel, Pieter},
+  year = {2012},
+  series = {{{ICML}}'12},
+  pages = {1451--1458},
+  delete_delete_publisher = {Omnipress},
+  location = {Madison, WI, USA},
+  abstract = {In environments with uncertain dynamics exploration is necessary to learn how to perform well. Existing reinforcement learning algorithms provide strong exploration guarantees, but they tend to rely on an ergodicity assumption. The essence of ergodicity is that any state is eventually reachable from any other state by following a suitable policy. This assumption allows for exploration algorithms that operate by simply favoring states that have rarely been visited before. For most physical systems this assumption is impractical as the systems would break before any reasonable exploration has taken place, i.e., most physical systems don't satisfy the ergodicity assumption. In this paper we address the need for safe exploration methods in Markov decision processes. We first propose a general formulation of safety through ergodicity. We show that imposing safety by restricting attention to the resulting set of guaranteed safe policies is NP-hard. We then present an efficient algorithm for guaranteed safe, but potentially suboptimal, exploration. At the core is an optimization formulation in which the constraints restrict attention to a subset of the guaranteed safe policies and the objective favors exploration policies. Our framework is compatible with the majority of previously proposed exploration methods, which rely on an exploration bonus. Our experiments, which include a Martian terrain exploration problem, show that our method is able to explore better than classical exploration methods.},
+  isbn = {978-1-4503-1285-1},
+  file = {/home/whoenig/Zotero/storage/D557M7WS/Moldovan and Abbeel - Safe Exploration in Markov Decision Processes.pdf}
+}
+
+@inproceedings{2016-berkenkamp-SafeControllerOptimization,
+  title = {Safe Controller Optimization for Quadrotors with {{Gaussian}} Processes},
+  booktitle = {2016 {{IEEE International Conference}} on {{Robotics}} and {{Automation}} ({{ICRA}})},
+  author = {Berkenkamp, Felix and Schoellig, Angela P. and Krause, Andreas},
+  year = {2016},
+  pages = {491--496},
+  delete_delete_publisher = {IEEE},
+  location = {Stockholm, Sweden},
+  delete_delete_doi = {10.1109/ICRA.2016.7487170},
+  url = {http://ieeexplore.ieee.org/document/7487170/},
+  urlyear = {2024},
+  abstract = {One of the most fundamental problems when designing controllers for dynamic systems is the tuning of the controller parameters. Typically, a model of the system is used to obtain an initial controller, but ultimately the controller parameters must be tuned manually on the real system to achieve the best performance. To avoid this manual tuning step, methods from machine learning, such as Bayesian optimization, have been used. However, as these methods evaluate different controller parameters on the real system, safety-critical system failures may happen. In this paper, we overcome this problem by applying, for the first time, a recently developed safe optimization algorithm, SAFEOPT, to the problem of automatic controller parameter tuning. Given an initial, low-performance controller, SAFEOPT automatically optimizes the parameters of a control law while guaranteeing safety. It models the underlying performance measure as a Gaussian process and only explores new controller parameters whose performance lies above a safe performance threshold with high probability. Experimental results on a quadrotor vehicle indicate that the proposed method enables fast, automatic, and safe optimization of controller parameters without human intervention.},
+  booktitle = {2016 {{IEEE International Conference}} on {{Robotics}} and {{Automation}} ({{ICRA}})},
+  isbn = {978-1-4673-8026-3},
+  langid = {english},
+  file = {/home/whoenig/Zotero/storage/RCWM64SZ/Berkenkamp et al. - 2016 - Safe controller optimization for quadrotors with G.pdf}
+}
+
+@online{2016-daftry-RobustMonocularFlight,
+  title = {Robust {{Monocular Flight}} in {{Cluttered Outdoor Environments}}},
+  author = {Daftry, Shreyansh and Zeng, Sam and Khan, Arbaaz and Dey, Debadeepta and Melik-Barkhudarov, Narek and Bagnell, J. Andrew and Hebert, Martial},
+  year = {2016},
+  eprint = {1604.04779},
+  eprinttype = {arxiv},
+  eprintclass = {cs},
+  url = {http://arxiv.org/abs/1604.04779},
+  urlyear = {2024},
+  abstract = {Recently, there have been numerous advances in the development of biologically inspired lightweight Micro Aerial Vehicles (MAVs). While autonomous navigation is fairly straightforward for large UAVs as expensive sensors and monitoring devices can be employed, robust methods for obstacle avoidance remains a challenging task for MAVs which operate at low altitude in cluttered unstructured environments. Due to payload and power constraints, it is necessary for such systems to have autonomous navigation and flight capabilities using mostly passive sensors such as cameras. In this paper, we describe a robust system that enables autonomous navigation of small agile quad-rotors at low altitude through natural forest environments. We present a direct depth estimation approach that is capable of producing accurate, semi-dense depth-maps in real time. Furthermore, a novel wind-resistant control scheme is presented that enables stable way-point tracking even in the presence of strong winds. We demonstrate the performance of our system through extensive experiments on real images and field tests in a cluttered outdoor environment.},
+  langid = {english},
+  pubstate = {preprint},
+  file = {/home/whoenig/Zotero/storage/NRPBJSNB/Daftry et al. - 2016 - Robust Monocular Flight in Cluttered Outdoor Envir.pdf}
+}
+
+@inproceedings{2017-pinto-RobustAdversarialReinforcement,
+  title = {Robust {{Adversarial Reinforcement Learning}}},
+  booktitle = {Proceedings of the 34th {{International Conference}} on {{Machine Learning}}},
+  author = {Pinto, Lerrel and Davidson, James and Sukthankar, Rahul and Gupta, Abhinav},
+  year = {2017},
+  pages = {2817--2826},
+  delete_delete_publisher = {PMLR},
+  issn = {2640-3498},
+  url = {https://proceedings.mlr.press/v70/pinto17a.html},
+  urlyear = {2024},
+  abstract = {Deep neural networks coupled with fast simulation and improved computational speeds have led to recent successes in the field of reinforcement learning (RL). However, most current RL-based approaches fail to generalize since: (a) the gap between simulation and real world is so large that policy-learning approaches fail to transfer; (b) even if policy learning is done in real world, the data scarcity leads to failed generalization from training to test scenarios (e.g., due to different friction or object masses). Inspired from H-infinity control methods, we delete_delete_note that both modeling errors and differences in training and test scenarios can just be viewed as extra forces/disturbances in the system. This paper proposes the idea of robust adversarial reinforcement learning (RARL), where we train an agent to operate in the presence of a destabilizing adversary that applies disturbance forces to the system. The jointly trained adversary is reinforced – that is, it learns an optimal destabilization policy. We formulate the policy learning as a zero-sum, minimax objective function. Extensive experiments in multiple environments (InvertedPendulum, HalfCheetah, Swimmer, Hopper, Walker2d and Ant) conclusively demonstrate that our method (a) improves training stability; (b) is robust to differences in training/test conditions; and c) outperform the baseline even in the absence of the adversary.},
+  booktitle = {International {{Conference}} on {{Machine Learning}}},
+  langid = {english},
+  file = {/home/whoenig/Zotero/storage/7GQN8XU2/Pinto et al. - 2017 - Robust Adversarial Reinforcement Learning.pdf}
+}
+
+@inproceedings{2018-chua-DeepReinforcementLearning,
+  title = {Deep {{Reinforcement Learning}} in a {{Handful}} of {{Trials}} Using {{Probabilistic Dynamics Models}}},
+  booktitle = {Advances in {{Neural Information Processing Systems}}},
+  author = {Chua, Kurtland and Calandra, Roberto and McAllister, Rowan and Levine, Sergey},
+  year = {2018},
+  volume = {31},
+  delete_delete_publisher = {Curran Associates, Inc.},
+  url = {https://proceedings.neurips.cc/paper/2018/hash/3de568f8597b94bda53149c7d7f5958c-Abstract.html},
+  urlyear = {2024},
+  abstract = {Model-based reinforcement learning (RL) algorithms can attain excellent sample efficiency, but often lag behind the best model-free algorithms in terms of asymptotic performance. This is especially true with high-capacity parametric function approximators, such as deep networks. In this paper, we study how to bridge this gap, by employing uncertainty-aware dynamics models. We propose a new algorithm called probabilistic ensembles with trajectory sampling (PETS) that combines uncertainty-aware deep network dynamics models with sampling-based uncertainty propagation. Our comparison to state-of-the-art model-based and model-free deep RL algorithms shows that our approach matches the asymptotic performance of model-free algorithms on several challenging benchmark tasks, while requiring significantly fewer samples (e.g. 8 and 125 times fewer samples than Soft Actor Critic and Proximal Policy Optimization respectively on the half-cheetah task).},
+  file = {/home/whoenig/Zotero/storage/BDV2S46L/Chua et al. - 2018 - Deep Reinforcement Learning in a Handful of Trials.pdf}
+}
+
+@online{2018-richards-LyapunovNeuralNetwork,
+  title = {The {{Lyapunov Neural Network}}: {{Adaptive Stability Certification}} for {{Safe Learning}} of {{Dynamical Systems}}},
+  shorttitle = {The {{Lyapunov Neural Network}}},
+  author = {Richards, Spencer M. and Berkenkamp, Felix and Krause, Andreas},
+  year = {2018},
+  eprint = {1808.00924},
+  eprinttype = {arxiv},
+  eprintclass = {cs},
+  delete_delete_doi = {10.48550/arXiv.1808.00924},
+  url = {http://arxiv.org/abs/1808.00924},
+  urlyear = {2024},
+  abstract = {Learning algorithms have shown considerable prowess in simulation by allowing robots to adapt to uncertain environments and improve their performance. However, such algorithms are rarely used in practice on safety-critical systems, since the learned policy typically does not yield any safety guarantees. That is, the required exploration may cause physical harm to the robot or its environment. In this paper, we present a method to learn accurate safety certificates for nonlinear, closed-loop dynamical systems. Specifically, we construct a neural network Lyapunov function and a training algorithm that adapts it to the shape of the largest safe region in the state space. The algorithm relies only on knowledge of inputs and outputs of the dynamics, rather than on any specific model structure. We demonstrate our method by learning the safe region of attraction for a simulated inverted pendulum. Furthermore, we discuss how our method can be used in safe learning algorithms together with statistical models of dynamical systems.},
+  pubstate = {preprint},
+  file = {/home/whoenig/Zotero/storage/3FZVFXZY/Richards et al. - 2018 - The Lyapunov Neural Network Adaptive Stability Ce.pdf;/home/whoenig/Zotero/storage/UCJ8Q6KI/1808.html}
+}
+
+@inproceedings{2018-wang-SafeLearningQuadrotor,
+  title = {Safe {{Learning}} of {{Quadrotor Dynamics Using Barrier Certificates}}},
+  booktitle = {2018 {{IEEE International Conference}} on {{Robotics}} and {{Automation}} ({{ICRA}})},
+  author = {Wang, Li and Theodorou, Evangelos A. and Egerstedt, Magnus},
+  year = {2018},
+  pages = {2460--2465},
+  delete_delete_publisher = {IEEE},
+  location = {Brisbane, QLD},
+  delete_delete_doi = {10.1109/ICRA.2018.8460471},
+  url = {https://ieeexplore.ieee.org/document/8460471/},
+  urlyear = {2024},
+  abstract = {To effectively control complex dynamical systems, accurate nonlinear models are typically needed. However, these models are not always known. In this paper, we present a datadriven approach based on Gaussian processes that learns models of quadrotors operating in partially unknown environments. What makes this challenging is that if the learning process is not carefully controlled, the system will go unstable, i.e., the quadcopter will crash. To this end, barrier certificates are employed for safe learning. The barrier certificates establish a non-conservative forward invariant safe region, in which high probability safety guarantees are provided based on the statistics of the Gaussian Process. A learning controller is designed to efficiently explore those uncertain states and expand the barrier certified safe region based on an adaptive sampling scheme. Simulation results are provided to demonstrate the effectiveness of the proposed approach.},
+  booktitle = {2018 {{IEEE International Conference}} on {{Robotics}} and {{Automation}} ({{ICRA}})},
+  isbn = {978-1-5386-3081-5},
+  langid = {english},
+  file = {/home/whoenig/Zotero/storage/L7WHDM94/Wang et al. - 2018 - Safe Learning of Quadrotor Dynamics Using Barrier .pdf}
+}
+
+@article{2019-cheng-EndtoEndSafeReinforcement,
+  title = {End-to-{{End Safe Reinforcement Learning}} through {{Barrier Functions}} for {{Safety-Critical Continuous Control Tasks}}},
+  author = {Cheng, Richard and Orosz, Gábor and Murray, Richard M. and Burdick, Joel W.},
+  year = {2019},
+  journal = {Proceedings of the AAAI Conference on Artificial Intelligence},
+  shortjournal = {AAAI},
+  volume = {33},
+  number = {01},
+  pages = {3387--3395},
+  issn = {2374-3468, 2159-5399},
+  delete_delete_doi = {10.1609/aaai.v33i01.33013387},
+  url = {https://ojs.aaai.org/index.php/AAAI/article/view/4213},
+  urlyear = {2024},
+  abstract = {Reinforcement Learning (RL) algorithms have found limited success beyond simulated applications, and one main reason is the absence of safety guarantees during the learning process. Real world systems would realistically fail or break before an optimal controller can be learned. To address this issue, we propose a controller architecture that combines (1) a model-free RL-based controller with (2) model-based controllers utilizing control barrier functions (CBFs) and (3) online learning of the unknown system dynamics, in order to ensure safety during learning. Our general framework leverages the success of RL algorithms to learn high-performance controllers, while the CBF-based controllers both guarantee safety and guide the learning process by constraining the set of explorable polices. We utilize Gaussian Processes (GPs) to model the system dynamics and its uncertainties.},
+  langid = {english},
+  file = {/home/whoenig/Zotero/storage/7IQVAIZ7/Cheng et al. - 2019 - End-to-End Safe Reinforcement Learning through Bar.pdf}
+}
+
+@article{2019-fisac-GeneralSafetyFramework,
+  title = {A {{General Safety Framework}} for {{Learning-Based Control}} in {{Uncertain Robotic Systems}}},
+  author = {Fisac, Jaime F and Akametalu, Anayo K and Zeilinger, Melanie N and Kaynama, Shahab and Gillula, Jeremy and Tomlin, Claire J},
+  year = {2019},
+  journal = {IEEE TRANSACTIONS ON AUTOMATIC CONTROL},
+  volume = {64},
+  number = {7},
+  abstract = {The proven efficacy of learning-based control schemes strongly motivates their application to robotic systems operating in the physical world. However, guaranteeing correct operation during the learning process is currently an unresolved issue, which is of vital importance in safety-critical systems. We propose a general safety framework based on Hamilton–Jacobi reachability methods that can work in conjunction with an arbitrary learning algorithm. The method exploits approximate knowledge of the system dynamics to guarantee constraint satisfaction while minimally interfering with the learning process. We further introduce a Bayesian mechanism that refines the safety analysis as the system acquires new evidence, reducing initial conservativeness when appropriate while strengthening guarantees through real-time validation. The result is a least-restrictive, safety-preserving control law that intervenes only when the computed safety guarantees require it, or confidence in the computed guarantees decays in light of new observations. We prove theoretical safety guarantees combining probabilistic and worst-case analysis and demonstrate the proposed framework experimentally on a quadrotor vehicle. Even though safety analysis is based on a simple point-mass model, the quadrotor successfully arrives at a suitable controller by policy-gradient reinforcement learning without ever crashing, and safely retracts away from a strong external disturbance introduced during flight.},
+  langid = {english},
+  file = {/home/whoenig/Zotero/storage/F3HI53DX/Fisac et al. - 2019 - A General Safety Framework for Learning-Based Cont.pdf}
+}
+
+@inproceedings{2019-shi-NeuralLanderStable,
+  title = {Neural {{Lander}}: {{Stable Drone Landing Control Using Learned Dynamics}}},
+  shorttitle = {Neural {{Lander}}},
+  booktitle = {2019 {{International Conference}} on {{Robotics}} and {{Automation}} ({{ICRA}})},
+  author = {Shi, Guanya and Shi, Xichen and O'Connell, Michael and Yu, Rose and Azizzadenesheli, Kamyar and Anandkumar, Animashree and Yue, Yisong and Chung, Soon-Jo},
+  year = {2019},
+  pages = {9784--9790},
+  delete_delete_publisher = {IEEE},
+  location = {Montreal, QC, Canada},
+  delete_delete_doi = {10.1109/ICRA.2019.8794351},
+  url = {https://ieeexplore.ieee.org/document/8794351/},
+  urlyear = {2024},
+  abstract = {Precise near-ground trajectory control is difficult for multi-rotor drones, due to the complex aerodynamic effects caused by interactions between multi-rotor airflow and the environment. Conventional control methods often fail to properly account for these complex effects and fall short in accomplishing smooth landing. In this paper, we present a novel deeplearning-based robust nonlinear controller (Neural-Lander) that improves control performance of a quadrotor during landing. Our approach combines a nominal dynamics model with a Deep Neural Network (DNN) that learns high-order interactions. We apply spectral normalization (SN) to constrain the Lipschitz constant of the DNN. Leveraging this Lipschitz property, we design a nonlinear feedback linearization controller using the learned model and prove system stability with disturbance rejection. To the best of our knowledge, this is the first DNNbased nonlinear feedback controller with stability guarantees that can utilize arbitrarily large neural nets. Experimental results demonstrate that the proposed controller significantly outperforms a Baseline Nonlinear Tracking Controller in both landing and cross-table trajectory tracking cases. We also empirically show that the DNN generalizes well to unseen data outside the training domain.},
+  booktitle = {2019 {{International Conference}} on {{Robotics}} and {{Automation}} ({{ICRA}})},
+  isbn = {978-1-5386-6027-0},
+  langid = {english},
+  file = {/home/whoenig/Zotero/storage/G2FPNDE5/Shi et al. - 2019 - Neural Lander Stable Drone Landing Control Using .pdf}
+}
+
+@article{2020-hewing-CautiousModelPredictive,
+  title = {Cautious {{Model Predictive Control Using Gaussian Process Regression}}},
+  author = {Hewing, Lukas and Kabzan, Juraj and Zeilinger, Melanie N.},
+  year = {2020},
+  journal = {IEEE Transactions on Control Systems Technology},
+  shortjournal = {IEEE Trans. Contr. Syst. Technol.},
+  volume = {28},
+  number = {6},
+  pages = {2736--2743},
+  issn = {1063-6536, 1558-0865, 2374-0159},
+  delete_delete_doi = {10.1109/TCST.2019.2949757},
+  url = {https://ieeexplore.ieee.org/document/8909368/},
+  urlyear = {2024},
+  abstract = {Gaussian process (GP) regression has been widely used in supervised machine learning due to its flexibility and inherent ability to describe uncertainty in function estimation. In the context of control, it is seeing increasing use for modeling of nonlinear dynamical systems from data, as it allows the direct assessment of residual model uncertainty. We present a model predictive control (MPC) approach that integrates a nominal system with an additive nonlinear part of the dynamics modeled as a GP. We describe a principled way of formulating the chanceconstrained MPC problem, which takes into account residual uncertainties provided by the GP model to enable cautious control. Using additional approximations for efficient computation, we finally demonstrate the approach in a simulation example, as well as in a hardware implementation for autonomous racing of remote-controlled race cars with fast sampling times of 20 ms, highlighting improvements with regard to both performance and safety over a nominal controller.},
+  langid = {english},
+  file = {/home/whoenig/Zotero/storage/EG5NCU2L/Hewing et al. - 2020 - Cautious Model Predictive Control Using Gaussian P.pdf}
+}
+
+@article{2020-riviere-GLASGlobaltoLocalSafe,
+  title = {{{GLAS}}: {{Global-to-Local Safe Autonomy Synthesis}} for {{Multi-Robot Motion Planning With End-to-End Learning}}},
+  shorttitle = {{{GLAS}}},
+  author = {Riviere, Benjamin and Honig, Wolfgang and Yue, Yisong and Chung, Soon-Jo},
+  year = {2020},
+  journal = {IEEE Robotics and Automation Letters},
+  shortjournal = {IEEE Robot. Autom. Lett.},
+  volume = {5},
+  number = {3},
+  pages = {4249--4256},
+  issn = {2377-3766, 2377-3774},
+  delete_delete_doi = {10.1109/LRA.2020.2994035},
+  url = {https://ieeexplore.ieee.org/document/9091314/},
+  urlyear = {2024},
+  abstract = {We present GLAS: Global-to-Local Autonomy Synthesis, a provably-safe, automated distributed policy generation for multi-robot motion planning. Our approach combines the advantage of centralized planning of avoiding local minima with the advantage of decentralized controllers of scalability and distributed computation. In particular, our synthesized policies only require relative state information of nearby neighbors and obstacles, and compute a provably-safe action. Our approach has three major components: i) we generate demonstration trajectories using a global planner and extract local observations from them, ii) we use deep imitation learning to learn a decentralized policy that can run efficiently online, and iii) we introduce a novel differentiable safety module to ensure collision-free operation, thereby allowing for end-to-end policy training. Our numerical experiments demonstrate that our policies have a 20\% higher success rate than optimal reciprocal collision avoidance, ORCA, across a wide range of robot and obstacle densities. We demonstrate our method on an aerial swarm, executing the policy on low-end microcontrollers in real-time.},
+  langid = {english},
+  file = {/home/whoenig/Zotero/storage/BYMHIRFI/Riviere et al. - 2020 - GLAS Global-to-Local Safe Autonomy Synthesis for .pdf}
+}
+
+@article{2020-zhou-DeepNeuralNetworks,
+  title = {Deep Neural Networks as Add-on Modules for Enhancing Robot Performance in Impromptu Trajectory Tracking},
+  author = {Zhou, Siqi and Helwa, Mohamed K and Schoellig, Angela P},
+  year = {2020},
+  journal = {The International Journal of Robotics Research},
+  volume = {39},
+  number = {12},
+  pages = {1397--1418},
+  delete_delete_publisher = {SAGE Publications Ltd STM},
+  issn = {0278-3649},
+  delete_delete_doi = {10.1177/0278364920953902},
+  url = {https://delete_delete_doi.org/10.1177/0278364920953902},
+  urlyear = {2024},
+  abstract = {High-accuracy trajectory tracking is critical to many robotic applications, including search and rescue, advanced manufacturing, and industrial inspection, to name a few. Yet the unmodeled dynamics and parametric uncertainties of operating in such complex environments make it difficult to design controllers that are capable of accurately tracking arbitrary, feasible trajectories from the first attempt (i.e., impromptu trajectory tracking). This article proposes a platform-independent, learning-based “add-on” module to enhance the tracking performance of black-box control systems in impromptu tracking tasks. Our approach is to pre-cascade a deep neural network (DNN) to a stabilized baseline control system, in order to establish an identity mapping from the desired output to the actual output. Previous research involving quadrotors showed that, for 30 arbitrary hand-drawn trajectories, the DNN-enhancement control architecture reduces tracking errors by 43\% on average, as compared with the baseline controller. In this article, we provide a platform-independent formulation and practical design guidelines for the DNN-enhancement approach. In particular, we: (1) characterize the underlying function of the DNN module; (2) identify necessary conditions for the approach to be effective; (3) provide theoretical insights into the stability of the overall DNN-enhancement control architecture; (4) derive a condition that supports data-efficient training of the DNN module; and (5) compare the novel theory-driven DNN design with the prior trial-and-error design using detailed quadrotor experiments. We show that, as compared with the prior trial-and-error design, the novel theory-driven design allows us to reduce the input dimension of the DNN by two thirds while achieving similar tracking performance.},
+  langid = {english},
+  file = {/home/whoenig/Zotero/storage/QY8WXGHJ/Zhou et al. - 2020 - Deep neural networks as add-on modules for enhanci.pdf}
+}
+
+@article{2021-thananjeyan-RecoveryRLSafe,
+  title = {Recovery {{RL}}: {{Safe Reinforcement Learning With Learned Recovery Zones}}},
+  shorttitle = {Recovery {{RL}}},
+  author = {Thananjeyan, Brijen and Balakrishna, Ashwin and Nair, Suraj and Luo, Michael and Srinivasan, Krishnan and Hwang, Minho and Gonzalez, Joseph E. and Ibarz, Julian and Finn, Chelsea and Goldberg, Ken},
+  year = {2021},
+  journal = {IEEE Robotics and Automation Letters},
+  shortjournal = {IEEE Robot. Autom. Lett.},
+  volume = {6},
+  number = {3},
+  pages = {4915--4922},
+  issn = {2377-3766, 2377-3774},
+  delete_delete_doi = {10.1109/LRA.2021.3070252},
+  url = {https://ieeexplore.ieee.org/document/9392290/},
+  urlyear = {2024},
+  abstract = {Safety remains a central obstacle preventing widespread use of RL in the real world: learning new tasks in uncertain environments requires extensive exploration, but safety requires limiting exploration. We propose Recovery RL, an algorithm which navigates this tradeoff by (1) leveraging offline data to learn about constraint violating zones before policy learning and (2) separating the goals of improving task performance and constraint satisfaction across two policies: a task policy that only optimizes the task reward and a recovery policy that guides the agent to safety when constraint violation is likely. We evaluate Recovery RL on 6 simulation domains, including two contact-rich manipulation tasks and an image-based navigation task, and an image-based obstacle avoidance task on a physical robot. We compare Recovery RL to 5 prior safe RL methods which jointly optimize for task performance and safety via constrained optimization or reward shaping and find that Recovery RL outperforms the next best prior method across all domains. Results suggest that Recovery RL trades off constraint violations and task successes 2–20 times more efficiently in simulation domains and 3 times more efficiently in physical experiments. See https://tinyurl.com/rl-recovery for videos and supplementary material.},
+  langid = {english},
+  file = {/home/whoenig/Zotero/storage/I87T8VNN/Thananjeyan et al. - 2021 - Recovery RL Safe Reinforcement Learning With Lear.pdf}
+}
+
+@article{2022-brunke-SafeLearningRobotics,
+  title = {Safe {{Learning}} in {{Robotics}}: {{From Learning-Based Control}} to {{Safe Reinforcement Learning}}},
+  shorttitle = {Safe {{Learning}} in {{Robotics}}},
+  author = {Brunke, Lukas and Greeff, Melissa and Hall, Adam W. and Yuan, Zhaocong and Zhou, Siqi and Panerati, Jacopo and Schoellig, Angela P.},
+  year = {2022},
+  journal = {Annual Review of Control, Robotics, and Autonomous Systems},
+  volume = {5},
+  pages = {411--444},
+  delete_delete_publisher = {Annual Reviews},
+  issn = {2573-5144},
+  delete_delete_doi = {10.1146/annurev-control-042920-020211},
+  url = {https://www.annualreviews.org/content/journals/10.1146/annurev-control-042920-020211},
+  urlyear = {2024},
+  abstract = {The last half decade has seen a steep rise in the number of contributions on safe learning methods for real-world robotic deployments from both the control and reinforcement learning communities. This article provides a concise but holistic review of the recent advances made in using machine learning to achieve safe decision-making under uncertainties, with a focus on unifying the language and frameworks used in control theory and reinforcement learning research. It includes learning-based control approaches that safely improve performance by learning the uncertain dynamics, reinforcement learning approaches that encourage safety or robustness, and methods that can formally certify the safety of a learned control policy. As data- and learning-based robot control methods continue to gain traction, researchers must understand when and how to best leverage them in real-world scenarios where safety is imperative, such as when operating in close proximityto humans. We highlight some of the open challenges that will drive the field of robot learning in the coming years, and emphasize the need for realistic physics-based benchmarks to facilitate fair comparisons between control and reinforcement learning approaches.},
+  issue = {Volume 5, 2022},
+  langid = {english},
+  file = {/home/whoenig/Zotero/storage/P6697L69/Brunke et al. - 2022 - Safe Learning in Robotics From Learning-Based Con.pdf;/home/whoenig/Zotero/storage/6H6UBH5V/annurev-control-042920-020211.html}
+}
+
+@article{2022-brunke-SupplementalMaterialSafe,
+  title = {Supplemental {{Material}} for {{Safe Learning}} in {{Robotics}}},
+  author = {Brunke, Lukas and Greeff, Melissa and Yuan, Zhaocong and Zhou, Siqi and Schoellig, Angela P},
+  year = {2022},
+  abstract = {As supplemental material for our review article “Safe Learning in Robotics: From Learning-Based Control to Safe Reinforcement Learning”, we provide a summary—in table form—of the 84 approaches mentioned in Section 3, with a specific focus on (i) the learning models used, (ii) the safety properties achieved, and (iii) the robotic tasks considered.},
+  langid = {english},
+  file = {/home/whoenig/Zotero/storage/BBWCM88L/Brunke et al. - Supplemental Material for.pdf}
+}
+
+@video{2022-learningsystemsandroboticslab-IROS2022Keydelete_delete_note,
+  entrysubtype = {video},
+  title = {{{IROS}} 2022 {{Keydelete_delete_note}}: {{Safe Learning}} in {{Robotics}} by {{Prof}}. {{Angela Schoellig}}},
+  shorttitle = {{{IROS}} 2022 {{Keydelete_delete_note}}},
+  editor = {{Learning Systems and Robotics Lab}},
+  editortype = {director},
+  year = {2022},
+  url = {https://www.youtube.com/watch?v=g6eHhvHMSy8},
+  urlyear = {2024},
+  abstract = {Abstract: The next generation of robots will rely on machine learning in one way or another. However, when machine learning algorithms (or their results) are deployed on robots in the real world, studying their safety is important. In this talk, I will summarize the findings of our recent review paper “Safe Learning in Robotics: From Learning-Based Control to Safe Reinforcement Learning”. I will present my team’s research in this context and show experimental demonstrations of safe learning algorithms on flying robots, ground vehicles, and mobile manipulators. I will conclude by highlighting the many open questions in this field and hope to convince you to help solve these challenges. Finally, I will introduce the open-source simulation environment “safe-control-gym”, which was developed by my team to test and benchmark safe learning algorithms and accelerate progress in this field. Bio: Angela Schoellig is an Alexander von Humboldt Professor for Robotics and Artificial Intelligence at the Technical University of Munich. She is also an Associate Professor at the University of Toronto Institute for Aerospace Studies and a Faculty Member of the Vector Institute in Toronto. Angela conducts research at the intersection of robotics, controls, and machine learning. Her goal is to enhance the performance, safety, and autonomy of robots by enabling them to learn from past experiments and from each other. In Canada, she has held a Canada Research Chair (Tier 2) in Machine Learning for Robotics and Control and a Canada CIFAR Chair in Artificial Intelligence, and has been a principal investigator of the NSERC Canadian Robotics Network. She is a recipient of the Robotics: Science and Systems Early Career Spotlight Award (2019), a Sloan Research Fellowship (2017), and an Ontario Early Researcher Award (2017). She is a Curious Minds Award winner (2022), a MIT Technology Review Innovator Under 35 (2017), a Canada Science Leadership Program Fellow (2014), and one of Robohub’s “25 women in robotics you need to know about (2013)”. Her team is the four-time winner of the North-American SAE AutoDrive Challenge (2018-21). Her PhD at ETH Zurich (2013) was awarded the ETH Medal and the Dimitris N. Chorafas Foundation Award. She holds both an M.Sc. in Engineering Cybernetics from the University of Stuttgart (2008) and an M.Sc. in Engineering Science and Mechanics from the Georgia Institute of Technology (2007). More Information: [1] Lukas Brunke, Melissa Greeff, Adam W. Hall, Zhaocong Yuan, Siqi Zhou, Jacopo Panerati, and Angela P. Schoellig, "Safe learning in robotics: From learning-based control to safe reinforcement learning," in Annual Review of Control, Robotics, and Autonomous Systems, vol. 5, pp. 411-444, 2022, available at https://arxiv.org/pdf/2108.06266.pdf. [2] Zhaocong Yuan, Adam W. Hall, Siqi Zhou, Lukas Brunke, Melissa Greeff, Jacopo Panerati, and Angela P. Schoellig, "Safe-Control-Gym: A Unified Benchmark Suite for Safe Learning-Based Control and Reinforcement Learning in Robotics," in IEEE Robotics and Automation Letters, vol. 7, no. 4, pp. 11142-11149, 2022, available at https://arxiv.org/pdf/2109.06325.pdf.}
+}
+
+@article{2022-yuan-SafeControlGymUnifiedBenchmark,
+  title = {Safe-{{Control-Gym}}: {{A Unified Benchmark Suite}} for {{Safe Learning-Based Control}} and {{Reinforcement Learning}} in {{Robotics}}},
+  shorttitle = {Safe-{{Control-Gym}}},
+  author = {Yuan, Zhaocong and Hall, Adam W. and Zhou, Siqi and Brunke, Lukas and Greeff, Melissa and Panerati, Jacopo and Schoellig, Angela P.},
+  year = {2022},
+  journal = {IEEE Robotics and Automation Letters},
+  shortjournal = {IEEE Robot. Autom. Lett.},
+  volume = {7},
+  number = {4},
+  pages = {11142--11149},
+  issn = {2377-3766, 2377-3774},
+  delete_delete_doi = {10.1109/LRA.2022.3196132},
+  url = {https://ieeexplore.ieee.org/document/9849119/},
+  urlyear = {2024},
+  abstract = {In recent years, both reinforcement learning and learning-based control—as well as the study of their safety, which is crucial for deployment in real-world robots—have gained significant traction. However, to adequately gauge the progress and applicability of new results, we need the tools to equitably compare the approaches proposed by the controls and reinforcement learning communities. Here, we propose a new open-source benchmark suite, called safe-control-gym, supporting both modelbased and data-based control techniques. We provide implementations for three dynamic systems—the cart-pole, the 1D, and 2D quadrotor—and two control tasks—stabilization and trajectory tracking. We propose to extend OpenAI’s Gym API—the de facto standard in reinforcement learning research—with (i) the ability to specify (and query) symbolic dynamics and (ii) constraints, and (iii) (repeatably) inject simulated disturbances in the control inputs, state measurements, and inertial properties. To demonstrate our proposal and in an attempt to bring research communities closer together, we show how to use safe-control-gym to quantitatively compare the control performance, data efficiency, and safety of multiple approaches from the fields of traditional control, learning-based control, and reinforcement learning.},
+  langid = {english},
+  file = {/home/whoenig/Zotero/storage/6IDBRJ9R/Yuan et al. - 2022 - Safe-Control-Gym A Unified Benchmark Suite for Sa.pdf}
+}
+
+@article{2022-zhou-BridgingModelRealityGap,
+  title = {Bridging the {{Model-Reality Gap With Lipschitz Network Adaptation}}},
+  author = {Zhou, Siqi and Pereida, Karime and Zhao, Wenda and Schoellig, Angela P.},
+  year = {2022},
+  journal = {IEEE Robotics and Automation Letters},
+  shortjournal = {IEEE Robot. Autom. Lett.},
+  volume = {7},
+  number = {1},
+  pages = {642--649},
+  issn = {2377-3766, 2377-3774},
+  delete_delete_doi = {10.1109/LRA.2021.3131698},
+  url = {https://ieeexplore.ieee.org/document/9632405/},
+  urlyear = {2024},
+  abstract = {As robots venture into the real world, they are subject to unmodeled dynamics and disturbances. Traditional model-based control approaches have been proven successful in relatively static and known operating environments. However, when an accurate model of the robot is not available, model-based design can lead to suboptimal and even unsafe behaviour. In this work, we propose a method that bridges the model-reality gap and enables the application of model-based approaches even if dynamic uncertainties are present. In particular, we present a learning-based model reference adaptation approach that makes a robot system, with possibly uncertain dynamics, behave as a predefined reference model. In turn, the reference model can be used for model-based controller design. In contrast to typical model reference adaptation control approaches, we leverage the representative power of neural networks to capture highly nonlinear dynamics uncertainties and guarantee stability by encoding a certifying Lipschitz condition in the architectural design of a special type of neural network called the Lipschitz network. Our approach applies to a general class of nonlinear control-affine systems even when our prior knowledge about the true robot system is limited. We demonstrate our approach in flying inverted pendulum experiments, where an offthe-shelf quadrotor is challenged to balance an inverted pendulum while hovering or tracking circular trajectories.},
+  langid = {english},
+  file = {/home/whoenig/Zotero/storage/SYE37J7S/Zhou et al. - 2022 - Bridging the Model-Reality Gap With Lipschitz Netw.pdf}
+}
+
+@article{2023-berkenkamp-BayesianOptimizationSafety,
+  title = {Bayesian Optimization with Safety Constraints: Safe and Automatic Parameter Tuning in Robotics},
+  shorttitle = {Bayesian Optimization with Safety Constraints},
+  author = {Berkenkamp, Felix and Krause, Andreas and Schoellig, Angela P.},
+  year = {2023},
+  journal = {Machine Learning},
+  shortjournal = {Mach Learn},
+  volume = {112},
+  number = {10},
+  pages = {3713--3747},
+  issn = {1573-0565},
+  delete_delete_doi = {10.1007/s10994-021-06019-1},
+  url = {https://delete_delete_doi.org/10.1007/s10994-021-06019-1},
+  urlyear = {2024},
+  abstract = {Selecting the right tuning parameters for algorithms is a pravelent problem in machine learning that can significantly affect the performance of algorithms. Data-efficient optimization algorithms, such as Bayesian optimization, have been used to automate this process. During experiments on real-world systems such as robotic platforms these methods can evaluate unsafe parameters that lead to safety-critical system failures and can destroy the system. Recently, a safe Bayesian optimization algorithm, called~SafeOpt, has been developed, which guarantees that the performance of the system never falls below a critical value; that is, safety is defined based on the performance function. However, coupling performance and safety is often not desirable in practice, since they are often opposing objectives. In this paper, we present a generalized algorithm that allows for multiple safety constraints separate from the objective. Given an initial set of safe parameters, the algorithm maximizes performance but only evaluates parameters that satisfy safety for all constraints with high probability. To this end, it carefully explores the parameter space by exploiting regularity assumptions in terms of a Gaussian process prior. Moreover, we show how context variables can be used to safely transfer knowledge to new situations and tasks. We provide a theoretical analysis and demonstrate that the proposed algorithm enables fast, automatic, and safe optimization of tuning parameters in experiments on a quadrotor vehicle.},
+  langid = {english},
+  file = {/home/whoenig/Zotero/storage/C2QL2JI4/Berkenkamp et al. - 2023 - Bayesian optimization with safety constraints saf.pdf}
+}
+
+@article{2023-wabersich-DataDrivenSafetyFilters,
+  title = {Data-{{Driven Safety Filters}}: {{Hamilton-Jacobi Reachability}}, {{Control Barrier Functions}}, and {{Predictive Methods}} for {{Uncertain Systems}}},
+  shorttitle = {Data-{{Driven Safety Filters}}},
+  author = {Wabersich, Kim P. and Taylor, Andrew J. and Choi, Jason J. and Sreenath, Koushil and Tomlin, Claire J. and Ames, Aaron D. and Zeilinger, Melanie N.},
+  year = {2023},
+  journal = {IEEE Control Systems},
+  shortjournal = {IEEE Control Syst.},
+  volume = {43},
+  number = {5},
+  pages = {137--177},
+  issn = {1066-033X, 1941-000X},
+  delete_delete_doi = {10.1109/MCS.2023.3291885},
+  url = {https://ieeexplore.ieee.org/document/10266799/},
+  urlyear = {2024},
+  langid = {english},
+  file = {/home/whoenig/Zotero/storage/9N9QWZP8/Wabersich et al. - 2023 - Data-Driven Safety Filters Hamilton-Jacobi Reacha.pdf}
+}
+
+@online{2024-he-AgileSafeLearning,
+  title = {Agile {{But Safe}}: {{Learning Collision-Free High-Speed Legged Locomotion}}},
+  shorttitle = {Agile {{But Safe}}},
+  author = {He, Tairan and Zhang, Chong and Xiao, Wenli and He, Guanqi and Liu, Changliu and Shi, Guanya},
+  year = {2024},
+  url = {https://arxiv.org/abs/2401.17583v3},
+  urlyear = {2024},
+  abstract = {Legged robots navigating cluttered environments must be jointly agile for efficient task execution and safe to avoid collisions with obstacles or humans. Existing studies either develop conservative controllers ({$<$} 1.0 m/s) to ensure safety, or focus on agility without considering potentially fatal collisions. This paper introduces Agile But Safe (ABS), a learning-based control framework that enables agile and collision-free locomotion for quadrupedal robots. ABS involves an agile policy to execute agile motor skills amidst obstacles and a recovery policy to prevent failures, collaboratively achieving high-speed and collision-free navigation. The policy switch in ABS is governed by a learned control-theoretic reach-avoid value network, which also guides the recovery policy as an objective function, thereby safeguarding the robot in a closed loop. The training process involves the learning of the agile policy, the reach-avoid value network, the recovery policy, and an exteroception representation network, all in simulation. These trained modules can be directly deployed in the real world with onboard sensing and computation, leading to high-speed and collision-free navigation in confined indoor and outdoor spaces with both static and dynamic obstacles.},
+  langid = {english},
+  organization = {arXiv.org},
+  file = {/home/whoenig/Zotero/storage/2ZRCKS5L/He et al. - 2024 - Agile But Safe Learning Collision-Free High-Speed.pdf}
+}
+
+@online{2024-xiao-SafeDeepPolicy,
+  title = {Safe {{Deep Policy Adaptation}}},
+  author = {Xiao, Wenli and He, Tairan and Dolan, John and Shi, Guanya},
+  year = {2024},
+  eprint = {2310.08602},
+  eprinttype = {arxiv},
+  eprintclass = {cs},
+  delete_delete_doi = {10.48550/arXiv.2310.08602},
+  url = {http://arxiv.org/abs/2310.08602},
+  urlyear = {2024},
+  abstract = {A critical goal of autonomy and artificial intelligence is enabling autonomous robots to rapidly adapt in dynamic and uncertain environments. Classic adaptive control and safe control provide stability and safety guarantees but are limited to specific system classes. In contrast, policy adaptation based on reinforcement learning (RL) offers versatility and generalizability but presents safety and robustness challenges. We propose SafeDPA, a novel RL and control framework that simultaneously tackles the problems of policy adaptation and safe reinforcement learning. SafeDPA jointly learns adaptive policy and dynamics models in simulation, predicts environment configurations, and fine-tunes dynamics models with few-shot real-world data. A safety filter based on the Control Barrier Function (CBF) on top of the RL policy is introduced to ensure safety during real-world deployment. We provide theoretical safety guarantees of SafeDPA and show the robustness of SafeDPA against learning errors and extra perturbations. Comprehensive experiments on (1) classic control problems (Inverted Pendulum), (2) simulation benchmarks (Safety Gym), and (3) a real-world agile robotics platform (RC Car) demonstrate great superiority of SafeDPA in both safety and task performance, over state-of-the-art baselines. Particularly, SafeDPA demonstrates notable generalizability, achieving a 300\% increase in safety rate compared to the baselines, under unseen disturbances in real-world experiments.},
+  pubstate = {preprint},
+  file = {/home/whoenig/Zotero/storage/ARYUJ2W2/Xiao et al. - 2024 - Safe Deep Policy Adaptation.pdf;/home/whoenig/Zotero/storage/2U63I5GS/2310.html}
+}
+
+@online{2024-zhou-ControlBarrierAidedTeleoperationVisualInertial,
+  title = {Control-{{Barrier-Aided Teleoperation}} with {{Visual-Inertial SLAM}} for {{Safe MAV Navigation}} in {{Complex Environments}}},
+  author = {Zhou, Siqi and Papatheodorou, Sotiris and Leutenegger, Stefan and Schoellig, Angela P.},
+  year = {2024},
+  eprint = {2403.04331},
+  eprinttype = {arxiv},
+  eprintclass = {cs},
+  url = {http://arxiv.org/abs/2403.04331},
+  urlyear = {2024},
+  abstract = {In this paper, we consider a Micro Aerial Vehicle (MAV) system teleoperated by a non-expert and introduce a perceptive safety filter that leverages Control Barrier Functions (CBFs) in conjunction with Visual-Inertial Simultaneous Localization and Mapping (VI-SLAM) and dense 3D occupancy mapping to guarantee safe navigation in complex and unstructured environments. Our system relies solely on onboard IMU measurements, stereo infrared images, and depth images and autonomously corrects teleoperated inputs when they are deemed unsafe. We define a point in 3D space as unsafe if it satisfies either of two conditions: (i) it is occupied by an obstacle, or (ii) it remains unmapped. At each time step, an occupancy map of the environment is upyeard by the VI-SLAM by fusing the onboard measurements, and a CBF is constructed to parameterize the (un)safe region in the 3D space. Given the CBF and state feedback from the VI-SLAM module, a safety filter computes a certified reference that best matches the teleoperation input while satisfying the safety constraint encoded by the CBF. In contrast to existing perception-based safe control frameworks, we directly close the perception-action loop and demonstrate the full capability of safe control in combination with real-time VI-SLAM without any external infrastructure or prior knowledge of the environment. We verify the efficacy of the perceptive safety filter in real-time MAV experiments using exclusively onboard sensing and computation and show that the teleoperated MAV is able to safely navigate through unknown environments despite arbitrary inputs sent by the teleoperator.},
+  langid = {english},
+  pubstate = {preprint},
+  keywords = {Computer Science - Robotics},
+  file = {/home/whoenig/Zotero/storage/UH34L4EF/Zhou et al. - 2024 - Control-Barrier-Aided Teleoperation with Visual-In.pdf}
+}

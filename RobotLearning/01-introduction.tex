@@ -1,0 +1,326 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Robot Learning}
+\renewcommand{\coursepicture}{roblearn.png}
+\renewcommand{\coursedate}{Summer 2024}
+\renewcommand{\teacher}{Marc Toussaint}
+
+\renewcommand{\topic}{Introduction}
+\renewcommand{\keywords}{[word cloud from all CoRL 2023 papers]}
+
+\slides
+
+\slidestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{What is this lecture about?}
+\slide{What is this lecture about?}{
+
+~
+
+\item Related Lectures:
+\begin{items}
+\item Guanya Shi (CMU): Robot Learning {\urlfont\url{https://16-831-s24.github.io/lectures}}
+
+\item Erdem Biyik (USC): {\urlfont\url{https://liralab.usc.edu/csci699/}}
+
+\item Jan Peters (TU Darmstadt): {\urlfont\url{https://learn.ki-campus.org/courses/moocrobot-tud2021}}
+
+\item Yisong Yue \& Hoang M. Le (CalTech):
+{\urlfont\url{https://sites.google.com/view/icml2018-imitation-learning/}}
+
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{What is this lecture about?}{
+
+\item Shi's lecture (referenced below):
+
+~
+
+\show{shi1}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{What is this lecture about?}{
+
+\item Shi's lecture (referenced below):
+
+~
+
+\show{shi2}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{What is this lecture about?}{
+
+\item In Shi's view:
+\begin{items}
+\item Formalize the problem ``making sequential decisions in a physical world'' ($\to$ MDPs)
+\item Focus on Learning in MDPs $\to$ Reinforcement Learning
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{What is this lecture about?}{
+
+\item However, the topic is much wider
+
+\item Robotics is a very wide field -- \textbf{Learning can be applied almost anywhere}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{What is this lecture about?}{
+
+\item Module description (Moses 41016) -- Learning Outcomes
+\begin{items}\ttiny
+\item The students have a systematic understanding of the wide variety of contexts and problems settings in which machine learning methods can be applied within robotics.
+\item They understand how the learning problems are mathematically formulated in these settings.
+\item{} [They also learn about underlying ML methods to tackle these problems.]\dots
+%% \item They can decide which kinds of learning methods are applicable and appropriate for which kinds of problem settings.
+%% \item They can transfer advances in machine learning to applications in robotics.
+%% \item They have first experience with some basic learning methods applied to robotics problems.
+\end{items}
+
+\item Content
+\begin{items}\ttiny
+\item The term Robot Learning generally denotes the use of learning methods in the context of robotics, which is ubiquitous in modern robotics research. This course aims to provide a systematic introduction to the field, in particular to the various contexts and problem setting where machine learning can be applied and the specific learning methods themselves. This includes topics such as:
+
+\item System identification, model learning, residual model learning
+\item Imitation learning, behavior cloning, learning from demonstration
+\item Reinforcement Learning (RL), skill learning, offline RL
+\item Constraint learning, grasp learning, iterative learning control
+\item Learning to predict plans, learning to warmstart MPC or optimization
+\item Inverse RL
+\item \dots
+%% \item Learning as optimization, in-situ learning/trial-and-error vs. offline optimization
+%% \item Evolutionary learning
+%% \item Online/lifelong learning
+%% \item Safe Learning
+%% \item Multi-robot learning
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Motivation}{
+
+\item OpenAI / Figure robot: {\urlfont\url{https://www.youtube.com/watch?v=Sq1QZB5baNw}}
+
+\item Boston Dynamics:  {\urlfont\url{https://www.youtube.com/watch?v=tF4DML7FIWk}}
+
+~\pause
+
+\item CoRL 2023 award/finalist papers:
+\begin{items}
+\item \url{https://hshi74.github.io/robocook/}
+\item \url{https://mimic-play.github.io/}
+\item \url{https://robot-parkour.github.io/}
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{The State-of-the-Art in Robot Learning}{
+
+~
+
+\item Conference on Robot Learning ~ {\urlfont\url{https://www.corl.org/}}
+
+\item Robotics: Science and Systems Conference ~ {\urlfont\url{https://roboticsconference.org/}}
+
+\item ICRA, IROS, L4C conferences
+
+\item NeurIPS, ICML conferences
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\item The meta-goal of this lecture:
+
+Enable you to read \& understand papers at these conferences
+
+~\pause
+
+\item Some of the lectures will directly discuss essential research papers
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Planned Lectures}{
+
+\small
+
+\item Taxonomy (today)
+
+\item Robotics Primer \& Machine Learning Primer
+
+\item Dynamics Learning / System Identification
+
+\item Imitation Learning
+
+\item \emph{Method Lecture:} Diffusion \& other policy representations
+
+\item Reinforcement Learning \& variants (several lectures)
+
+\pause\tiny
+
+\item Safe Learning, Multi-Robot Learning
+
+\item Constraint Learning, Grasping/Manipulation Learning, Affordance Learning
+
+\item \emph{Method Lecture:} Robotics/3D ML: Rotation encodings, PointNet, SE(3)-Equivariant
+
+\item \emph{Method Lecture:} Black-Box Optimization, CMA, CEM
+
+\item Plan Prediction Learning (from MPC to Language Models)
+
+\item Online adaptation
+
+\item \emph{Method Lecture:} Generative models (PCA, auto encoder, VAE, GANs, diffusion, stochastic outputs in transformers)
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Organization}{
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Organization}
+\slide{Organization}{
+
+\item 6 LPs (180h, 12h/w, 15 weeks)
+
+\item Lectures, weekly, in person
+
+\item Tutorials, weekly:
+\begin{items}
+\item Weekly exercise sheets, mix of analytic/coding, to be discussed in the tutorials
+%% \item \textbf{Mandatory} hand-in coding assignments, every $\sim3$ weeks:\\
+%% Submit your optimization algorithms/problems $\to$ are numerically evaluated/graded
+\end{items}
+
+~
+
+\item ISIS as central webpage
+
+\item Contact:
+\begin{items}
+\item Office (grades/etc): Ilaria Cicchetti-Nilsson \url{<office@lis.ut-berlin.de>}
+\end{items}
+
+\newcommand{\face}[2]{
+\begin{minipage}{12mm}
+\centering
+\showh[.8]{faces/#1}\\
+\ttiny #2
+\end{minipage}
+}
+
+\hfill\face{ilaria}{Ilaria Cicchetti-Nilsson}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Assignments \& Exam}{
+
+\item Tutorial exercises are a mix of analytic and coding problems. \textbf{Voting System:}
+\begin{items}
+\item When attending a tutorial, students mark in an ISIS questionnaire which exercises they have worked on
+\item Students are randomly selected to present their solutions (no need for correct solutions -- just something to present and discuss)
+\item When not attending: upload pdf notes/solutions on ISIS
+\end{items}
+
+~
+
+\item \textbf{Exam prerequisite:}
+\begin{items}
+\item at least 50\% votes in the exercises
+%\item at least 50\% points in the hand-in coding assignments
+%\item[] \emph{(Moses: Bestehen der benoteten Programmier- und Hausaufgaben)}
+\end{items}
+
+~
+
+\item The written exam will be about analytical problems, determines final grade (no portfolio)
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Prerequisites}{
+
+\item Module description:
+\begin{items}
+\item Knowledge in Machine Learning
+\item Fundamentals in AI (esp. Markov Decision Processes)
+\item Foundations of robotics
+\item Basic programming skills 
+\end{items}
+
+\pause
+
+\item Self-Checks:
+\begin{items}
+\item Maths, AI, ML \& Robotics lectures:\\
+{\urlfont\url{https://www.user.tu-berlin.de/mtoussai/teaching/Lecture-Maths.pdf}\\}
+{\urlfont\url{https://www.user.tu-berlin.de/mtoussai/teaching/Lecture-AI.pdf}\\}
+{\urlfont\url{https://www.user.tu-berlin.de/mtoussai/teaching/Lecture-MachineLearning.pdf}\\}
+{\urlfont\url{https://www.user.tu-berlin.de/mtoussai/teaching/Lecture-Robotics.pdf}}
+
+\item ML: not only pyTorch.. but also \emph{Hastie et al: The Elements of Statistical Learning}?\\
+{\urlfont\url{https://hastie.su.domains/Papers/ESLII.pdf}}
+
+\item For reference:\\
+{\urlfont\url{https://www.user.tu-berlin.de/mtoussai/teaching/\#reference-material}}
+\end{items}
+
+\pause
+
+\item Numeric coding in Python (numpy)
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Module description (Moses 41016)}{\label{lastpage}
+
+\item Grading
+\begin{items}
+\item graded, written exam, English (90min)
+\end{items}
+
+\item This module is used in the following module lists:
+\begin{items}\ttiny
+\item Automotive Systems (M. Sc.)
+\item Computer Engineering (M. Sc.)
+\item Computer Science (Informatik) (M. Sc.)
+\item Elektrotechnik (M. Sc.)
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slidesfoot

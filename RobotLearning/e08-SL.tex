@@ -1,0 +1,116 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Robot Learning}
+\renewcommand{\coursedate}{Summer 2024}
+\renewcommand{\exnum}{Weekly Exercise 8}
+
+\renewcommand{\teacher}{Marc Toussaint \& Wolfgang H{\"o}nig}
+\renewcommand{\addressTUB}{
+  Learning~\&~Intelligent~Systems Lab, Intelligent Multi-Robot Coordination Lab, TU~Berlin\\\small
+  Marchstr. 23, 10587 Berlin, Germany
+}
+
+\exercises
+
+\input{macros-local}
+
+\excludecomment{solution}
+
+\exercisestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Literature: Neural Lander}
+
+Here is a paper that claims to combine safety and learning:
+
+\bibentry{2019-shi-NeuralLanderStable}
+
+The paper is at the intersection of control theory and learning and
+several other works exist to extend the idea to new domains.
+
+Questions:
+\begin{enumerate}
+\item Take a look at the proposed control law (8) and (12). What exactly is learned and how is the learned function applied in the controller?
+
+
+\item The paper shows exponential stability, i.e., that the position error will go to zero quickly (around (14)).
+Explain in words the variables $\epsilon_m$, $L_a$, and $\rho$.
+Explain how this equation tells us that the learned function needs to be Lipschitz-bounded.
+
+
+\item Write down pseudo code on how one can use SGD or Adam and train a basic feed forward neural network with ReLU activation to have a bounded Lipschitz constant. (Use the information in the paper from III.B.)
+
+
+\item What needs to change if $\tanh$ activation functions are used to achieve the same Lipschitz-bound?
+
+
+\end{enumerate}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Fun With Definitions}
+
+In the safe learning survey paper and the lecture, the robot dynamics were defined as $x_{k+1} = f_k(x_k, u_k, w_k)$.
+In RL and MDPs a transition model is used instead as $p(x_{k+1}|x_k, u_k)$. Here we look at the relationship of the two.
+
+\begin{enumerate}
+\item Consider an MDP with states $s, t, g$ and actions $a,b$. The transition model is $p(t|s,a)=0.1, p(g|s,a)=0.9, p(g|s,b)=0.2, p(s|s,b)=0.8, p(t|t,a)=1, p(t|t,b)=1, p(g|g,a)=1, p(g|g,b)=1$. The goal for the robot starting at $s$ is to avoid $t$ and reach $g$. What is a safe sequence of actions here? Write down an equivalent formulation using the notation in the paper/lecture.
+
+
+\item Consider 1D single-integrator dynamics (i.e., state is position and the velocity can be controlled directly) and $\mathcal W$ zero-mean Gaussian: $x_{k+1} = x_k + u_k \cdot \Delta t + w_k$, where $w_k \sim N(0, \sigma^2)$. Write down an equivalent transition model.
+
+
+\item The use of $f_k$ allows hybrid models, where the dynamics might change over time. How can such changes be encoded in the MDP transition model?
+
+
+\item We defined the cost as $J(x_{0:N}, u_{0:N-1}) = l_N(x_N) + \sum_{k=0}^{N-1} l_k(x_k, u_k)$. How can a discount factor be encoded here?
+
+\end{enumerate}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Working With Code: safe-control-gym}
+
+One implementation / benchmark for this is safe-control-gym, see
+
+\bibentry{2022-yuan-SafeControlGymUnifiedBenchmark} 
+
+for the paper and {\urlfont\url{https://github.com/utiasDSL/safe-control-gym}} for the code on github.
+
+You may install it locally following the instructions to try it, although some questions can also be answered just by reading the code.
+
+\begin{code}
+\begin{Verbatim}[numbers=none,fontsize=\footnotesize]
+git clone https://github.com/utiasDSL/safe-control-gym.git
+cd safe-control-gym
+pip install -e .
+\end{Verbatim}
+\end{code}
+
+\begin{enumerate}
+\item Group the available algorithms (see the Readme file in the repo) using the taxonomy/grouping from the lecture (you may ignore the ones that have nothing to do with safety). Try to find academic references for each algorithm.
+
+
+\item One interesting aspect of the toolbox is that it provides analytical models for the dynamics and constraints. Where are these models located for the three default systems (cartpole, quadrotor2d, quadrotor3d)?
+
+
+\item Consider the example for a safety filter in examples/mpsc for a 2D quadrotor. How can you constrain the states and actions of the filter? Constrain the $x$ coordinate to be within -1 and 2 and show the resulting plot(s), compared to the default setting (your choice of ``unsafe'' controller).
+
+
+\item Consider the example for safe RL (examples/rl). For safe\_explorer\_ppo there is a pre-training and a regular training. What exactly is the difference between those two? How can you specify what safety means for your application?
+
+
+\end{enumerate}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\ifthenelse{\isundefined{\scripthead}}{
+\bibliographystyle{plainurl-lis}
+\bibliography{b5-SafeLearning}
+}{}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exerfoot

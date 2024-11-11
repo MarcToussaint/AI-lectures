@@ -1,0 +1,242 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Robot Learning}
+\renewcommand{\coursepicture}{roblearn.png}
+\renewcommand{\coursedate}{Summer 2024}
+\renewcommand{\teacher}{Marc Toussaint}
+
+\renewcommand{\topic}{Machine Learning Essentials}
+\renewcommand{\keywords}{}
+
+\slides
+
+\input{macros-local}
+
+\slidestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Machine Learning Essentials}{
+
+\item Supervised ML ~ $f_\t: x\mapsto y$
+
+~
+
+\item Unsupervised ML ~ $p_\t(x)$ \quad (and conditional $p_\t(x|z)$)
+
+\info{Neglected here: Optimal embeddings, clustering}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Supervised ML}
+\slide{Supervised ML}{
+
+\item Given data $D=\{(x_i,y_i)\}_{i=1}^n$ and a parameterized $f_\t: x \mapsto y$, find $\t$
+
+$$\min_\t \underbrace{\sum_{i=1}^n \ell(y_i, f_\t(x_i))}_\text{(data) loss} ~ + \underbrace{R(\t)}_\text{regularization}$$
+
+~
+
+~\pause
+
+\cen{done! \quad That's (supervised) ML}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Loss Functions}{
+
+\item Regularizations:
+\begin{items}
+\item $L_2$ (Ridge): ~ $R(\t) = \norm{\t}_2^2$
+\item $L_1$ (Lasso): ~ $R(\t) = \norm{\t}_1$
+\end{items}
+
+~\pause
+
+\item Regression $y\in\RRR^m$: Squared error: $\ell(y, \hat y) = (y-\hat y)^2$
+
+\info{Robust variants: Huber loss, Forsyth}
+
+~\pause
+
+\item Classification $y \in \{0,..,M\}$ (where $f: x \mapsto f(x)\in\RRR^M$ discriminative values)
+\begin{items}
+\item Neg-Log-Likelihood: $\ell(y, f(x)) = -\log p(y|x)$ with $p(y|x) = \frac{e^{f_y(x)}}{\sum_{y'} e^{f_{y'}(x)}}$
+\item Hinge: $\ell(y, f(x)) =  \sum_{y'\not=y} [1 - (f_{y^*}(x)-f_{y'}(x))]_+$
+\item Cross-Entropy: $\ell(y,f(x)) = -\sum_z h_y(z) \log p(z|x)$ \emph{same as NLL for one-hot-encoding $h_y(z) = [y=z]$}
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Parameterized Functions}{
+
+\item Linear $f_\t(x) = \t_0 + \sum_{j=1}^d \t_j x_j = \bar x^\T \t$
+
+~\pause
+
+\item Linear in features: $f_\t(x) = \phi(x)^\T \t$ \quad {\tiny (or Hilbert space..)}
+\begin{items}
+\item Linear: $\phi(x) = (1,x_1,..,x_d)~ \in\RRR^{1+d}$
+\item Quadratic: $\phi(x) = (1,x_1,..,x_d,x_1^2,x_1x_2,x_1x_3,..,x_d^2)~ \in\RRR^{1 + d + \frac{d(d\po)}{2}}$
+\item Cubic: $\phi(x) =
+   (..,x_1^3,x_1^2x_2,x_1^2x_3,..,x_d^3)~ \in\RRR^{1 + d + \frac{d(d\po)}{2} + \frac{d(d\po)(d\pt)}{6}}$
+\item Also: Radial-Basis Functions (RBF), piece-wise linear
+\end{items}
+
+\cen{~
+\showh[.2]{codepics/quad3Class}
+\showh[.3]{codepics/quad3Class2}
+%% \showh[.2]{codepics/cubicClass}
+%% \showh[.2]{codepics/cubicClass2}
+\quad
+\showh[.2]{codepics/kernelRidgeClass}
+\showh[.3]{codepics/kernelRidgeClass2}
+}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Parameterized Functions}{
+
+\newcommand{\nlin}{\underset{\rotatebox{-90}{\tiny $\leftarrow$nlin}}}
+\newcommand{\lin}{\underset{\rotatebox{-90}{\tiny $\leftarrow$lin}}}
+
+\item Neural Nets: Repeating non-linear and linear parts: ~ (this is a 3-layer NN):
+$$f_\t(x) = \lin{W_3}~ \nlin\phi\[~ \lin {W_2}~\nlin\phi[~ \lin {W_1} ~x + b_1 ~] + b_2 ~\] + b_3 $$
+\vspace*{-5mm}\begin{items}
+\item Non-linear parts:
+\begin{items}
+\item rectified linear unit (ReLU): $\phi(x) = [x]_+ = \max\{0,x\}$ % = x [x\ge 0]$
+\item leaky ReLU: $\phi(x) = \max\{0.01x, x\}$ % =  \begin{cases} 0.01 x & x<0 \\ x & x\ge 0\end{cases}$
+\item sigmoid, logistic: $\phi(x) = 1/(1+e^{-x})$
+%tanh & $\phi(x) = \tanh(x)$
+\item max-pooling, soft-max, layer-norm
+\end{items}
+\item Linear parts:
+\begin{items}
+\item Fully connected ($W_i$ is a full matrix)
+\item Convolutional
+\item Transformer-like (cross-attentions)
+\end{items}
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\item In essense
+\begin{items}
+\item You define the parameterized function $f_\t$
+\item You define the loss $\ell$ and regularization $R$
+\item You provide the data set $D$
+
+~
+
+\item An optimizer (analytic for linear models, stochastic gradient otherwise) finds good parameters $\t$
+\end{items}
+
+~\pause
+
+\item And you cross-validate to check your hyper-parameter choices
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Unsupervised ML}
+\slide{Unsupervised ML}{
+
+\item Given data $D=\{x_i\}_{i=1}^n$, learn ``something'' about $p(x)$
+
+~\pause
+
+\item Important setting: parameterized \textbf{autoencoder} $f_\t: x \mapsto z \mapsto x'$, find $\t$
+
+$$\min_\t \underbrace{\sum_{i=1}^n \ell(x_i, f_\t(x_i))}_\text{autoencoding loss} ~ + \underbrace{R(\t)}_\text{regularization}$$
+
+\begin{items}
+\item You learn to reproduce $x$ through a compact \textbf{latent code} $z\in\RRR^h$ ~ (while $x\in\RRR^d$ is high-dimensional)
+\item $z$ has high entropy (typically Gaussian) distribution $\to$ you can \textbf{generate} $x'\sim p(x)$ by sampling $z$ and decoding
+\item If $f$ is linear, this is called \textbf{Principle Component Analysis}
+\item Better: Variational Autoencoder (VAC): Enforces $p(z)$ to have proper distribution.
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Example:~ Digits}{
+
+\show[.6]{pcaThrees1}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\item There are other ideas in unsupervised learning, but the autoencoding objective is a major breakthrough
+
+~
+
+\begin{items}
+\item You ``understand'' the structure of data if you can compress and de-compress it
+\item Autoencoders do this with powerful NN architectures
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Diffusion Denoising Models}{
+
+\item Given data $D$, you want to learn a ``system'' that \textbf{generates} samples $x\sim p_\t(x)$ where $p_\t(x)$ models $D$
+
+~\pause
+
+\item Autoencoders are one approach, Diffusion Denoising Models another:
+\begin{items}
+\item Train a stepwise stochastic process (Langevin dynamics) to generate samples $x\sim p_\t(x)$
+\item Has its origin in ``energy-based models'' and score matching
+\item The step-wite sample generation process is very powerful
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Conditional Generative Models}{\label{lastpage}
+
+\item Given data $D=\{(x_i,c_i)\}_{i=1}^n$ train a \emph{conditional} distribution $p_\t(x|c)$
+\begin{items}
+\item We're actually back to Supervised ML $c \mapsto x$ (where $c$ is the input)
+\item But \textbf{if $x$ is high-dimensional} (and $c$ low-dim.), the generative model aspect is important:
+\item The reconstruction objective enforces the system to find a good latent representation to generate high-dim. $x$
+\item this is complemented by making conditional to $c$
+\end{items}
+
+$$
+f_\t: \renewcommand{\arraystretch}{.9}
+\begin{array}{c@{~}c@{~}c@{~}c@{~}c}
+x & \mapsto & z & \mapsto & x' \\
+  & & \,\rotatebox{90}{$\mapsto$} & & \\[-1ex]
+  & & c & &
+  \end{array}$$
+\small
+A loss $\ell(x_i, f_\t(x_i, c_i))$ jointly trains autoencoding $x\mapsto z\mapsto x'$ and conditional generation $c\mapsto z\mapsto x'$
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slidesfoot
+

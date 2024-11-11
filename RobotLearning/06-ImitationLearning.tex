@@ -1,0 +1,555 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Robot Learning}
+\renewcommand{\coursepicture}{roblearn.png}
+\renewcommand{\coursedate}{Summer 2024}
+\renewcommand{\teacher}{Marc Toussaint}
+
+\renewcommand{\topic}{Imitation Learning}
+\renewcommand{\keywords}{Learning from Demonstration, Behavior Cloning, Direct (Interactive) Policy Learning, Traj.~Dist.~Learning, Constraint Learning, (excluded: Inv. RL)}
+
+\slides
+
+\input{macros-local}
+
+\slidestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{General Idea}{
+
+\item Given expert demonstration data $D=\{(x^i_{1:T_i}, u^i_{1:T_i})\}_{i=1}^n$
+{\small\begin{align*}
+i:& \quad\text{episode/demonstration} \\
+x^i_{1:T_i}:& \quad\text{$i$th state trajectory} \\
+u^i_{1:T_i}:& \quad\text{$i$th control trajectory}
+\end{align*}
+without external rewards/objectives/costs defined
+
+}
+$\to$ extract the ``relevant information/model/policy'' to reproduce demonstrations
+
+~\pause
+
+\item Reproducing could mean various things
+\begin{items}
+\item Move along similar trajectories (e.g.\ imitate a gesture)
+\item Reproduce the \emph{effect} of the demonstration (manipulation, flight maneuver, no traffic collisions)
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{Examples}{
+
+%% [[todo]]
+%% flight maneuvers
+%% table tennis
+%% grasping
+%% coffee making
+%% suturation (surgery sewing)
+%% battery insertion
+
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Early Work}
+\slide{Early Work}{
+
+\show[.8]{shi-l5p12}
+\hfill{\tiny (Shi's lecture 5)}
+
+{\urlfont\url{https://www.youtube.com/watch?v=ntIczNQKfjQ}}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Early Work}{
+
+\small
+
+\item Behavior Cloning (later called so): %\anchor{20,-20}{\showh[.1]{alvinn1}\showh[.1]{alvinn2}}
+
+\citehere{1988-pomerleau-AlvinnAutonomousLand}
+
+\item Early review paper:
+
+\citehere{2003-schaal-ComputationalApproachesMotor}
+\info{clarifies direct policy learning (BC) vs. trajectory imitation (and auto-control); mentiones work from the 60ies, but esp.\ 90ies}
+
+\item Early work named \textbf{Learning from Demonstration} (or Programming by Demonstration)
+
+\citehere{1997-atkeson-RobotLearningDemonstration}
+
+\info{Idea: Avoid explicit programming $\to$ teach by demonstration. See also entries in ``Handbook of Robotics''...}
+
+\item Another early survey:
+
+\citehere{2009-argall-SurveyRobotLearninga}
+\info{Distinguishes 3 kinds: behavior cloning, use data to learn dynamics (system identification), learn plans (nowadays uncommon)}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Outline}{
+
+\item Types of Imitation Learning
+\begin{items}
+\item Behavior Cloning %~ {\tiny[deterministic or probabilistic  (energy/diffusion) policy learning]}
+
+\item Trajectory Distribution Learning (\& Constraint Learning)
+%~ {\tiny[e.g.\ GMMs, ProMPs, keypoints, flow, Neural descriptor fields]}}
+
+\item Direct (Interactive) Policy Learning %~ {\tiny[DAgger]}
+
+\item Inverse Reinforcement Learning (not covered today) %~ {\tiny[implicit reward learning]}
+\end{items}
+
+~\pause
+
+\item Data Generation
+\begin{items}
+\item Distributional (domain) shift, ``compound errors'' in imitation, on-/off-policy
+\item Data augmentation or interactive data aggregation
+\item Collection techniques: Tele-Operation, Kinesthetic Teaching, Human Demonstrations
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Behavior Cloning}
+\slide{Behavior Cloning}{
+
+\item Formulate Imitation Learning literally as \emph{Supervised ML}
+
+\item Given data $D=\{(x^i_{1:T_i}, u^i_{1:T_i})\}_{i=1}^n$, find
+\begin{align}
+\min_\t \sum_{i,t} \ell(u^i_t, \pi_\t(x^i_t)) ~,
+\end{align}
+where $\pi_\t: x \mapsto u$ is a deterministic policy (e.g.\ NN) mapping states to controls
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Behavior Cloning}{
+
+\show[.8]{shi-l5p12}
+\hfill{\tiny (Shi's lecture 5)}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Behavior Cloning}{
+
+\item Behavior Cloning literally imitates the demonstrated mapping $x\mapsto u$
+
+~\pause
+
+\item Issues:
+\begin{items}
+\item But does that also imitate the \emph{long term behavior} or \emph{eventual effect} of the demonstrations?
+
+(Ignores distributional shift.)
+
+\item Does it capture the ``essence'' of what is demonstrated?
+
+\item Can it deal with multi-modal demonstrations? ($\to$ next week: multi-modal policies)
+\end{items}
+
+%% ~\pause
+
+%% \item Next week: Learn a probabilistic policy $\pi_\t(u \| x)$ -- the distribution of controls in $x$
+%% \begin{items}
+%% \item Demonstrations are very often multi-modal -- mean regression may lead to non-sense
+%% \item Huge advances in leveraging generative AI for that purpose (diffusion models, generative sequence models) $\to$ next lecture
+%% \end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Trajectory Distribution Learning}
+\slide{Trajectory Distribution Learning}{
+
+\info{This is not common terminology, and seemingly skipped in other Imitation Learning lectures -- unfortunately. I think this captures an essence of the problem.}
+
+\item What does it mean to capture the ``essence'' of data?
+\pause
+\begin{items}
+\item Learn a \emph{distribution model} $p_\t(x_{1:T})$ of demonstrated trajectories!
+\begin{align}
+\max_\t ~ \prod_i p_\t(x^i_{1:T_i}) \quad\text{(likelihood maximization (LM))}~,
+\end{align}
+where $p_\t$ is some model class powerful enough to represent ``essence''
+\end{items}
+
+%% (e.g.\ Auto-encoding, compression, latent representation learning, distribution learning, unsupervised learning
+
+~\pause
+
+\item What are ``powerful'' models?
+\begin{items}
+\item Transformer models, diffusion models
+\item But we'll start with very basic Gaussian models
+\item ...and discuss models specifically for robotic manipulation
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Trajectory Distribution Learning: GMMs}{
+
+\cen{\showh[.4]{gmms1}\qquad\showh[.4]{gmms2}}
+
+\citehere{2007-calinon-IncrementalLearningGestures}
+
+\begin{items}
+\item Embed trajectories $x_{1:T}$ in ``space-time'' $\{ (t, x_t) \}_{t=1}^T$
+\item Fit a density estimator to $p(t,x_t)$ ~ (easiest: Gaussian Mixture Model (GMM), LM well studied)
+\item Can be translated to control policy by reading out conditional $p(x|t)$ and using inverse dynamics
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Trajectory Distribution Learning: GMMs}{
+
+\begin{items}
+\item A simple way to describe the distribution of demonstrated trajectories
+
+\item Variance of learned $p(x|t)$ captures ``consistent bottlenecks'' in demonstrations
+
+\info{Is that a key structure in demonstrations? Search also ``Calinon constraints''}
+
+\item Can be combined with Dynamic Time Warping to temporally align demonstrations
+
+\item GMM approach is around for $\sim 20$ years
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Trajectory Distribution Learning: ProMPs}{
+
+~%\info{ProMP: Probabilistic Movement$|$Motion Primitive}
+
+\cen{\showh[.65]{promps1}\quad\showh[.35]{promps2}}
+
+\citehere{2013-paraschos-ProbabilisticMovementPrimitives}
+
+~
+
+\begin{items}
+\item Nothing but (prob.) linear regression $t\mapsto x_t$ with basis function features ~ (LM$\oto$regression)
+\item Very simple distribution model over
+trajectories \info{could use GPs to kernelize}
+\item Related to Inference Control (AICO, ICML'09), Path Integral methods (RSS'12)
+\item Great flexibility to condition, compose, and blend
+\item Somewhat superseeds earlier work on learning movement primitives from demonstration
+
+\info{typically Dynamic Movement Primitives (DMPs, Schaal et al'03)}
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Constraints \& Feature Learning}
+\slide{Trajectory Distribution Learning: Features \& Constraints}{
+
+\item Think about Manipulation!
+
+~\pause
+
+\cen{\showh[.45]{keypoints1}\qquad\showh[.35]{keypoints2}}
+
+\citehere{2022-manuelli-KPAMKeyPointAffordances}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Trajectory Distribution Learning: Features \& Constraints}{
+
+\item Think about Manipulation!
+
+\show[.7]{neuralDescFields}
+
+\citehere{2022-simeonov-NeuralDescriptorFields}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Trajectory Distribution Learning: Features \& Constraints}{
+
+\item Think about Manipulation!
+
+~
+
+\show[.7]{constraints}
+
+\citehere{2022-ha-DeepVisualConstraints}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\slide{Trajectory Distribution Learning: Features \& Constraints}{
+
+\item Connects to large body of literature:
+\begin{items}
+\item More examples: FlowBot3D, UMPNet, Bi-KVIL, "Waypoint-based imitation learning", ..
+\pause
+\item Human Activity Modelling, Action Segmentation:
+
+\show[.5]{Improving1}
+\end{items}
+
+~\pause
+
+\item What really is the essence to extract from demonstrations?
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\item Back to Behavior Cloning...
+
+~\pause
+
+\item Issues:
+\begin{items}
+\item But does that also imitate the \emph{long term behavior} or \emph{eventual effect} of the demonstrations?
+
+\textbf{(Ignores distributional shift.)}
+
+\item Does it capture the ``essence'' of what is demonstrated?
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Distributional Shift}
+\slide{Distributional (Domain) Shift}{
+
+\pause
+
+\item Standard ML: ~ $x,y \sim p(x,y)$ \textbf{i.i.d.}; ~ same $p$ for trains \& test
+
+~\pause
+
+\item Sequential Decision Processes: own policy $\pi$ influences test distrib.\ $p_\pi(x_t)$!
+\pause
+\begin{items}
+\item Fundamental difference between learning in sequential decision processes and Supervised ML!
+\item Also in off-policy \& offline RL:
+ We \emph{train} a policy (or $Q,V$-function) with losses relative to $p_{\pi_\b}(x_t)$ with \emph{behavior policy} ($\pi_\b$)
+\item Generally called distributional shift, or Out-of-Distribution (OOD) testing
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Distributional Shift in Behavior Cloning}{
+
+\item When we train policy $\pi_\t$ in BC, we minimize
+\begin{align}
+\min_\t \sum_{i,t} \ell(u^i_t, \pi_\t(x^i_t)) ~\oto~ \min_\t \Exp[\pi^*]{\ell(u, \pi_\t(x))}
+\end{align}
+but when using the policy, we generate fully different distribution
+
+~\pause
+
+\show[.3]{offtrack1}
+\hfill{\tiny Also called \textbf{Compound Error} \qquad (Shi's lecture 5)}
+
+~\pause
+
+\item What we should train is this:!
+\begin{align}
+\min_\t \Exp[\pi_\t]{\ell(\pi^*(x), \pi_\t(x))}
+\end{align}
+
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Distributional Shift in Behavior Cloning}{
+
+\item BC formulates a supervised ML problem, but in view of testing, it is not:
+
+~
+
+\show[.7]{offtrack2}
+\hfill{\tiny (Shi's lecture 5)}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{How address the Distributional Shift?}{
+
+\pause
+
+\item Ensure the data better covers the eventual $p_\pi(x_t)$ of trained $\pi$
+\pause
+\begin{items}
+\item Enforce the expert to demonstrate also for non-optimal states (cover also non-expert situations)
+\item Collect data interactively at exactly the states visited by $\pi$ ~ (DAgger)
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Enforcing wider expert demonstrations}{
+
+\item Occasionally perturb the expert! Add noise!
+
+~
+
+\cen{\showh[.5]{noise1}\showh[.5]{noise2}}
+\hfill{\tiny (Shi's lecture 5)}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{DAgger}
+\slide{DAgger}{
+
+\cen{\showh[.5]{dagger1}\showh[.5]{dagger2}}
+
+\citehere{2011-ross-ReductionImitationLearninga}
+
+
+{\urlfont\url{https://www.youtube.com/watch?v=V00npNnWzSU}}
+
+~\small
+
+\item This repeatedly collects data from the current $\pi$, to approximate $\min_\t \Exp[\pi]{\ell(\pi^*(x_t), \pi_\t(x_t))}$
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\item From Yue's ICML'18 tutorial:
+
+\show{yue}
+
+~\small
+
+\item Crucial point: For DAgger we have a very different setting: Access to the environment (testing rollouts), interactively querying the expert.
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Data Collection}{
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Data Collection (TeleOp, Kinesthetic, MoCap, Video)}
+\slide{Data Collection}{
+
+\item We've covered the theoretical aspect concerning distributional shift
+
+\item Data source:
+\begin{items}
+\item Tele-Operation
+\item Kinesthetic Teaching
+\item Human Demonstrations \& Motion Capture
+\item Videos Only
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Tele-Operation: Aloha}{
+
+\show{aloha1}
+
+\citehere{2023-zhao-LearningFineGrainedBimanualc}
+
+{\urlfont\url{https://tonyzhaozh.github.io/aloha/}}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Kinesthetic Teaching}{
+
+\show{kinesthetic}
+
+\hfill{\ttiny Learning movement primitives for force interaction tasks (Kober et al'15)}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Human Demonstrations \& Motion Capture}{
+
+\centering
+
+\twocol{.3}{.5}{
+\showh{mocap}
+}{
+\citehere{2008-do-ImitationHumanMotion}
+}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Human Demonstrations From Video Only}{
+
+\show[.6]{avid}
+
+\citehere{2020-smith-AVIDLearningMultiStage}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{\label{lastpage}
+
+\item This whole lecture talked about states! Same for observations $y_t$ only!
+\begin{items}
+\item History-input policies ~ (analogous to autoregressive dynamics)
+\item Recursive (RNN) policies ~ (analogous to recursive dynamics)
+\item Transformer policies ~ (sequence models)
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\ttiny
+\ifthenelse{\isundefined{\scripthead}}{
+\bibliographystyle{plainurl-lis}
+\bibliography{b2-ImitationLearning}
+}{}
+
+\slidesfoot

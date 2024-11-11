@@ -1,0 +1,141 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Robot Learning}
+\renewcommand{\coursedate}{Summer 2024}
+\renewcommand{\exnum}{Weekly Exercise 6}
+
+\renewcommand{\teacher}{Marc Toussaint \& Wolfgang H{\"o}nig}
+\renewcommand{\addressTUB}{
+  Learning~\&~Intelligent~Systems Lab, Intelligent Multi-Robot Coordination Lab, TU~Berlin\\\small
+  Marchstr. 23, 10587 Berlin, Germany
+}
+
+\exercises
+
+\input{macros-local}
+
+\excludecomment{solution}
+
+\exercisestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Literature: Privileged and Sensorimotor Policy Training}
+
+Here is a prominent application paper for RL:
+
+\bibentry{2020-lee-LearningQuadrupedalLocomotion}
+
+It uses standard RL in simulation to train a \emph{privileged policy} (which they call ``teacher policy'') which has full access to the simulation's state information (e.g.\ exact terrain profile). In a second stage they train a \emph{sensorimotor policy} (which they call ``student policy'') to imitate the privileged policy, but with sensorimotor (partially observable) input only. As the teacher policy can be queried anywhere, they can use DAgger for imitation, which simplifies imitation learning a lot.
+
+{\tiny[The general idea of training a sensor-based (=partial input) policy from a privileged (=full information) policy is old, previously called input remapping, or just surrogate model.]\par}
+
+Fig.~4 gives an overview of the approach. Here the questions:
+\begin{enumerate}
+\item The input to the previleged policy is full information (exact
+robot \& simulation state). But what is the definition of the output
+action $\bar a_t$? Looking for an answer you'll find words like ``leg
+frequencies'' and ``foot position residuals'' -- what are these?
+
+\item The Supplement S4 (pdf page 16) explains the reward function --
+a great example for reward engineering (in the positive sense, as this
+reflects the authors' understanding of ``good locomotion''). Be able
+to explain each term and how they relate to higher level ``commands''.
+
+
+\item Eq.(1) includes a second loss term, comparing $\bar l_t(o_t,
+x_t)$ with $l_t(H)$. Explain what $l_t(H)$ is and the idea of this
+term.
+
+\end{enumerate}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Episodes \& Terminal States}
+
+Standard MDP theory assumes an infinite process
+$s_0,a_0,r_0,s_1,a_1,r_1,...$ of states, actions and rewards. Accordingly, the return is defined as the infinite sum $\sum_{t=0}^\infty \g^t r_t$.
+
+However, practical problems in the literature often involve ``terminal states'', and one speaks of ``episodes''. The following exercise clarifies how ``terminal states'' and ``episodes'' are meant in an infinite MDP.
+
+\begin{enumerate}
+\item We define a terminal state as follows: Assume that in step $T$ the agent reaches a terminal state $s_T$. The agent can then make a very last action $a_T$, and gets a final reward $r_T = R(s_T, a_T)$, but after this ``there are no more states, actions, or rewards'', and the total return of the agent is $\sum_{t=0}^T \g^t r_t$.
+
+At first sight this is inconsistent to how MDPs are defined, because by definition they do not terminate. How can you construct a formal MDP to model such terminal states? (Tip: Extend the state space.)
+
+
+\item Consider an MDP where the goal state is a \emph{tunnel state}, which
+means that every choice of action in the goal state leads to receiving
+the goal reward and transitioning to a (maybe random) initial state $s\sim P(s_0)$.
+
+Is the optimal policy for the MDP with tunnel goal state the same as the optimal policy for an MDP where the goal state is a terminal state? Provide arguments (ideally a rough proof or counterexample) for your answer.
+
+
+
+\item In practice one never runs (or simulates) a process infinitely
+long. Instead, one typically aborts/truncates at some finite horizon
+$T$. One such truncated run is
+called \emph{episode}. One then typically repeats many episodes (to
+collect data for learning or estimation of values/performance). When
+an episode was \emph{truncated}, discuss how one could actually
+estimate the expected return of the policy?
+
+
+\end{enumerate}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Lunar Lander Domain Randomization}
+
+\emph{This is a coding exercise. Please bring your laptop and connect to the HDMI in the tutorial to show your results. (If you upload a pdf, just include a screenshot of results in the pdf.)}
+
+Install the lunar lander simulation of \emph{gymnasium} (\url{https://gymnasium.farama.org/}) using
+\begin{code}
+\begin{Verbatim}[numbers=none,fontsize=\footnotesize]
+pip install "gymnasium[box2d]"
+\end{Verbatim}
+\end{code}
+
+Similar to before, one can create an instance of the lunar lander (with varying wind enabled) using
+\begin{code}
+\begin{Verbatim}[numbers=none,fontsize=\footnotesize]
+env = gym.make('LunarLanderContinuous-v2', enable_wind=True)
+\end{Verbatim}
+\end{code}
+
+\begin{enumerate}
+    \item Train a policy -- you should be able to reach rewards of $>200$. To avoid finding new hyperparameters, use TD3 rather than SAC for training, where the default settings (with MlpPolicy and action noise) should work well.
+
+    \textbf{Hint:} The action noise can be defined as follows:
+\begin{code}
+\begin{Verbatim}[numbers=none,fontsize=\footnotesize]
+from stable_baselines3.common.noise import NormalActionNoise
+action_noise = NormalActionNoise(mean=np.zeros(n_actions), sigma=0.1 * np.ones(n_actions))
+\end{Verbatim}
+\end{code}
+
+    \item Validate your policy in environments with different wind magnitudes and gravities. You can adjust these settings when making a gym environment, e.g., 
+\begin{code}
+\begin{Verbatim}[numbers=none,fontsize=\footnotesize]
+env = gym.make('LunarLanderContinuous-v2', enable_wind=True, gravity=-10, wind_power=5)
+\end{Verbatim}
+\end{code}
+    For gravity, use values between -11 and -1; for the wind magnitude use values between 0 and 20.
+
+    In which settings does your policy work well and in which does it not?
+
+    \item Train a policy with domain randomization on both gravity and wind\_power. How does this policy compare to the other policy when validating in different settings as in b)?
+    
+    \textbf{Hint:} You can use the callback mechanism of the policy (for \texttt{\_on\_rollout\_end}) to add the randomization at the end of each episode. To do this, you can directly modify the parameters of the environment, e.g., set \texttt{env.gravity = \newline np.random.uniform(min\_value, max\_value)}.
+\end{enumerate}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\ifthenelse{\isundefined{\scripthead}}{
+\bibliographystyle{plainurl-lis}
+\bibliography{b3-ReinforcementLearning}
+}{}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exerfoot

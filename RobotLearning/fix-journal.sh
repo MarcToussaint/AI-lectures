@@ -1,0 +1,9 @@
+sed -i \
+    -e 's/journaltitle/journal/' \
+    -e 's/date/year/' \
+    -e 's/eventtitle/booktitle/' \
+    -e 's/doi/delete_doi/' \
+    -e 's/publisher/delete_publisher/' \
+    -e 's/note/delete_note/' \
+    -e 's/{\([0-9][0-9][0-9][0-9]\)-[0-9][0-9]-[0-9][0-9]}/{\1}/' \
+    -e 's/{\([0-9][0-9][0-9][0-9]\)-[0-9][0-9]}/{\1}/' $1

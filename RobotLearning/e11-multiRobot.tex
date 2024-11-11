@@ -1,0 +1,156 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Robot Learning}
+\renewcommand{\coursedate}{Summer 2024}
+\renewcommand{\exnum}{Weekly Exercise 11}
+
+\renewcommand{\teacher}{Marc Toussaint \& Wolfgang H{\"o}nig}
+\renewcommand{\addressTUB}{
+  Learning~\&~Intelligent~Systems Lab, Intelligent Multi-Robot Coordination Lab, TU~Berlin\\\small
+  Marchstr. 23, 10587 Berlin, Germany
+}
+
+\exercises
+
+\ifthenelse{\isundefined{\scripthead}}{
+  \usepackage{tikz}
+  \usetikzlibrary{shapes,snakes}
+  \usepackage{tkz-base}
+  \usepackage{tkz-euclide}
+}{}
+
+\input{macros-local}
+
+\excludecomment{solution}
+
+\exercisestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Literature: Neural-Swarm2}
+
+Here is the paper we discussed in the lecture that uses (and extends) deep sets for a control problem that arises in multi-robot aerial swarms~\footnote{A shorter and perhaps easier to follow earlier work is
+\bibentry{2020-shi-NeuralSwarmDecentralizedCloseProximity}
+}:
+
+\bibentry{2022-shi-NeuralSwarm2PlanningControl}
+
+The paper is an extension of the NeuralLander paper to the multi-robot case we discussed in exercise 8. 
+
+Questions:
+\begin{enumerate}
+\item How does the dataset exactly look like? How was the data obtained? What sensing/measurement capabilities were needed to obtain such data?
+
+
+\item Write down pseudo code on how one can use SGD or Adam and train a 2-group permutation-invariant function using the heterogeneous deep sets proposed in (9).
+
+
+\item Consider the use-case of motion planning (Fig. 6). Explain how the neural network is applied inside the motion planner.
+
+
+\item In the considered examples for $K$-group permutation invariant functions, $K$ is relatively small (4 in the paper). Consider the case where $K$ is large or unknown, for example if we are able to measure the size of the neighboring robot (a real value). How could learning be applied in this case?
+
+
+\end{enumerate}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Encodings for Environmental Monitoring}
+
+Consider a team of robots that is spatially distributed as shown below.
+In the figure, circles are robots, the numbers are their associated measurements (such as temperatures), and lines indicate the existence of a communication link.
+The goal is to find the minimum of their sensor measurements.
+In this question we will explore various concrete encodings for such problem.
+
+\begin{center}
+  \begin{tikzpicture}
+      \tkzInit[xmax=5,ymax=5,xmin=0,ymin=0]
+      %\tkzGrid
+      \tkzAxeXY
+
+      \node[circle,
+          fill=black,
+          label=$5$] (n1) at (1, 1) {};
+
+      \node[circle,
+          fill=black,
+          label=$2$] (n2) at (4, 5) {};
+
+      \node[circle,
+          fill=black,
+          label=$\,\,\,\,\,3$] (n3) at (4, 3) {};
+
+      \node[circle,
+          fill=black,
+          label=$4$] (n4) at (2, 3) {};
+
+      \draw (n1) -- (n4);
+      \draw (n4) -- (n3);
+      \draw (n4) -- (n2);
+      \draw (n2) -- (n3);
+  \end{tikzpicture}
+  \end{center}
+
+\begin{enumerate}
+\item First consider the abstract, centralized setting with function $f(\mathcal X) = \min_{x\in\mathcal X} x$, where $\mathcal X$ is a set of real numbers. In other words, the function takes one or more numbers as input and returns the smallest element of these numbers. Recall that the deep set 
+\begin{equation}
+f(\mathcal X) \approx \rho \left(\sum_{x\in\mathcal X} \phi(x) \right)
+\end{equation}
+should be able to approximate this function. Provide concrete (differentiable) functions for $\rho$ and $\phi$ for this case.\\
+Hint: You can find some inspiration in the original Deep Set paper or the paper from question 1.
+
+
+\item Now assume the case where robots have a limited communication radius. One example is shown in the figure, where the lines show communication links. Define the \texttt{Aggregate} and \texttt{Update} functions of a simple message-passing neural network.
+
+Demonstrate in the example above, how the node at $(1,1)$ computes the minimum value.
+
+
+% min(5,4) -> 4
+% (4,3,2) -> 2
+
+%TODO: concrete instance; ask to manually show execution
+
+% 
+
+\item How could a CNN be used for the case with limited communication radius? Be specific about the layers the CNN should have.
+
+
+\item For the use-case outlined above, what are advantages and disadvantages of the three encodings (Deep Sets, GNN, CNN)? Consider both small (=few neighbors) and large (=many neighbors) cases.
+
+
+\end{enumerate}
+
+% example problem -> playing with different potential network architectures (CNN, DeepSet, GNN)
+
+% deepset on paper for something like the max() function?
+
+% GNN on paper for the same function?
+
+% CNN on paper for the same function
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% \exsection{Programming}
+
+% To be decided on Monday, if there will be another programming assignment.
+
+% Either train a simple DeepSet or GNN using pytorch, in a basic robotic domain (flocking?, collision avoidance?, perhaps imitating artificial potentials? or plain task assignment [not very robotic])
+
+% Variant 1:
+% team of 3 double integrators -> expert using cvxpy (stacked) -> find distributed policy, e.g, with deepset
+
+% Variant 2:
+% 10 robots, 10 tasks, Hungarian method as expert
+% GNN that learns how to assign tasks
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\ifthenelse{\isundefined{\scripthead}}{
+\bibliographystyle{plainurl-lis}
+\bibliography{b8-MultiRobotLearning}
+}{}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exerfoot

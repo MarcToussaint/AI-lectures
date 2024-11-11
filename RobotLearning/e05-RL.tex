@@ -1,0 +1,102 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Robot Learning}
+\renewcommand{\coursedate}{Summer 2024}
+\renewcommand{\exnum}{Weekly Exercise 5}
+
+\renewcommand{\teacher}{Marc Toussaint \& Wolfgang H{\"o}nig}
+\renewcommand{\addressTUB}{
+  Learning~\&~Intelligent~Systems Lab, Intelligent Multi-Robot Coordination Lab, TU~Berlin\\\small
+  Marchstr. 23, 10587 Berlin, Germany
+}
+
+\exercises
+
+\input{macros-local}
+
+\excludecomment{solution}
+
+\exercisestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Literature: SAC}
+
+The following paper introduces \emph{Soft Actor-Critic}, a state-of-the art RL method that integrates many good ideas that have been discovered over the last decade into a rather clean algorithm:
+
+\bibentry{2018-haarnoja-SoftActorcriticOffpolicy}
+
+\begin{enumerate}
+\item First some bug hunting:
+\begin{items}
+\item In the Supplementary Material, Appendix A., Equation (14), there is a notational bug. Can you find it?
+
+\item In the main paper, going from Eq.~(5) to (6), I think there is another bug. Can you find it?
+
+\item The line below (6) states ``where the actions are sampled'' -- can you explain where actions are sampled?
+
+\item \textbf{Idea for another exercise:} In the paper the authors state that the gradient of the policy parameters could be estimated using the REINFORCE / likelihood ratio gradient estimator. The students could derive this one, or show that the reparametrization one has lower variance. 
+
+This would link ex 1 and 2 nicely.
+\end{items}
+
+
+\item Now the core question: In Alg.~1 lower part you find three lines to train the parameters $\psi, \t_i, \phi$, as well as a low-pass filter for $\bar \psi$.
+\begin{items}
+\item Find out which functions these parameters parameterize.
+\item Find out where these parameters are used during training, i.e., the inter-dependencies of training: For instance, when $\phi$ is trained, does that depend on $\psi$? Answer this for all parameters $\psi, \t_i, \phi$.
+\end{items}
+
+
+\end{enumerate}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{The Reparametrization Trick}
+
+We typically write a conditional density as $p(x|y)$. If that depends on parameters (to be trained), we may write this as $p_\t(x|y)$ or $p(x|y; \t)$.
+
+The reparametrization trick states that any (conditional) distribution 
+$p(x|y; \t)$ can instead be represented as a deterministic function $x = f(y,\e;\t),~ \e\sim p(\e)$.
+
+\begin{enumerate}
+\item Given a Gaussian distribution $p_\t(x) = \NN(x|\m, \S)$ with parameters $\t=(\mu,\S),~ \mu\in\RRR^n,~ \S \in \RRR^{n\times n}$, how can you rewrite this as deterministic $x = f_\t(\e)$ with $\e\sim \NN(0,\Id_n), \e\in\RRR^n$?
+
+
+\item Given discrete (aka.\ categorical) distribution $p(x)$ over a discrete $x\in\{1,..,M\}$. How can you rerepresent sampling $x\sim p(x)$ as a deterministic function $x = f(\e)$ with $\e \sim \UU[0,1]$ uniformly in the real inverval $[0,1]$?
+
+
+\end{enumerate}
+
+{\scriptsize[This is called a ``trick'' in a particular context: Sometimes there is a sampling step within an architecture, i.e., within a computation graph. E.g. $x \mapsto z \sim p_\t(z|x),~ z \mapsto y = g_\t(z)$, which is a VAC example, where the latent variable $z$ is sampled in the ``middle'' of the architecture. Gradients in principle don't propagate \emph{through} a sampling operation, and standard training would not be possible. But representing this as
+$x\mapsto z = f_\t(x,\e),~ z\mapsto y= g_\t(z)$ with the sampling $\e\sim p(\e)$ done \emph{outside the architecture}, gradients flow through $f$ and $g$ as usual, and the training process has to sample $\e$'s as if it was data.]\par}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Mountain Car RL using SAC}
+
+Use the SAC implementation in Stable Baselines3 to solve the Continuous Mountain Car problem: {\urlfont\url{https://stable-baselines3.readthedocs.io/en/master/modules/sac.html}}.
+
+\begin{enumerate}
+\item First, run SAC off-the-shelf, with default parameters using the example code provided on the above URL. In the tutorial, be able to demonstrate the final policy: Run multiple test rollouts, and compute the discounted total return (directly from the reward observations) for each test rollout.
+
+\item Monitoring the training process is generally important in RL. Follow {\urlfont\url{https://stable-baselines3.readthedocs.io/en/master/guide/examples.html#callbacks-monitoring-training}} to plot the training process (and generally learn about the Callback mechanism).
+
+\item The SAC method has a ton of parameters. Try:
+\begin{items}
+\item Fixing \verb@ent_coef@ to one particular value (e.g.\ 10; or check the SAC paper for common choices), and report on the difference.
+\item The discounting factor \verb@gamma@, e.g.\ to $\g=0.999$.
+\item The network architecture (by default \verb@net_arch = [256, 256]@). You'll have to look into code to understand the parameter, esp.\ the \verb@get_actor_critic_arch@ method in {\urlfont\url{https://github.com/DLR-RM/stable-baselines3/blob/master/stable_baselines3/common/torch_layers.py}}. Try smaller networks.
+\end{items}
+\end{enumerate}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\ifthenelse{\isundefined{\scripthead}}{
+\bibliographystyle{plainurl-lis}
+\bibliography{b3-ReinforcementLearning}
+}{}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exerfoot

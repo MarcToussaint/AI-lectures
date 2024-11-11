@@ -1,0 +1,639 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Robot Learning}
+\renewcommand{\coursepicture}{roblearn.png}
+\renewcommand{\coursedate}{Summer 2024}
+\renewcommand{\teacher}{Marc Toussaint}
+
+\renewcommand{\topic}{Manipulation \& Grasp Learning}
+\renewcommand{\keywords}{}
+
+\slides
+
+\input{macros-local}
+\providecommand{\SE}{\text{SE}}
+
+\slidestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Outline}{
+
+\item Manipulation Intro
+
+\item Background on Grasping
+
+\item Grasp Learning Methods
+
+\item Briefly: Other Manipulation Learning
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Manipulation}
+\slide{Manipulation is a Core Challenge in Robotics!}{
+
+\pause
+
+\item Recall the ``Robotics Essentials Lecture''
+\begin{items}
+\item Robotics is about Articulated Multibody Systems
+
+\item Objects in the environment are part of the ``multibody system''
+(slide 21); have their own DOFs, but are not articulated
+
+\item hybrid dynamics: on-off switching of manipulability; friction, stiction, slip, non-point contacts
+
+\end{items}
+
+~\pause
+
+\item Think back about the last 5 lectures \& exercises
+\begin{items}
+\item  dynamics learning, imitation learning, RL, InvRL, safe learning
+\item Most work: state space $\oto$ robot configuration (Hopper,
+Walker, helicopter, UAVs, quadropeds)
+\item Few works involved game environments: SpaceInvaders, Pong
+\item Some works about image-based manipulation of single object:
+image $\oto$ state
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Manipulation -- Definition}{
+
+\item Matt Mason:
+
+\cen{\emph{Manipulation is when an agent moves
+things other than itself.}}
+
+\citehere{2018-mason-RoboticManipulation}
+
+~\pause
+
+\item My view: \emph{General-purpose Manipulation $\oto$ Ability to reach \emph{any}
+physically possible environment configuration}
+
+~\pause\tiny
+
+\item Earlier work/definitions was fully focussed on grasping; now
+includes pushing, throwing, sticking, tools, ropes, any means...
+
+\item Great Lecture:
+
+\citehere{2023-tedrake-RoboticManipulationLecture}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Manipulation Learning}{
+
+\item What is learned?\anchor{80,-20}{\showh[.5]{robLearn1}}
+
+~\pause
+
+\item Policy: Image $\to$ Controls
+\begin{items}
+\item Grounded in MDP formalism: $x_t, u_t \mapsto r_t, x_{t\po}$
+\item is about the control process in fine time resolution
+\end{items}
+
+~\pause
+
+\item Solutions/Constraints: Image $\to$ grasp pose, push pose
+\begin{items}
+\item Not about the control process; no MDP formalism; no rewards, but $x \mapsto $success/no-success
+\item The learned model predicts successful grasps, push poses, throw
+parameters, etc
+\item These are then executed using standard control theory
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Outline}{
+
+\item Manipulation Intro
+
+\item \textbf{Background on Grasping}
+
+\item Grasp Learning Methods
+
+\item Briefly: Other Manipulation Learning
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Grasping Background}{
+
+\tiny See also Chapter 12 of
+
+\citehere{2017-lynch-ModernRobotics}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Contacts \& Force Closure}
+\slide{Contacts}{
+
+\item Contact between two bodies -- definitions:
+\begin{items}
+\item configuration $q=(q_1,q_2)$ (with $q_i\in\SE(3)$ pose of $i$th body)
+\item Their shapes define the \textbf{pairwise signed-distance} $d_{12}(q_1, q_2)$
+(and its gradient)
+\item Two nearest points $p_1$, $p_2$ are called \textbf{witness
+points} \anchor{50,-40}{\showh[.2]{poa2}}
+\item We also have the contact normal $n\in\RRR^3$
+%\item Contact types: Static, rolling, sliding, breaking
+\end{items}
+
+~\pause
+
+\item Multiple contact forces on one body:
+\begin{items}
+\item One body, $C$ contact points at position $p_i$, each
+creates \textbf{wrench} $(f_i,\tau_i)\in\RRR^6$ at $p_i$, totals:
+\begin{align*}
+f^\text{total}
+ &= \sum_{i=1}^C f_i \comma
+\tau^\text{total}
+ = \sum_{i=1}^C \tau_i + f_i\times(p_i-c)
+\end{align*}
+\item Newton-Euler equation describes the resulting acceleration:
+\begin{align*}
+\mat{c}{f^\text{total} \\ \tau^\text{total}}
+&= \mat{c}{m \dot v \\I \dot w + w\times I w} \\
+\end{align*}
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\tiny
+Since \emph{``Manipulation is when an agent moves
+things other than itself''} these equations ``fully describe'' what
+manipulation is about: Creating contact forces to appropriately
+accelerate objects.
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\ftang}{f^{=}}
+
+\slide{Contacts}{
+
+\item Contact Friction:
+\begin{items}
+\item Point finger can not transmit torque $\To$ ~ $\tau_i = 0$ \quad
+(better: patch models)
+\item Point finger sticks only when tangentil force
+$\ftang \le \m f^\perp \quad (f^\perp = n n^\T f,~ \ftang
+= f - f^\perp)$
+\item The set $F_i = \{f_i : \ftang_i \le \m f_i^\perp\}$ is called the \textbf{friction cone}
+
+\twocol{.4}{.4}{
+\show[.4]{forceClosure-frictionCone}
+}{
+\show[.3]{forceClosure2}
+}
+\end{items}
+
+~\pause
+
+\item \textbf{Force closure:}
+\begin{items}
+\item A \textbf{contact configuration} $\{(p_i,n_i)\}_{i=1}^C$ with friction coeff $\mu$ creates force closure
+
+$\iff$ we can generate (counter-act)
+  arbitrary $f^\text{total}$ and $\tau^\text{total}$ by choosing
+  $f_i\in F_i$ appropriately.
+
+$\iff$ The \emph{positive linear span of the fiction
+    cones} covers the whole space of $(f^\text{total},\tau^\text{total})\in\RRR^6$
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Force Closure \& Force Closure Metric \& Form Closure \& Caging}{
+
+~\small
+
+\item Force closure: The contacts can apply an arbitrary
+wrench (=force-torque) to the object.
+
+\pause
+
+\item Force closure metric: Limit finger force $|f_i|\le 1$ and compute radius (=origin-distance) of convex hull
+
+\item Form closure: The object is at an isolated point in
+  configuration space. Note: form closure $\iff$ frictionless force
+  closure
+
+\item Caging: The object is not fixated, but cannot escape
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Outline}{
+
+\item Manipulation Intro
+
+\item Background on Grasping
+
+\item \textbf{Grasp Learning Methods}
+
+\item Briefly: Other Manipulation Learning
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Grasp Learning}
+\slide{Grasp Learning}{
+
+\item What is learned?\pause
+\begin{items}
+\item Simplified parallel gripper:\anchor{100,-10}{\showh[.2]{graspNet1}}
+\item Input: RGB-D image of scene
+\pause
+\item Output: Set of \textbf{grasps} (=gripper poses $q^\text{gripper}\in\SE(3)$) in the scene:
+
+\medskip
+
+\show[1]{graspnet2}
+
+\medskip
+
+\item Alternative output: A network that can score any proposed grasp
+\end{items}
+
+~\pause
+
+\item Training data: pairs of scene (usually converted
+to \textbf{point cloud} $P_s$) and grasps
+$$D = \big\{ ~ \big(P_s, \{ q_{s,i} \}_{i=1}^{G_s}\big) ~ \big\}_{s=1}^S $$
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{GraspNet 1}{
+
+
+\twocol[.05]{.45}{.45}{
+
+\show{graspnet4}
+
+\citehere{2020-fang-Graspnet1billionLargescaleBenchmark}
+
+}{\footnotesize
+
+\item Focusses on data collection (details later)
+
+$D = \big\{ (P, \{(\underbrace{p\in P, v, D, R}_{q^\text{gripper}\in\SE(3)},
+w)_i\}) \big\}$
+
+\item Given data, they propose architecture
+\begin{items}
+\item First PCL $\to$ $v$/success classifier per point $p$
+\item Then predict $D,R,w$
+\item with separate loss functions for each part
+\end{items}
+
+
+}
+
+~
+
+\show[.8]{graspnet3}
+
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{GraspNet 2}{
+
+
+\twocol[.05]{.45}{.45}{
+
+\show{anygrasp1}
+
+\citehere{2023-fang-AnygraspRobustEfficient}
+
+}{\footnotesize
+
+\item Much more complex architecture
+
+{\urlfont\url{https://youtu.be/dNnLgAGreec}}
+
+\item Also dynamic (temporally stable) predictions:
+
+{\urlfont\url{https://www.youtube.com/watch?v=2O7UoOxeLlk}}
+
+}
+
+~
+
+~
+
+
+\show[.5]{anygrasp2}
+
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Other Grasp Learning Work}{
+
+\small
+
+\item Classic: Identifying ``antipodal'' grasps in point clouds:
+
+\citehere{2017-tenpas-GraspPoseDetection}
+
+
+\item Classic: DexNet family:
+
+\citehere{2017-mahler-DexNetDeepLearning}
+
+{\urlfont\url{https://www.youtube.com/watch?v=i6K3GI2_EgU}}
+
+
+\item More from the ``RL'' side (``closed loop grasping''):
+
+\citehere{2020-song-GraspingWildLearning}
+
+{\urlfont\url{https://www.youtube.com/watch?v=UPJjpIhXpZ8}}
+
+\item Contact-GraspNet
+
+\citehere{2021-sundermeyer-ContactgraspnetEfficient6dof}
+
+{\urlfont\url{https://www.youtube.com/watch?v=qRLKYSLXElM}}
+
+\item Using Diffusion Models
+
+\citehere{2023-urain-SeDiffusionfieldsLearning}
+
+{\urlfont\url{https://www.youtube.com/watch?v=Tk6l3WsPGMY}}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Grasp Data Collection (model- and simulation-based)}
+\slide{Grasp Data Collection}{
+
+\item My view:
+\begin{items}
+\item All of the above papers show: If we have good data, we have good
+ideas on how to design ML architectures to predict grasps
+
+\item Data Collection is the key!
+\end{items}
+
+~\pause
+
+\item Two approaches:
+\begin{items}
+\item Model-based labels ~ (grasp theory, force closure)
+\item Simulation-based labels
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Model-based Grasp Labels}{
+
+\item GraspNet-1Billion and DexNet 2.0 papers:
+\begin{items}
+\item For every point in the scene, for every (or sampled) approach
+direction, every offset/roll/width
+\item Compute a classical grasp score: Force closure metric
+\item Requires knowledge of ground truth object poses and shapes $\to$
+precise object pose estimation
+\end{items}
+
+\show[.7]{graspnet6}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Model-based Grasp Labels}{
+
+\item So, force closure theory is the origin of wisdom here!
+
+~
+
+\item The learning machinery ``only'' transfers it to the real world
+-- predicting force closure grasps based on real RGB-D
+
+~
+
+\item Cp.\ to imitation learning from a privileged expert! Here the
+privileged expert is the force closure metric assuming known object shapes.
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Simulation-based Grasp Labels}{
+
+\citehere{2021-eppner-AcronymLargescaleGrasp}
+
+~
+
+~
+
+\item Use generic rigid body physics simulator:\anchor{50,0}{\showh[.25]{acronym2}}
+\begin{items}
+\item Throw random objects (from \texttt{ShapeNet}) into a scene (and
+render RGB-D image)
+\item generate random grasps -- smartly engineered!
+\item Close and lift gripper -- measure in-hand motion during both phases
+\item ``we simulate 17.744 million grasps, out of which 59.21\% (ap-
+proximately 10.5 million grasps) succeed.''
+\end{items}
+
+\pause
+
+\item So, the physics simulator (=Newton-Euler equations + contact
+models) is the origin of wisdom here!
+\begin{items}
+\item Again, cp.\ to imitation learning from privileged expert (=simulation)
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Grasp Learning Summary}{
+
+~\small
+
+\item Rather advanced for standard parallel gripper; less for more
+complex hands
+
+\item In my view, proper data generation is key -- existing methods still have
+deficits
+
+\item Given proper data, the advances in learning are
+unstoppable (stronger architectures, diffusion, etc)
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Manipulation Learning}
+\slide{Manipulation Learning}{
+
+\item Manipulation is more than ``pick-and-place''
+\begin{items}
+\item manipulating articulated objects
+\item pushing, throwing
+\item rolling, spinning, balancing/stacking, etc.
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Recall: Extracting Constraints in Imitation Learning}{
+
+~
+
+\twocol{.45}{.45}{
+
+
+%\citehere{2022-manuelli-KPAMKeyPointAffordances}
+
+
+\show[.7]{neuralDescFields}
+
+%\citehere{2022-simeonov-NeuralDescriptorFields}
+
+}{
+
+\show[.7]{constraints}
+
+~
+
+\cen{\showh[.45]{keypoints1}\qquad\showh[.35]{keypoints2}}
+%% \citehere{2022-ha-DeepVisualConstraints}
+
+%% \item more:
+%% \citehere{2024-gao-BiKVILKeypointsbasedVisual}
+
+%% \citehere{2023-shi-WaypointBasedImitationLearning}
+
+}
+
+~
+
+~
+
+\small
+\item Extract ``constraints of success'', but eventually
+pick-and-place
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Manipulating Learning for Articulated Objects}{
+
+~
+
+\twocol[.05]{.35}{.55}{
+
+\show{flowbot1}
+
+\citehere{2024-eisner-FlowBot3DLearning3D}
+
+}{\footnotesize
+
+\item Assumes ``gripper can be attached to any point on surface''
+
+\item Learn a mapping $P \mapsto$ flow field $F_p \in \RRR^3$ for
+each $p \in P$
+
+{\urlfont\url{https://drive.google.com/file/d/1jiEHT--WQec5diEJE6a4dMJkBnP3d36B/view}}
+
+}
+
+~
+
+~
+
+\cen{\showh[.45]{flowbot2}\quad\showh[.45]{flowbot4}}
+
+\show[.6]{flowbot3}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\item Similar earlier work:
+
+~
+
+\show[.6]{umpnet1}
+
+\citehere{2022-xu-UniversalManipulationPolicy}
+
+~
+
+\show[.5]{umpnet2}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Conclusions}{\label{lastpage}
+
+\item Manipulation Learning is often beyond the MDP and RL framework!
+
+\item We often don't learn low-level policies, but:
+\begin{items}
+\item Predicting grasps in an RGB-D scene
+\item Predicting manipulability (flow) of articulated objects from
+RGB-D
+\item Predicting keypoints/waypoints of interaction
+\end{items}
+
+~\pause
+
+\item BUT, I think this is sooo far away from truely
+understanding/learning General-purpose Manipulation!
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\ttiny
+\ifthenelse{\isundefined{\scripthead}}{
+\bibliographystyle{plainurl-lis}
+\bibliography{b6-Manipulation}
+}{}
+
+\slidesfoot

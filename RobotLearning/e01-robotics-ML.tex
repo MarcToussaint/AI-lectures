@@ -1,0 +1,154 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Robot Learning}
+\renewcommand{\coursepicture}{roblearn.png}
+\renewcommand{\coursedate}{Summer 2024}
+\renewcommand{\exnum}{Weekly Exercise 1}
+
+\exercises
+
+\excludecomment{solution}
+
+\exercisestitle
+
+All 4 exercises are a bit too much for a start. Question 3 is bonus.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Basic Inverse Kinematics}
+
+\begin{enumerate}
+\item Inverse kinematics (or general constraint solving) can be framed as the optimization problem
+\begin{align}
+&\min_{q\in\RRR^n} \norm{q-q_0}^2 + \mu \norm{\phi(q)}^2 ~,
+\end{align}
+for some constraint function $\phi: \RRR^n \to \RRR^d$. Assuming linear $\phi(q) = \phi(q_0) + J (q-q_0)$ with Jacobian $J$, the solution is
+\begin{align}
+q^* = q_0 - (J^\T J + \textstyle\frac{1}{\mu} \Id)^\1 J^\T~ \phi(q_0) ~.
+\end{align}
+Verify this by deriving it step by step.
+
+\item To enforce a hard constraint, we want to take the limit $\mu\to\infty$. But $J^\T J$ is typically not invertible (e.g., $d<n$), and you can't directly take the limit in the above solution. However, the solution to this limit is
+\begin{align}
+q^* = q_0 - J^\T (J J^\T)^\1 \phi(q_0) ~.
+\end{align}
+Derive this from the above. Tip: Learn about the Woodbury identity.
+
+
+\end{enumerate}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Point mass under PD control}
+
+~
+
+\show[.4]{mass-3}
+
+Consider a point mass in a 1D space together with a PD control law:
+\begin{itemize}
+\item The point has mass $m$, and position $q(t) \in \RRR$.
+\item The PD controller applies linear force 
+$$u(t) = - k_p q(t) - k_d \dot q(t)$$
+to the point, where $k_p, k_d \in \RRR$ are positive constants.
+\item The resulting dynamics is $m \ddot q(t) = u(t)$.
+\end{itemize}
+
+\begin{enumerate}
+\item Given the initial state $q(0) = a, \dot q(0) = 0$, what is $q(t)$? (Solve the differential equation.)
+
+
+\item The solution describes a damped oscillation around the set-point $q^*=0$. How do you have to choose $k_p$ and $k_d$ such that the behavior becomes the exponential approach $q(t) = a e^{-t/\tau}$ for some time scale $\tau\in\RRR$? (This is called ``critically damped''.)
+
+
+\end{enumerate}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{BONUS: Fun with Euler-Lagrange}
+
+\show[.3]{2dracer}
+
+Consider an inverted pendulum mounted on a wheel in the 2D x-z-plane;
+similar to a Segway. The exercise is to derive the Euler-Lagrange
+equation for this system.
+
+\begin{enumerate}
+\item Describe the \textbf{pose} $p_i\in\RRR^3$ of every body in  $(x,z,\p)$ coordinates: its position in the x-z-plane, and its
+rotation $\p$ relative to the world-vertical. Assume fixed parameters $r$: radius of the wheel, $l$: length of the pendulum (height of its COM).
+
+
+\item Describe the (linear and angular) velocity $v_i = \dot p_i \in\RRR^3$ of every body.
+
+\item Formulate the total kinetic energy $T = \half \sum_i v_i^\T M_i v_i$, summing over the two bodies $i=A, B$. Note that
+\begin{align}
+M_i = \mat{ccc}{m_i & 0 & 0 \\ 0 & m_i & 0 \\ 0 & 0 & I_i}
+\end{align}
+with $m_i\in\RRR$ the normal mass of body $i$, and $I_i\in\RRR$ the rotational inertia of body $i$.
+
+
+\item Formulate the potential energy $U$
+
+\item Bonus: Compute the Euler-Lagrange Equation
+\begin{align}
+u = \frac{d}{dt} \frac{\partial L}{\partial \dot{q}} -  \frac{\partial L}{\partial q} ~,
+\end{align}
+with $L = T-U$, using the minimal coordinates $q=(x,\t)$, where $x$ is the position of the wheel and $\t$ the angle of the
+pendulum relative to the world-vertical.
+
+\end{enumerate}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Logistic Regression}
+
+Consider a binary classification problem with data
+$D=\{(x_i,y_i)\}_{i=1}^n$, $x_i \in \RRR^d$ and $y_i \in \{0,1\}$. We
+define
+\begin{align}
+f(x) &= x^\T \b \\
+p(x) &= \s(f(x)) \comma \s(z) = 1/(1+e^{-z}) \\
+L^\text{nll}(\b) &= - \sum_{i=1}^n \[ y_i \log p(x_i) + (1-y_i) \log [1-p(x_i)]\]
+\end{align}
+where $\b\in\RRR^d$ is the model parameter, $\s(z)$ the sigmoidal function, and $L^\text{nll}(\b)$ the neg-log-likelihood of the data under the model.
+
+\begin{enumerate}
+\item Compute the derivative $\frac{\del}{\del \b} L(\b)$. Tip: use the fact 
+$\frac{\del}{\del z}\s(z) = \s(z)(1-\s(z))$.
+
+\item Compute the 2nd derivative $\frac{\del^2}{\del \b^2} L(\b)$.
+
+\item How is the neg-log-likelihood related to the cross-entropy? How would the above change when adding an additional regularization $\l\norm{\b}^2$ to the loss?
+\end{enumerate}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \exsection{Max-likelihood estimator (5 Points)}
+
+%% Consider data $D=\{(y_i)\}_{i=1}^n$ that consists only of labels
+%% $y_i \in \{1,..,M\}$. You want to find a probability distribution
+%% $p\in\RRR^M$ with $\sum_{k=1}^M p_k = 1$ that maximizes the data
+%% likelihood. The solution is really simple and intuitive: the optimal
+%% probabilities are
+%% $$p_k = \frac{1}{n}\sum_{i=1}^n [y_i=k]$$
+%% where $[expr]$ equals 1 if $expr=true$ and 0 otherwise. So the sum
+%% just counts the occurances of $y_i=k$, which is then normalized.
+%% Derive this from first principles:
+
+%% a) Understand (=be able to explain every step) that under i.i.d.\ assumptions (1 P)
+%% $$P(D|p) = \prod_{i=1}^n P(y_i|p) =  \prod_{i=1}^n p_{y_i}$$
+%% and
+%% $$\log P(D|p) = \sum_{i=1}^n \log p_{y_i}
+%% = \sum_{i=1}^n \sum_{k=1}^M [y_i=k] \log p_k
+%% = \sum_{k=1}^M n_k \log p_k \comma n_k := \sum_{i=1}^n [y_i=k]$$
+
+%% b) Provide the derivative of
+%% $$\log P(D|p) + \l \(1-\sum_{k=1}^M p_k\)$$
+%% w.r.t.\ $p$ and $\l$. (2 P)
+
+%% c) Set both derivatives equal to zero to derive the optimal parameter $p^*$. (2 P)
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exerfoot

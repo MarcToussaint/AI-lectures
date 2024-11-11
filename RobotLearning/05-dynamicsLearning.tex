@@ -1,0 +1,874 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Robot Learning}
+\renewcommand{\coursepicture}{roblearn.png}
+\renewcommand{\coursedate}{Summer 2024}
+\renewcommand{\teacher}{Marc Toussaint \& Wolfgang H{\"o}nig}
+
+\renewcommand{\topic}{Dynamics Learning}
+\renewcommand{\keywords}{(aka.\ System Identification, Model Learning)}
+
+\slides
+
+\input{macros-local}
+\providecommand{\bm}[1]{\boldsymbol{#1}}
+
+\slidestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Outline}{
+
+\item I. What is learned?
+\begin{items}
+\item Incl. which mapping exactly, model assumption, parameterization, loss function
+\end{items}
+
+~
+
+\item II. How is the data generated?
+
+~
+
+\item III. Multirotor Examples
+
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{I. What is learned?}{
+
+~\pause
+
+\show[.9]{robLearn1}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Dynamics Learning -- State-based view}{
+
+\item Learning the \emph{state-based} dynamics:
+
+$$ x_t = f(x_{t\1}, u_{t\1}) \qquad\text{or}\qquad p(x_t \| x_{t\1}, u_{t\1}) $$
+
+~\pause
+
+\item Distinguish three cases:
+\begin{items}
+\item \textbf{Parameter Estimation:} $f$ is assumed physics with unknown physics parameters $\Th$
+\item \textbf{Full Regression:} $f$ is learned as regression model
+\item \textbf{Residual Dynamics:} learn the difference to a nominal physics model
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Dynamics Learning -- Observation-based view}{
+
+\small
+
+\item $x_t$ is the system \emph{state}
+
+\info{Markov Property: We call a variable \emph{state} if the future is conditionally independent on the past when conditioned on state; $I(\text{future}, \text{past} \| \text{state}) = 0$.}
+
+\item Sometimes the true state is not observed (or unknown), only observations $y_t$ are available ($y_t$: sensor readings, or \emph{state estimates} from sensors) \anchor{50,-40}{\showh[.3]{robLearn-dynamics}}
+
+~\pause
+
+\item We need to use the \textbf{history} of observed $y_t,u_t$ to predict next $y_t$!
+\item Distinguish three cases:
+\begin{items}
+\item \textbf{Autoregression:} Learn a direct history-based model $y_t = f(y_{t-H:t}, u_{t-H:t})$
+\item \textbf{Recurrent Model:} Learn a recurrent model with latent state $h_t$ (e.g.\ LSTM)
+\item \textbf{State-space Model:} Jointly learn embedding/decoding $x\mapsto y$ and latent dynamics $x,u\mapsto x'$ (is also a recurrent model)
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\item In summary, six cases we'll discuss more concretely:
+\begin{items}
+\item state-based dynamics
+\begin{items}
+\item physical parameter estimation
+\item full regression
+\item residual dynamics
+\end{items}
+\item observation-based dynamics
+\begin{items}
+\item autoregression (NARX)
+\item observation-based dynamics -- recurrent model
+\item observation-based dynamics -- state-space model
+\end{items}
+\end{items}
+
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\item Why learn the dynamics?
+\begin{items}\tiny
+\item Given learned dynamics, we can use planning (MPC) or RL against the learned model to generate controllers
+\item Examples in literature: Schaal'02, Deisenroth'15 (PILCO!), Finn'17, Driess'23, Schubert'23
+\end{items}
+
+~\pause
+
+
+\item Quick terminology:
+\begin{items}\tiny
+\item Dynamics Learning $\oto$ System Identification (in control theory), Model Learning (in model-based RL)
+\item In control theory $u_t$ are called \textbf{inputs} and the \emph{observations/measurements} $y_t$ are called \textbf{outputs}
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Parameter Estimation}
+\slide{State Dynamics -- Parameter Estimation}{
+
+\item Assume that dynamics $x_t = f_\Th(x_{t\1}, u_{t\1})$ has unknown physical parameters $\Th$,\pause e.g.:
+
+~
+
+~
+
+\show[.5]{franka-sysId1}
+\show[.5]{franka-sysId2}
+
+\citehere{2019-gaz-DynamicIdentificationFranka}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{State Dynamics -- Parameter Estimation}{
+
+\item Given data $D=\{(x_t, x_{t\1}, u_{t\1})\}_{t=1}^T$, find parameters
+
+$$\min_\Th \sum_{t} \norm{x_t - f_\Th(x_{t\1}, u_{t\1})}^2$$
+
+~\pause
+
+\item Sometimes, it is possible to describe $f_\Th$ as linear in $\Th$. See Gaz'19!
+\begin{items}
+\item Then finding optimal $\Th$ leads to a linear least squares problem.
+\item Otherwise: Black-box optimization (CMA-ES) or gradient-based (SGD, Gauss-Newton)
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Dynamics Regression}
+\slide{State Dynamics -- Full Regression}{
+
+\item Learn $f_\t$ directly, using some ML regression, e.g.\ (old-fashioned LWR):
+
+~
+
+\show[.35]{schaal-dyn1}
+\show[.4]{schaal-dyn2}
+
+\citehere{2002-schaal-ScalableTechniquesNonparametric}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{State Dynamics -- Full Regression}{
+
+\item Given data $D=\{(x_t, x_{t\1}, u_{t\1})\}_{i=1:n,t=1:T_i}$, find parameters
+
+$$\min_\t \sum_{t} \norm{x_t - f_\t(x_{t\1}, u_{t\1})}^2$$
+
+$\to$ same formulation as parameter estimation, really.
+
+~\pause
+
+\item Use supervised ML to minimize regression error
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{State Dynamics -- Full Regression (probabilistic)}{
+
+\item Given data $D=\{(x_t, x_{t\1}, u_{t\1})\}_{i=1:n,t=1:T_i}$, find parameters
+
+$$ \min_\t - \sum_{t} \log p_\t(x_t \| x_{t\1}, u_{t\1}) $$
+
+where $p_t(x_t \| x_{t\1}, u_{t\1})$ is a probabilistic regression, e.g.\ Gaussian Process:
+
+~
+
+\show[.4]{gaussianProcess1}
+{\tiny\hfill(from Rasmussen \& Williams)}
+
+\info{Marc Deisenroth's PICLO paper had huge impact: Using learned GP dynamics to derive optimal controls.}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Residual Dynamics}
+\slide{State Dynamics -- Residual Dynamics}{
+
+\item Given a nominal dynamics $f_M$ (e.g., assumed physics), learn a residual model $f_\t$ to minimze
+
+$$\min_\t \sum_{t} \norm{x_t - [f_M(x_{t\1}, u_{t\1}) + f_\t(x_{t\1}, u_{t\1})]}^2$$
+
+~\pause
+
+\item Examples: Gaz'19, Multirotor Examples
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Observation-based models (Autoregression, Recurrent, State-Space)}
+\slide{Observation-based Dynamics -- Autoregression (NARX)}{
+
+~
+
+\show[.5]{narx}
+
+\citehere{1997-siegelmann-ComputationalCapabilitiesRecurrent}
+
+\begin{items}
+\item NARX=``Autoregression with controls'' \quad our notation: $y_t = f_\t(y_{t\myminus H:t\1},u_{t\myminus H:t\1})$
+\item developed in time-series modelling, sequence modelling
+\end{items}
+
+\pause
+
+\item How long does the history $H$ have to be?
+\pause
+\item What's the modern version of autoregression?
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Observation-based Dynamics -- Autoregression (Transformers)}{
+
+~
+
+\show[.5]{transformer-dyn1}
+\show[.5]{transformer-dyn2}
+
+\citehere{2023-schubert-GeneralistDynamicsModel}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Observation-based Dynamics -- Recurrent Model}{
+
+\small
+
+\item Rather than giving the model a history as input, it should \emph{learn} to memorize relevant information, i.e., learn a latent representation for relevant information $\to$ recurrent NN
+
+\pause
+
+\item Train a latent representation $h_t$ to consume history information and predict $y_t$
+
+~
+
+\show[.5]{Recurrent_neural_network_unfold}
+\hfill{\tiny (Wikipedia; change in notation: $x\leadsto (y,u), o\leadsto y$)}
+
+\medskip
+
+\item The most common NN architecture is LSTM (better: Gated Recurrent Units):
+
+\cen{\showh[.3]{LSTM}\quad{\tiny (Hochreiter, Schmidthuber, 1997)}}
+
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Observation-based Dynamics -- State-Space Model}{
+
+\item Also a recurrent model, but explicitly assumes latent state $x_t \in \RRR^d$
+
+~
+
+\show[.6]{dyn-stateSpace1}
+\show[.3]{dyn-stateSpace2}
+
+\citehere{2018-doerr-ProbabilisticRecurrentStatespace}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Observation-based Dynamics -- State-Space Model}{
+
+\item Jointly train an embedding/decoding $g: x\mapsto y$ and latent dynamics $f:x,u\mapsto x'$:
+\begin{align*}
+\begin{array}{c@{}c@{~}c@{~}c@{~}c}
+x &, \mathbf{u} \overset{f}\mapsto & x' \\[-1ex]
+\!g \rotatebox[origin=c]{-90}{$\mapsto$} ~~& & \!\!g \rotatebox[origin=c]{-90}{$\mapsto$}~~ \\[-1ex]
+\mathbf{y} & & \mathbf{y'}
+  \end{array}
+\end{align*}
+
+\item Only $u_{1:T}, y_{1:T}$ are observed! Train model to maximize data likelihood,
+$$\log p(y_{1:T} \| u_{1:T}) \ge \text{Evidence Lower Bound (ELBO)} $$
+\begin{items}
+\item This method trains both, $g$ and $f$, and implicitly \emph{infers} a notion of state $x_t$
+\item Technically, use SGD to maximize ELBO
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\item More Literature for the six cases provided at the end of these slides...
+
+}
+%% \slide{}{
+
+%% In
+%% \citehere{1997-siegelmann-ComputationalCapabilitiesRecurrent}
+
+%% \begin{bibunit}[unsrturl]
+%% %\setcounter{enumiv}{#1} %%muss in bu?.bbl rein!
+%% %\renewcommand{\refname}{\vspace{-\parskip}}\let\chapter\phantom \let\section\phantom
+%% \nocite{*}
+%% \putbib[b1-DynamicsLearning]
+%% \end{bibunit}
+
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{II. How is the data generated?}{
+
+~\pause
+
+\item Importance of data generation is (mostly) under-acknowledged in papers!
+
+~
+
+\item Ideas to generate \emph{good} data may be more important than ML method details
+
+~\pause
+
+\item What is \emph{good} data?
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Data Quality}
+\slide{Good Data -- in Linear Regression}{
+
+\item Reconsider regression with linear model $f_\t(x) = \bar x^\T \t$, loss
+$$L(\t) = \sum_i (y_i - f_\t(x_i))^2 ~+~ \l\norm{\t}^2$$
+and solution
+$$\t^* = (X^\T X + \l\Id)^\1 X^\T y ~.$$
+
+\item What is good data?
+
+\pause
+
+\item What is the estimator variance $\Var{\t^*}$?
+\pause
+\begin{items}
+\item Assume data with variance $\Var{y}=\s^2 \Id_n$
+\pause
+\item Then $\Var{\t^*} = (X^\T X+\l I)^\1 \s^2$
+\pause
+\item Smaller variance via larger $\l$ (but then larger bias), or \textbf{larger $\det(X^\T X)$}!
+\end{items}
+
+\pause
+
+\item Good data means reducing variance (=randomness) of estimated model!
+\begin{items}
+\item large $\det(X^\T X)$ $\oto$ cover input space!\\
+\info{Large estimator variance $\oto$ ``Overfitting'': Reducing variance prevents overfitting. Hastie has great section on \emph{shrinkage} methods (=regularization)}
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Good Data -- in Linear System Identification}{
+
+~
+
+\show[.5]{control-sysId}
+
+{\urlfont\url{https://ethz.ch/content/dam/ethz/special-interest/mavt/dynamic-systems-n-control/idsc-dam/Lectures/Signals-and-Systems/Lectures/Fall2018/Lecture11_sigsys.pdf}
+
+}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Frequency Excitation}
+\slide{Good Data -- in Linear System Identification}{
+
+\small
+\item Cover the input space $\to$ cover frequency space
+\begin{items}
+\item Linear dynamics can be Laplace transformed into frequency domain:
+$$Y(s) = H(s)~ U(s)$$
+\item $U(s)$ are controls; $Y$ observations; $H(s)$ is called \textbf{transfer function} (complex)
+\item $H(s)$ can be probed by sending a single control frequence ($U(s) = \d_{ss'}$)
+\end{items}
+
+\show[.4]{control-sysId2}
+
+\item In essence: stimulate the system with control frequencies $u(t) = \cos(k t / \tau_0)$ for $k=0,1,..$
+
+\pause
+
+\item Franka SystemId paper [Gaz'19]: Sinusoidal reference motions (Eq.\ 31):
+$$ \dot q_{i,\text{des}(t)} = A_i \sin\left(\textstyle\frac{2\pi}{T_i}~ t\right)\comma i\in\{1,..,n\} $$
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Good Data -- in general}{
+
+~
+
+\item Think about good state space coverage! ~ (in all variants of Robot Learning)
+\begin{items}
+\item Frequency coverage in control systems
+\item Exploration in RL beyond $\e$-greedy
+\item Long-term structured variation (at least pink noise, Ornstein-Uhlenbeck) instead of Brownian motion
+\item Explicit exploration: Novelty seeking, information seeking, exploration bonus, Bayesian RL
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{III. Background: Multirotors}{
+
+\twocol[.02]{.6}{.35}{
+
+
+\item State $\mathbf{x}=(\mathbf{p}, \mathbf{q}, \mathbf{v}, \mathbf{\omega})^\T$
+
+\item Control $\mathbf{u}_{\Omega}=(\Omega_1,\hdots,\Omega_n)^\T$
+
+\item Forces $\mathbf{f} = \sum_i c_{f_i} \Omega_i \mathbf{z}_{\Omega_i} = \mathbf{F} \mathbf{u}_{\Omega}$,
+
+\item Torques $\bm{\tau} = \sum_i ( c_{f_i} \mathbf{p}_{\Omega_i} \times \mathbf{z}_{\Omega_i} + c_{\tau_i} \mathbf{z}_{\Omega_i} ) {\Omega}_i = \mathbf{M} \mathbf{u}_{\Omega}$
+
+\item Dynamics
+$$
+   \begin{array}{l}
+       \Dot{\mathbf{p}} = \mathbf{v}, \quad\quad\quad\quad~~\,
+       %
+       m\dot{\mathbf{v}} = m\mathbf{g} + \mathbf{R}(\mathbf{q}) \mathbf{F} \mathbf{u}_{\Omega} +\mathbf{f}_a,\\
+       %
+       \Dot{\mathbf{q}} = \cfrac{1}{2} \, \mathbf{q} \circ \begin{bmatrix} 0 \\ \bm{\omega} \end{bmatrix},
+       %
+       \mathbf{J}\Dot{\bm{\omega}} = -\bm{\omega} \times \mathbf{J}\bm{\omega}  + \mathbf{M} \mathbf{u}_{\Omega} + \bm{\tau}_a,
+   \end{array}
+$$
+
+}{
+% from 10.1109/MRA.2012.2206474
+\showh[1]{mahony2012fig2}
+{\hfill\tiny [Mahony, $\sim$2012]}
+}
+
+\info{Propellers create forces and torques, rest is Newton-Euler}
+
+\info{$\mathbf{f}_a$, $\bm{\tau}_a$ can model drag, wind, aerodynamic interactions etc.}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Multirotors: What is learned?}{
+
+\item Parameters that are hard to measure: inertia $\mathbf{J}$, motor params ($c_{f_i}$, $c_{\tau_i}$, delay)
+
+~
+
+\item Residuals $\mathbf{f}_a$, $\bm{\tau}_a$
+
+\info{potentially as a function of the state (e.g., drag) or environment (e.g., downwash)}
+
+\info{potentially non-Markovian, i.e., a function of a history of states}
+
+~
+
+\item Full dynamics model not so much --- Why?
+
+\pause
+
+\info{Impossible to gather data from all states safely}
+
+\info{Rotational symmetries are surprisingly difficult to learn}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Multirotors: How is it ``learned''? (Classic)}{
+
+Estimate parameters with dedicated experiments
+
+\item Inertia: Swing body in different positions and record motion; solve an optimization problem
+
+\showh[0.35]{foerster_fig2_2a}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Multirotors: How is it ``learned''? (Classic)}{
+
+Estimate parameters with dedicated experiments
+
+\item Motors: Use thrust stand (often for a single motor + propeller) + curve fitting
+
+\twocol{.6}{.35}{
+
+\showh[0.6]{foerster_fig3_2}
+
+}{
+
+\showh[0.6]{foerster_fig3_5}
+
+}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Multirotors: How is it ``learned''? (Classic)}{
+
+Estimate parameters with dedicated experiments
+
+\item Drag: Use wind tunnel + curve fitting with ``guessed'' models
+
+\showh[0.4]{foerster_fig4_8}
+
+\citehere{2015-forster-SystemIdentificationCrazyflie}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Multirotors: How is it ``learned''? (Classic)}{
+
+Estimate parameters with dedicated experiments
+
+~
+
+\item Is this learning?
+
+\pause
+
+\info{Yes, since curve fitting is extensively used}
+
+~
+
+\item Advantages and Disadvantages?
+
+\pause
+
+\info{Pros: Physics intuition (explainability); can improve ``important'' parameters if needed; no need to have a flying system}
+\info{Cons: Labor and equipment intensive; does not capture unmodeled terms; does not capture the robot as a system}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Multirotors: How is it learned? (Parameter Estimation)}{
+
+\item Assumption: we have a system that can already fly; Can we do better?
+
+\info{Strong assumption, since controllers need models, too}
+
+\item Direct (analytical) optimization
+
+\citehere{2024-eschmann-DataDrivenSystemIdentification}
+
+\info{Will skip the discussion here}
+
+\item Probabilistic formulation (Gaussian noise)
+
+\citehere{2016-burri-MaximumLikelihoodParameter}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Multirotors: How is it learned? (Maximum Likelihood)}{
+
+% \item Assumption: we have a system that can already fly, can we do better?
+
+% \info{Strong assumption, since controllers need models, too}
+
+\item Given: Dataset with trajectory (position, orientation, motor speed), $\mathbf{Z}$; measurements (IMU data, motor commands), $\mathbf{U}$
+\item Goal: 
+
+$$
+\hat{\mathbf{X}}_{ML}, \hat{\mathbf{\theta}}_{ML} = \argmax_{\hat{\mathbf{X}}, \hat{\mathbf{\theta}}} p(\mathbf{Z}, \mathbf{U}, \hat{\mathbf{X}}, \hat{\mathbf{\theta}})
+$$
+
+(parameters to estimate $\hat{\mathbf{\theta}}$; state estimates $\hat{\mathbf{X}}$; probability $p$)
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Multirotors: How is it learned? (Maximum Likelihood)}{
+
+\item Assumptions to simplify $p(\mathbf{Z}, \mathbf{U}, \hat{\mathbf{X}}, \hat{\mathbf{\theta}})$
+\begin{itemize}
+\item White noise (IMU, motors)
+\item Access to a prior trajectory $\rightarrow$ linearize around it and reason about ``residuals'' instead
+\end{itemize}
+\item $p(\cdot)$ becomes a mixture of Gaussians $\rightarrow$ can be maximized by minimizing the negative log-likelihood
+
+\info{essentially a least square problem}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Multirotors: How is it learned? (Maximum Likelihood)}{
+
+\show[0.5]{2018-burri-FrameworkMaximumLikelihood-alg1}
+
+where $\bar y=(\hat{\mathbf{X}}, \hat{\mathbf{\theta}})^\T$ from before
+
+\citehere{2016-burri-MaximumLikelihoodParameter} 
+\citehere{2018-burri-FrameworkMaximumLikelihood}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Multirotors: How is it learned? (Supervised Deep NN)}{
+
+\item Basic models do not capture ``complicated'' aerodynamic effects 
+
+~
+
+\item Blade Element Momentum (BEM) work for single rotors (but high computational effort)
+
+~
+
+\item Can we use (more) data to use function approximation instead?\\ Challenges:
+    \begin{itemize}
+        \item Training/Data efficiency
+        \item Inference speed
+    \end{itemize}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Multirotors: How is it learned? (Supervised Deep NN)}{
+
+\item Key idea: learn the ``residual physics'', only
+
+\info{Input: past $h$ states and motor commands $\rightarrow$ not Markovian!}
+\info{Output: forces and torques that cannot be explained by the basic model(s) ($\mathbf{f}_a$, $\bm{\tau}_a$)}
+
+~
+
+\show[0.6]{2021-bauersfeld-NeuroBEMHybridAerodynamic_fig2}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Multirotors: How is it learned? (Supervised Deep NN)}{
+
+\item ML method: Supervised training --- Where do the labels come frome?
+
+\pause
+
+\info{Solve dynamics for $\mathbf{f}_a$, $\bm{\tau}_a$}
+
+~
+
+\item Architecture
+    \begin{itemize}
+        \item Input $h=20$ (past 50 ms)
+        \item temporal convolutional (TCN) with 25k parameters (MLP and other parameters in ablation)
+    \end{itemize}
+
+~
+
+    \item Main takeaway: strong model/physics priors are better
+
+
+\citehere{2021-bauersfeld-NeuroBEMHybridAerodynamic}
+
+\info{Video: {\urlfont\url{https://youtu.be/Nze1wlfmzTQ}}}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Multirotors: Data Collection}{
+
+\item Motion capture system for accurate position/orientation state estimates
+
+\info{Sampling at 500 Hz, submillimeter accuracy}
+\info{Very costly: EUR 20k -- 100k}
+
+\item On-board data logging of IMU
+
+\info{Sampling at 1000 Hz, very noisy}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Multirotors: Data Preprocessing}{
+
+\item Two data sources $\rightarrow$ Synchronization needed (incl. clock skew)
+\begin{itemize}
+    \item Online Option: Send data to one computer using a low-latency link (and account for link delay)
+    \item Offline Option: Solve optimization problem for clock skew and bias
+\end{itemize}
+
+~
+
+\item Some derivatives (e.g., $\mathbf{v}$) are not directly observable
+\begin{itemize}
+    \item Online Option: Use data from an online filter (e.g., Extended Kalman Filter)
+    \item Offline Option: Interpolate data (e.g., using splines), use analytical solution of fitted spline
+\end{itemize}
+
+~
+
+\item Motor delays (``easy'' to measure)
+\begin{itemize}
+    \item Option 1: Include it in model explicitly
+    \item Option 2: Shift/filter data accordingly
+\end{itemize}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Multirotors: Data Quantity}{
+
+\item Maximum Likelihood: 45 sec flight data ``The pilot was careful to excite all axes, especially in yaw direction.''
+
+\item NeuroBEM: 96 flights, 75 min flight data (1.8M data points) (up to 18 $m/s$ and 47 $m/s^2$)
+
+}
+
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% \slide{IV. Applications}{
+% % [WH ]I think we can remove this slide now?
+
+% papers \& videos
+
+% \item NeuroBEM \url{https://youtu.be/Nze1wlfmzTQ} 
+
+% % Should we talk about bootstrapping: learn dynamics from real data, use it to train in simulation via RL, deploy?
+
+% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Literature}{
+
+\item State Dynamics -- Parameter Estimation:
+
+\citehere{2015-forster-SystemIdentificationCrazyflie}
+
+\citehere{2024-eschmann-DataDrivenSystemIdentification}
+
+\citehere{2018-burri-FrameworkMaximumLikelihood}
+
+\citehere{2019-gaz-DynamicIdentificationFranka}
+
+\item State Dynamics -- Full Regression:
+
+\citehere{2002-schaal-ScalableTechniquesNonparametric}
+
+\citehere{2015-deisenroth-GaussianProcessesDataEfficient}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Literature}{
+
+\item Observation-based Dynamics -- Autoregression (NARX):
+
+\citehere{1990-chen-NonlinearSystemIdentification}
+
+\citehere{1997-siegelmann-ComputationalCapabilitiesRecurrent}
+
+\item Observation-based Dynamics -- Recurrent Model (also visual!):
+
+\citehere{2021-bauersfeld-NeuroBEMHybridAerodynamic}
+
+\citehere{2017-finn-DeepVisualForesight}
+
+\citehere{2023-driess-LearningMultiobjectDynamics}
+
+\citehere{2023-schubert-GeneralistDynamicsModel}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Literature}{
+
+\item State-Space Models (learning a \emph{state} dynamics based on only observations):
+
+\citehere{2018-doerr-ProbabilisticRecurrentStatespace}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{not mentioned...}{\label{lastpage}
+
+\begin{items}
+\item Constrained ML models (Geist)
+\item Embed to Control
+\item Koopman embedding
+\item Dual control
+\item Safe Exploration
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\ttiny
+\ifthenelse{\isundefined{\scripthead}}{
+\bibliographystyle{plainurl-lis}
+\bibliography{b1-DynamicsLearning}
+}{}
+
+\slidesfoot

@@ -1,0 +1,131 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Robot Learning}
+\renewcommand{\coursedate}{Summer 2024}
+\renewcommand{\exnum}{Weekly Exercise 9}
+
+\renewcommand{\teacher}{Marc Toussaint \& Wolfgang H{\"o}nig}
+\renewcommand{\addressTUB}{
+  Learning~\&~Intelligent~Systems Lab, Intelligent Multi-Robot Coordination Lab, TU~Berlin\\\small
+  Marchstr. 23, 10587 Berlin, Germany
+}
+
+\exercises
+
+\input{macros-local}
+
+\excludecomment{solution}
+
+\exercisestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Literature: Grasp Data Collection}
+
+Here is a core paper on grasp data collection:
+
+\bibentry{2020-fang-Graspnet1billionLargescaleBenchmark}
+
+The collection of labelled grasp data is a central issue in
+learning-based grasing. Once such data is available, we can use strong
+supervised ML or diffusion methods to learn disciminative or
+generative models of grasps. The above paper is a good example on how
+grasp data generation is typically ``engineered'', and uses a
+model-based (force closure) method to provide grasp labels. (An
+alternative is to use a generic physical
+simulator, e.g., \cite{2021-eppner-AcronymLargescaleGrasp} is a recent
+paper generating a grasp dataset using the PhysX simulator.)
+
+The questions are only about Section 3.2 and 3.3:
+\begin{enumerate}
+\item Sec. 3.2 describes how 97,280 RGB-D images were taken. How is
+the camera pose known for each image? What are ArUco markers? For how
+many scenes were images collected?
+
+
+\item Concerning Sec. 3.3 (paragraph ``6D Pose Annotation''), how exactly are all 6D object poses
+annotated?
+
+
+\item Paragraph ``Grasp Pose Annotation'' is the core. Provide pseudo
+code to what is happening in the 2nd paragraph; make the looping over
+objects/points/anything explicit. (Section 5.2, 2nd
+paragraph provides the ranges of $D, A,$ and $V$.) The last paragraph
+describes how these object grasps are transferred to the
+scenes. Summarize what information the eventual dataset comprises for
+one scene.
+
+\end{enumerate}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Force Closure}
+
+This is a great robotics book:
+
+\url{https://hades.mech.northwestern.edu/images/2/25/MR-v2.pdf}
+
+The Section ``Grasping and Manipulation -- Exercises'' contains
+interesting force and form closure questions, around Fig. 12.29 and
+12.30.
+
+\begin{enumerate}
+\item Solve Ex. 12.8 (page 507 in the pdf). Note that a twist in 3D
+space is a 6-vector combining a translation and rotation vector; here
+in 2D it is a 3-vector with 2D translation and one
+rotation. Sec. 12.1.6 (page 475) explains how to draw a twist as
+``CoR'' -- see footnote\footnote{A convenient way to represent a
+planar twist $V = (v_x, v_y, \o)$ (with rotation velocity $\o$, and
+translational velocities $v_x,v_y$) is as a \textbf{center of
+rotation (CoR)} at $(-v_y /\o , v_x /\o )$. An additional marker '+'
+or '-' tells if we rotate positively or negatively around this center.}
+
+\item Solve Ex. 12.17. (I'll provide explicit equations defining force
+closure in the lecture.) (Ex. 12.18 is also a great exercise.)
+
+\end{enumerate}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Practical Exercise: Explore the Graspnet data}
+
+This exercise doesn't need much coding -- the aim is simply to familiarize
+youself with existing datasets and conventions for learning-based grasping.
+
+\begin{enumerate}
+\item
+Follow {\urlfont\url{https://graspnetapi.readthedocs.io/en/latest/install.html}}
+to download and unzip all the data (sorry -- lots of files... If you
+develop a script to do all downloads, share it with all students.)
+
+\item
+Follow {\urlfont\url{https://graspnetapi.readthedocs.io/en/latest/example_vis.html}}
+to visualize the grasp data. Automatically loop through all available
+objects (calling \texttt{showObjGrasp}), and all available scenes
+(calling \texttt{showSceneGrasp}).
+
+What is the difference between format='rect' versus '6d'? (And why may
+it take minutes for format='6d'?)
+
+\item The '6D grasp' documentation
+{\urlfont\url{https://graspnetapi.readthedocs.io/en/latest/grasp_format.html#d-grasp}}
+explains how the grasp pose (translation and orientation) is
+stored. For a given scene (e.g.\ id=0), write a loop to output the
+grasp-translation and grasp-rotation-matrix for all grasps.
+
+(What I do not understand: The Rectangle Grasp description seems to
+only describe grasps in the image plane -- how it the real 3D rotation
+represented? Or it is not?)
+
+\end{enumerate}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\ifthenelse{\isundefined{\scripthead}}{
+\bibliographystyle{plainurl-lis}
+\bibliography{b6-Manipulation}
+}{}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exerfoot

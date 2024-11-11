@@ -1,0 +1,143 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Robot Learning}
+\renewcommand{\coursepicture}{roblearn.png}
+\renewcommand{\coursedate}{Summer 2024}
+\renewcommand{\exnum}{Weekly Exercise 3}
+
+\renewcommand{\teacher}{Marc Toussaint \& Wolfgang H{\"o}nig}
+\renewcommand{\addressTUB}{
+  Learning~\&~Intelligent~Systems Lab, Intelligent Multi-Robot Coordination Lab, TU~Berlin\\\small
+  Marchstr. 23, 10587 Berlin, Germany
+}
+
+\exercises
+
+\input{macros-local}
+
+\excludecomment{solution}
+
+\exercisestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Literature: DAgger}
+
+The following paper introduces DAgger (short for ``Dataset Aggregation''):
+
+\bibentry{2011-ross-ReductionImitationLearninga}
+
+\begin{enumerate}
+\item First have a look at Section 5 (Experiments), and if you like, the youtube video {\urlfont\url{https://www.youtube.com/watch?v=V00npNnWzSU}}. Two basic questions about what is mentioned in 5.1:
+\begin{items}
+\item The method uses a regression technique to train the policy $\pi: y \mapsto u$ ($y$ are observations). Which technique is used?
+\item Fig.~2 mentions $\b_i$, which is a parameter of the method that changes with iteration $i$. How exactly is it chosen?
+\end{items}
+
+
+\item Now look at the pseudo code Alg.~3.1 on page 4. The introduction of Sec.~3 explains the pseudo code. The lines 4 and 5 (``Let $\pi_i$...'', and ``Sample $T$-step...'') are perhaps the hardest to really understand. Your exercise: Write explicit pseudo code of how you generate such a ``$T$-step trajectory using $\pi_i$'', where this pseudo code can only call the dynamics function $x_t = f(x_{t\1},u_{t\1})$, the expert policy $u_t = \pi^*(x_t)$, the trained policy $u_t = \hat \pi_i(x_t)$, and a state initialization method $x_0\sim p(x_0)$.
+
+Note: Line 4 defines $\pi_i$ to be a probabilistic mixing of policies
+$\pi^*$ and $\hat\pi_i$, with coefficients $\b_i$ and $1-\b_i$
+respectively. This notation is typically used when $\pi$ are
+stochastic policies, but ``implicitly clear'' also when they are
+deterministic.
+
+
+\end{enumerate}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Trajectory Distributions, GMMs, ProMPs}
+
+Imitation learning can also be formulated as learning the distribution of demonstrated trajectories (rather than directly the policy), and thereafter use control theory to derive controllers that imitate this distribution. The following paper is a typical representative for using Gaussian Mixture Models (GMMs) to learn the distribution of demonstrated trajectories:
+
+\bibentry{2007-calinon-IncrementalLearningGestures}
+
+Only have a look at Figures 3 and 6 -- they should clarify what it means to use Gaussians to ``cover'' the distribution of demonstrated trajectories, and thereby learn the distribution. To enable this, a trajectory $x_t\in\RRR^n$ for $t=1,..,T$ is embedded in $n+1$-dimensional space ($t, x_t$), and then standard density estimation using GMMs applied.
+
+Consider a dataset $D=\{x_t^i\}^{i=1,2}_{t=1,..,T}$ with two 1-dimensional trajectories of length $T$, namely these two:
+\begin{items}
+\item First demonstrated trajectory $x^1_t = \cos(t/3)$ for $t=1,..,20$
+\item Second demonstrated trajectory $x^2_t = \cos(t/3-1)$ for $t=1,..,20$
+\end{items}
+\begin{enumerate}
+\item Plot both of these demonstrations
+
+\item Assume you would fit a Gaussian Mixture Model with 2 components (2 Gaussians) to this data (using a time-embedding as above), how might it look like? (Sketch on paper. Where might be their centers and the ellipse illustrating their covariance matrices?) Conditioning this distribution on a particular $t$, e.g.\ $t=11$, what would be the conditional variance over $x$? (Just argue in terms of your sketching.)
+
+
+\item Consider a fully different approach: Treat each $x^i$ as a vector with $20$ entries $x^i_t$. The two vectors $x^1$ and $x^2$ form our tiny data set $D=\{x^i\}_{i=1,2}$. From this data we can estimate the element-wise mean $\mu_t$ and standard deviation $\s_t$ for each $t$. Sketch these analogous to the above.
+
+[Note: The latter approach is called ProMP (Paraschos et al, NeurIPS'13).]
+\end{enumerate}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \exsection{Policy Error Propagation}
+
+%% Consider a simplified robot with 2D single integrator dynamics, i.e., $q=(x,y)$, $u=(v^x, v^y)$, and $\dot q = f(q,u) = (v^x, v^y)^\T$. We have access to an arbitrarily large dataset, with samples from a trajectory where the robot moves on a circle with radius 1. Specifically, let $D=\{(x_t,y_t,v^x_t, v^y_t)\}_{t=1}^n$ be our dataset, then
+
+%% \begin{align}
+%% x_t = \cos(\frac{2 t \pi}{n})\\
+%% y_t = \sin(\frac{2 t \pi}{n})\\
+%% v^x_t = -\frac{2\pi}{n} \sin (\frac{2 t \pi}{n})\\
+%% v^y_t = \frac{2\pi}{n} \cos (\frac{2 t \pi}{n})
+%% \end{align}
+%% are the individual values in our dataset.
+
+%% \begin{enumerate}
+%%   \item Consider the case where we learned the policy perfectly (i.e., zero test loss), we start on the circular trajectory at $(1,0)^\T$ at time 0, and we run our control loop at 100 Hz. Where is the robot located after 0.01 s? What challenge arises with respect to the learned policy?
+  
+%%   % \item Assume we essentially learned a perfect error-tolerant lookup table as policy, which for a given state $q$ finds the closest state $q'$ (with respect to the L2 norm) in the dataset and returns the associated action from the dataset. What is the resulting shape of the trajectory if we now start at $(2,0)^\T$ and ignore any effects of a discrete time control loop?
+  
+%% \end{enumerate}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Mountain Car Imitation Learning}
+
+This is a coding exercise. Please bring your laptop and connect to the HDMI in the tutorial to show your results. (If you upload a pdf, just include a screenshot of results in the pdf.)
+
+We use the same mountain car example as in Exercise 2, so look for more detailed instructions there, if you haven't set it up, yet.
+
+The following ``policy'' was written by an expert to solve the control problem:
+\begin{code}
+\begin{Verbatim}[numbers=none,fontsize=\footnotesize]
+def expert(t):
+    if t < 50:
+        return np.array([-1.0])
+    elif t < 100:
+        return np.array([1.0])
+    return np.array([0.0])
+\end{Verbatim} 
+\end{code}
+
+Note that this uses the time step $t$ and not the state as input, which is why we put ``policy'' in quotes. 
+
+\begin{enumerate}
+\item Collect a sufficient amount of data and learn a real policy, i.e., a function that maps from the current state to the action. Report your achieved loss.
+
+You may still use any ML technique, including linear regression. However, this might also be a good starting point to use pyTorch, so that you have some experience with more complicated exercises later. You can follow the official tutorial at {\urlfont\url{https://pytorch.org/tutorials/beginner/basics/quickstart_tutorial.html}}.
+
+\textbf{Hints:} You can convert data using \texttt{torch.from\_numpy(data\_input).float()}. A useful function is\\ \texttt{torch.utils.data.random\_split}. From the tutorial, make sure you adjust the neural network and loss function to match our target domain.
+
+
+\item Validate your learned policy in the gym environment. What happens if you start from a starting state that was not part of your training data (e.g., use \texttt{env.reset(options={'low': 0.1, 'high': 0.4})})?
+
+
+\item Can DAgger help here to collect a better dataset? Explain why or why not.
+
+
+\end{enumerate}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\ifthenelse{\isundefined{\scripthead}}{
+\bibliographystyle{plainurl-lis}
+\bibliography{b2-ImitationLearning}
+}{}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exerfoot

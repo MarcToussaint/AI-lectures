@@ -1,0 +1,151 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Robot Learning}
+\renewcommand{\coursepicture}{roblearn.png}
+\renewcommand{\coursedate}{Summer 2024}
+\renewcommand{\teacher}{Marc Toussaint}
+
+\renewcommand{\topic}{Taxonomy}
+\renewcommand{\keywords}{}
+
+\slides
+
+\slidestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Robot Learning Taxonomy}{
+
+~
+
+\item[] \textbf{I.~ What is learned?}
+\begin{items}
+\item Which mapping between state, control, rewards/values/constraints, plan, observation is learned?
+\end{items}
+
+~
+
+\item[] \textbf{II.~ How is the data generated?}
+\begin{items}
+\item By robot itself? (online?)  By human demonstration?  In simulation?
+\item Optimally? ~ Safe?
+\item Are labels available? (Supervised vs.\ RL vs.\ un-/self-supervised)
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{I.~ What is learned?}{
+
+%% \item ``Variables'' in a robotic system:
+%% \begin{items}
+%% \item state $x_t$, control $u_t$, rewards $r_t$, values $V(x_t)$, constraints $\phi(x_t)$, plan $\hat x_{0:T}$, observations $y_{0:t}$
+%% \end{items}
+
+%% ~\pause
+
+~
+
+\show[.35]{RLagenAndEnvironment}
+{\hfill\tiny [Satinder Singh, $\sim$2005]}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{I.~ What is learned?}{
+
+%% [at the board]
+
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{I.~ What is learned?}{
+
+%% \small (System Variables: state $x_t$, control $u_t$, rewards $r_t$, values $V(x_t)$, constraints $\phi(x_t)$, plan $\hat x_{0:T}$, observations $y_{0:t}$)
+%% \pause
+
+\begin{itemize}
+\item State, control $\to$ next state: \textbf{dynamics} -- System identification \pause
+\item State $\to$ control: \textbf{policy} -- Optimal Control, iterative learning control, Reinforcement Learning \pause
+\item State, control $\to$ \textbf{rewards} -- Reward function. Model-based RL, InvRL \pause
+\item Observations $\to$ control: \textbf{policy} (in partially observable case) \pause
+\item State $\to$ plan: \textbf{plan prediction} -- for MPC, but also language models
+\item Observations $\to$ state: \textbf{state estimation} \pause
+\item State/Observations $\to$ value: \textbf{value function} -- learnt, also planned/computed (DDP)
+\item State/Observations $\to$ constraint: -- constraint model, success model, affordance
+\item ...
+\end{itemize}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{II.~ How is the data generated?}{
+
+\small
+
+\item By human demonstration
+\begin{items}
+\item Imitation learning (behavior cloning)
+\item Inverse Reinforcement Learning, human preference learning
+\end{items}
+
+\pause
+
+\item Online, by robot itself
+\begin{items}
+\item on-policy/off-policy learning, RL vs.\ offline RL
+\end{items}
+
+\pause
+
+\item In simulation/domain transfer
+\begin{items}
+\item sim2real gap, domain randomization, domain transfer
+\end{items}
+
+\pause
+
+\item ``Optimally'': e.g.\ maximizing information gain
+\begin{items}
+\item Active Learning, intrinsic rewards, Bayesian RL \& Exploration
+\item Frequency excitation in system identification
+\item Pink noise, structured RL exploration
+\end{items}
+
+\pause
+
+\item ``Safely'': e.g.\ subject to chance constraints
+\begin{items}
+\item Safe RL, safe exploration, simultaneous risk learning
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Robot Learning Taxonomy}{\label{lastpage}
+
+\item These two dimensions (\emph{I. What is learned? II. How is the data generated?}) span a large space of robot learning approaches
+\begin{items}
+\item Quite beyond focus on RL only
+\item Across the fields of robotics and control theory
+\item Learning is not necessarily \emph{replacing} ``search \& planning, classical control, optimization''
+\end{items}
+
+~\pause
+
+\item Other aspects:
+\begin{items}
+\item \emph{Direct/Indirect?} ~ Is the mapping learned directly? Or are components/models learned that are input to a classical solver?
+\item \emph{Scenario specific} ~ E.g.\ specific for grasping, or multi-robot systems
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slidesfoot

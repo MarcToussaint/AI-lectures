@@ -1,0 +1,148 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Robot Learning}
+\renewcommand{\coursedate}{Summer 2024}
+\renewcommand{\exnum}{Weekly Exercise 10}
+
+\renewcommand{\teacher}{Marc Toussaint \& Wolfgang H{\"o}nig}
+\renewcommand{\addressTUB}{
+  Learning~\&~Intelligent~Systems Lab, Intelligent Multi-Robot Coordination Lab, TU~Berlin\\\small
+  Marchstr. 23, 10587 Berlin, Germany
+}
+
+\exercises
+
+\input{macros-local}
+\providecommand{\SE}{\text{SE}}
+
+\excludecomment{solution}
+
+\exercisestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Literature: Learning to Plan in TAMP}
+
+Here is an example paper for learning to plan:
+
+\bibentry{2020-driess-DeepVisualReasoning}
+%\bibentry{2021-driess-LearningGeometricReasoning}
+
+The paper trains an image-based action sequence prediction. A follow-up
+paper\footnote{\bibentry{2023-driess-PaLMEEmbodiedMultimodala}}
+does something similar with a much more ambitious Large Manguage
+Model, but the above paper more clearly defines the problem in
+relation to TAMP. To get an overview,
+you may first watch the video {\urlfont\url{https://www.youtube.com/watch?v=i8yyEbbvoEk}}.
+
+Here are the questions:
+\begin{enumerate}
+\item Eq.~(4) defines the action sequence prediction model $\pi$. Note
+that $S$ is the scene, $g$ the goal, and $a_{1:K}\in\TT(g, S),
+F_S(a_{1:K})=1$ means ``$a_{1:K}$ is feasible and leads to goal $g$''.
+
+How does this $\pi$ relate to modern sequence/language models, which
+also predict the next word/token given previous tokens? (What exactly
+is similar and different?)
+
+How does this $\pi$ relate to a trained state evaluation function as
+they are used, e.g., in modern chess/go engines? (Which score a board and
+therefore provide a heuristic for search. What exactly is similar and different?)
+
+
+\item In Eq.~(4), the actions $a_k$ are input to the network. But they
+are encoded in a very particular way, as explained in subsection C
+(see also video at 0:20sec). How exactly are actions encoded?
+
+
+\item As always, understanding the data generation is key. Section V.B
+(page 7) explains the data generation process, and Eq.~(5) the
+definition of $D_\text{data}$ (ingnore $D_\text{train}$). In this
+whole process, how often was the feasibility $F_S(a_{1:K})$ of an
+action sequence $a_{1:K}$ in a scene $S$ being computed. (This
+computation happended fully model-based assuming full knowledge of the
+scene instantiated in the simulator.)
+
+
+\end{enumerate}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Optimal Sequential Manipulation in TAMP}
+
+\twocol[.05]{.8}{.15}{
+Consider the scene on the right, where we have one robot with 7
+degrees of freedom (dofs) $q\in\RRR^7$, and a stick with its pose
+$s\in\SE(3)$ as degrees of freedom. (Ignore the triangle in the
+image.)
+
+As discussed in the lecture, we consider the whole scene as a single
+multibody system with $(q,s)$ as its configuration. Initially the
+stick is lying somewhere on the table (away from the red ball); the final goal
+is for the stick to touch the red ball.
+}{
+\showh[1]{tamp-stick}
+}
+
+Assume that you have access to three constraint functions:
+\begin{itemize}
+\item $\phi_\text{grasp}(q,s) \in\RRR^3$ is a 3-dimensional constraint such
+that $\phi_\text{grasp}(q,s)=0$ indicates a correct (stable) grasp of
+the stick by the robot.
+\item $\phi_\text{touch}(s) \in \RRR^1$ is a 1-dimensional constraint
+such that $\phi_\text{touch}(s)=0$ indicates that the stick touches
+the red ball.
+\item $\phi_\text{coll}(q,s) \in \RRR^1$ is a 1-dimensional constraint
+such that $\phi_\text{coll}(q,s)\le 0$ indicates that nothing in the
+scene collides.
+\end{itemize}
+\begin{enumerate}
+\item Formulate a mathematical program that represents the problem of
+optimally grasping the stick and then, with the grasped stick,
+optimally touching the red ball. The problem should only be about finding
+the grasp pose and the final pose -- not yet the motions in between. As usual, optimality should reflect minimal motion effort by the robot. Assume the initial
+configuration is $(q_0,s_0) \in \RRR^7\times \SE(3)$.
+
+
+\item It is quite natural to choose $(q_1,s_1,q_2,s_2)$ as the decision
+variables of the above mathematical program. But can you think of an
+alternative, lower-dimensional parameterization of the problem?
+
+
+\item Now modify the mathematical program above (of a) or b)) to
+include the full motion from the start configuration until the stick touches the
+ball. Use an optimality criterion as is standard in trajectory
+optimization.
+
+
+\item Neglect the motion again; consider only grasp and touch. But
+this time consider a sequence of 4 actions: grasp-stick, place-stick,
+grasp-stick, touch-ball, where the 2nd action places the stick back on
+the table before picking it up again. Can you think of scene (stick
+and ball placement) where
+this action sequence makes sense? Instead of
+$(q_1,s_1,q_2,s_2,q_3,s_3,q_4,s_4)$, what would be a lower-dimensional
+parameterization?
+
+\end{enumerate}
+
+(For discussion at the tutorial:) You know how path
+finding in a standard setting is defined as finding a collision free
+path.\footnote{E.g., finding a continuous path $\g:
+[0,T]\to \XX_\text{free}$ from a given start configuration $\g(0)=x_0$
+to a final configuration $\g(T) \in \XX_\text{goal}$ within the free
+configuration space $\XX_\text{free} = \{ x\in\XX: \phi_\text{coll}\le
+0\}$.} How can the same sequential manipulation problem as in b) be
+represented as a path finding problem (respecting all constraints but
+neglecting optimality)?
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\ifthenelse{\isundefined{\scripthead}}{
+\bibliographystyle{plainurl-lis}
+\bibliography{b7-TampLearning}
+}{}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exerfoot
