@@ -1,0 +1,72 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Optimization Algorithms}
+\renewcommand{\coursepicture}{optim}
+\renewcommand{\coursedate}{Winter 2024/25}
+\renewcommand{\exnum}{Weekly Exercises 10}
+
+\exercises
+
+\excludecomment{solution}
+
+\exercisestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Gaussian Process Regression}
+
+In the lecture we mentioned Gaussian Processes (GP) as a basic approach to formulate a distribution $P(f|D)$ over continuous functions $f:\RRR^d \to \RRR$, given data $D$. Slide 9 of the lecture summarizes the essential equations; the standard reference for GPs is \href{http://robotics.caltech.edu/wiki/images/d/d1/RasumussenWilliamsBook.pdf}{Rasmussen \& Williams (2006) [pdf link]}. In this exercise you learn about them by implementing a minimalistic case:
+
+You are given a $D = \left\{(x_i,y_i)\right\}_{i=1}^n$. In this exercise, we assume $x\in\RRR$ (1-dimensional) and we just have $n=2$ data points $(x_1=0,y_1=0)$ and $(x_2=1,y_2=1)$. Then compute the following:
+\begin{enumerate}
+\item Compute the kernel matrix $K\in\RRR^{n\times n}$ with entries
+$$K_{ij} = k(x_i,x_j) \comma k(x,x') = a~ \exp(- \half \norm{x-x'}^2/\ell^2 ) ~.$$
+We choose $a=1, \ell=1$, and $k(x,x')$ is called squared exponential covariance function.
+
+{\small [This matrix desribes how correlated the observations at all data points $x_i$ are.]
+
+}
+\item Trivially also prepare the data vector $Y = (y_1,\ldots, y_n)^\T \in \RRR^n$.
+
+\item Write a method, that for any new $x\in\RRR$ computes a vector $\kappa(x)\in\RRR^2$, a prediction $\mu(x)\in\RRR$, and a variance $\s^2(x)\in\RRR$ as follows
+\begin{align}
+\kappa(x) &\in\RRR^n ~\text{with entries}~ \kappa_i(x) = k(x,x_i) \\
+\mu(x) &= \kappa(x)^\T~ (K + \s_0^2 \Id)^\1~ Y\\
+\s^2(x) &= k(x,x) - \kappa(x)^\T~ (K + \s_0^2 \Id)^\1~ \kappa(x) ~,
+\end{align}
+where $\Id$ is the identity matrix and we choose observation noise $\s_0=0.1$.
+
+{\small [The vector $\kappa(x)$ describes how correlated a new observation at $x$ should be with observations at all data points $x_i$. The prediction $\mu(x)$ and variance $\s^2(x)$ can be derived as the conditional marginal of a joint Gaussian distribution.]
+
+}
+
+\item Now sample $x\in[-2,2]$ on a fine grid, compute $\mu(x)$ and $\s^2(x)$ for each $x$, and use this to plot the functions $\mu(x)$, $\mu(x)+\sqrt{\s^2(x)}$, and $\mu(x)-\sqrt{\s^2(x)}$ for the interval $x\in[-2,2]$.
+\end{enumerate}
+
+How does this change for $\s=0$? How does this change for $\ell=0.1$? How does this change with more observed points (e.g., sample them from the prediction, then consider them observed data points)?
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Global Optimization in high dimensions?}
+
+Assume you have a GP prior $P(f)$ over functions $[0,1]^n\to \RRR$ and search a global minimum in the bounded space $[0,1]^n \subset \RRR^n$. We have a squared exponential kernel with length scale (kernel width) $\ell = 0.1$, i.e.,\ $$k(x,x')=\exp(-\frac{\norm{x-x'}^2}{2\cdot 0.1^2}).$$ For simplicity, let us assume that all observations (whereever we query) turn out zero and we collect data $D=\{(x_i,y_i)\}_{i=1}^T$ with $y_i=0$.
+
+%\begin{enumerate}
+%\item 
+Estimate the number $T$ of points you need to query to achieve some certainty that no function value of the true $f$ is larger than 1. For instance, determine a $T$ and a querying scheme that defines all $x_i$, so that $\forall  x:~ P(f(x)>1) \le 0.0227$. (The last number is the probability that a random number from the standard normal distribution $z\sim\NN(0,1)$ is larger than $2$. See \url{https://en.wikipedia.org/wiki/File:Standard_deviation_diagram.svg})
+
+%\item Discuss informally for what kernels global optimization can efficiently scale with $n$.
+%\end{enumerate}
+
+~
+
+Note: The following paper summarizes results on the Euclidean distance with increasing space dimensionality:
+
+Aggarwal, C. C., Hinneburg, A., \& Keim, D. A. (2001, January). On the surprising behavior of distance metrics in high dimensional space. In International conference on database theory (pp. 420-434). Springer, Berlin, Heidelberg.
+
+E.g., stated overly briefly, with $n\to\infty$ the ratio of distances to a nearest and furthest random point converges to 1.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exerfoot

@@ -1,0 +1,417 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Optimization Algorithms}
+\renewcommand{\coursepicture}{optim}
+\renewcommand{\coursedate}{Winter 2024/25}
+
+\renewcommand{\topic}{Stochastic Search \& EDAs}
+\renewcommand{\keywords}{}
+
+\slides
+
+\slidestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+A core aspect in black-box opt is: \emph{What do we estimate from the data?}
+\begin{items}
+\item gradient (as in implicit filtering)
+\item a local model $f_\t(x)$ (model-based opt.)
+\item a distribution $p_\t(x)$ of ``good'' points (EDAs)
+%% \item Gradient/Newton descent: nothing, momentum, BFGS-estimate -- mostly relies on immediate local information $f(x), \na f(x), \he f(x)$
+%% \item BayesOpt: data $D$ and implied GP $P(f|D)$
+%% \pause
+%% \item Evolutionary Algorithms: population $D$, or ``population parameters'' $\t$
+\end{items}
+
+~
+
+\item The $\t$ is what we extract/capture/maintain from the data of previous evaluations
+%% \item A core aspect of designing an optimization algorithm is: What does it \emph{maintain} in terms of knowledge/info/model?
+
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{General stochastic search}
+\slide{A general stochastic search scheme}{
+
+\item A general stochastic search scheme:
+\begin{items}
+\item The algorithm maintains some information $\t$
+\item This $\t$ defines a \emph{search} distribution $p_\t(x)$
+\item In each iteration it takes $\l$ samples $\{x_i\}_{i=1}^\l \sim p_\t(x)$
+\item Each $x_i$ is evaluated ~ $\to$ ~ new data $D=\{(x_i,f(x_i))\}_{i=1}^\l$
+\item \textbf{The new data $D$ is used to update $\t$}
+\end{items}
+
+~
+
+\begin{algo}
+\Require initial $\t$, function $f(x)$, distribution model $p_\t(x)$, update heuristic $h(\t,D)$
+\Ensure final $\t$ and best point $x$
+\Repeat
+\State Sample $\{x_i\}_{i=1}^\l \sim p_\t(x)$
+\State Evaluate samples, $D= \{(x_i,f(x_i))\}_{i=1}^\l$
+\State Update $\t \gets h(\t,D)$
+\Until $\t$ converges
+\end{algo}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Evolutionary Algorithms (EAs)}
+\slide{Evolutionary Algorithms (EAs)}{
+
+\item EAs can well be described as special kinds of parameterizing $p_\t(x)$ and updating $\t$
+\begin{items}
+\item The $\t$ typically is a set of good points found so far (parents)
+
+\item Mutation \& Crossover define $p_\t(x)$
+
+\item The samples $D$ are called offspring
+
+\item The $\t$-update is often a selection of the best, or ``fitness-proportional'' or rank-based
+\end{items}
+
+~
+%% \item In discrete optimization, where $x$ is a string of integers,
+%% $\t$ is a population of parents (strings)
+
+%% $p_\t(x)$ is the offspring distribution (via crossover \& mutation)
+%% defined by these parents
+
+\item Categories of EAs:
+\begin{items}
+\item \defn{Evolution Strategies}:~ $x\in\RRR^n$, often Gaussian $p_\t(x)$
+
+\item \defn{Genetic Algorithms}:~ $x\in\{0,1\}^n$, crossover \& mutation define
+   $p_\t(x)$
+
+\item \defn{Genetic Programming}:~ $x$ are programs/trees, crossover \& mutation
+
+\item \defn{Estimation of Distribution Algorithms}:~ $\t$ directly defines
+   $p_\t(x)$
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\sublecture{Evolution Strategies \& EDAs}{
+
+(as they address continuous optimization in $\RRR^n$)
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Evolution Strategies}
+\slide{Evolution Strategies:~ Gaussian Search Distribution}{
+
+{\tiny [From 1960s/70s. Rechenberg/Schwefel]}
+
+\item The parameter $\t$ defines a Gaussian search distribution $p_\t(x)$
+\item In the simplest case, $\t$ is just the mean $\t=(\hat x)$, assuming fixed $\s^2$:
+$$p_\t(x) = \NN(x\|\hat x,\s^2)$$
+\item We sample $\l$ ``offspring'' $x\sim p_\t$ to get new data $D$
+~
+
+\item What is a reasonable upate heuristic $\t \gets h(\t,D)$?
+\pause
+\begin{items}
+\item \textbf{Selection:}
+Given $D=\{(x_i,f(x_i))\}_{i=1}^\l$, select the $\m$ best: $D_\m=\text{bestOf}_\mu(D)$
+\item Compute the new mean $\hat x$ from $D_\m$
+\end{items}
+
+~\pause
+
+\item This algorithm is called ``$(\m,\l)$-ES'' (Evolution Strategy)
+\begin{items}
+\item The Gaussian is meant to represent a ``species''
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{``Elitarian'' Selection: ~ $(\mu+\l)$-ES}{
+
+\item To make search monotonous(!), the algorithm also stores the previous elite $D_\m$
+\begin{items}
+\item $\t= (\hat x, D_\m)$ now includes the mean $\hat x$ and previously selected
+\end{items}
+
+~\pause
+
+\item The update heuristic $\t\gets h(\t, D)$ selects from the union of new and elite:
+\begin{items}
+\item Select the $\mu$ best $D_\mu \gets \text{bestOf}_\mu(D_\mu \cup D)$
+\item Compute the new mean $\hat x$ from $D_\mu$
+\end{items}
+
+~\pause
+
+\item Special case: ~ \textbf{$(1+1)$-ES = Greedy Local Search/Hill Climber}
+
+\item Special case: ~ \textbf{$(1+\l)$-ES = Local Search}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\item Assuming a fixed $\s$ and isotropic $\NN(x\|\hat x,\s^2)$ is limiting
+\begin{items}
+\item No notion of going \emph{forward} (downhill/momentum)
+\item No adaptation of $\s$
+\item Should steps smaller/larger/correlated depending on local Hessian!
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Covariance Matrix Adaptation (CMA-ES)}
+\slide{Covariance Matrix Adaptation (CMA-ES)}{
+
+\show[.7]{CMA-ES}
+{\tiny\hfill [Hansen, N. (2006)]}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Covariance Matrix Adaptation (CMA-ES)}{
+
+\item In Covariance Matrix Adaptation
+$$\t=(\hat x,\s,C,\r_\s,\r_c) \comma p_\t(x) = \NN(x\|\hat x,\s^2C)$$
+where $C$ is the covariance matrix of the search distribution
+
+\item The $\t$ maintains two more pieces of information: $\r_\s$ and
+$\r_c$ capture the ``path'' (motion) of the mean $\hat x$ in recent
+iterations
+
+\item Rough outline of the $\t$-update:
+\begin{items}
+\item Let $D_\mu=\text{bestOf}_\mu(D)$ be the selected
+
+\item Compute the new mean $\hat x$ of $D_\mu$
+
+\item Update $\r_\s$ and $\r_c$ proportional to $\hat x_{k\po} - \hat x_k$
+
+\item Update $\s$ depending on $|\r_\s|$
+
+\item Update $C$ depending on $\r_c\r_c^\T$ (rank-1-update) and $\text{Var}(D_\mu)$
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{CMA references}{
+
+\cit{Hansen}{The CMA evolution strategy: a comparing review}{2006}
+
+\cit{Hansen et al.}{Evaluating the CMA Evolution Strategy on Multimodal
+Test Functions}{PPSN 2004}
+
+\show[.7]{CMA-ES1}
+
+%% ~
+
+%% \item A variant:
+
+%% Igel et al.: A Computational Efficient
+%% Covariance Matrix Update and a $(1+1)$-CMA for Evolution
+%% Strategies, GECCO 2006.
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{CMA conclusions}{
+
+\item Good starting point for an off-the-shelf blackbox
+algorithm
+
+\item It includes components like estimating the local gradient
+($\r_\s, \r_c$), the local ``Hessian'' ($\text{Var}(D_\mu)$), smoothing out
+local minima (large populations)
+
+~
+
+\item But is this tackling global optimization?
+
+\cen{``For ``large enough'' populations local minima are avoided''}
+
+(But not really.)
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Estimation of Distribution Algorithms (EDAs)}
+\slide{Estimation of Distribution Algorithms (EDAs)}{
+
+\small
+
+\item In general, $\t$ can model a distribution $p_\t(x)$ for any spaces (also discrete/hybrid) using any distribution representation (Bayesian Networks, probabilistic grammars, generative ML, etc)
+
+\item The update heuristic $\t \gets h(\t, D)$ typically let's ``$p_\t(x)$ estimate $D_\mu$'', e.g.\ by likelihood maximization
+\begin{align*}
+\t ~\gets~ \argmin_\t~ -\!\! \sum_{x\in D_\mu} \log p_\t(x) + \text{regularization}
+\end{align*}
+\begin{items}
+\item The regularization is important, otherwise the new offspring would ``overfit'' on the previous elite and not explore
+\item E.g.\ ensure sufficient entropy
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\item Stochastic grammars to ``learn'' a distribution of selected structures
+
+\show[.5]{evoPlants}
+{\tiny\hfill [Toussaint, GECCO 2003]}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Estimation of Distribution Algorithms (EDAs)}
+\slide{Estimation of Distribution Algorithms (EDAs)}{
+
+\item EDAs \emph{learn} correlations and structures in selected
+\cit{Agakov,..,Toussaint,..,}{Using Machine Learning to Focus Iterative Optimization}{CGO 2006}
+\cit{Toussaint}{Compact representations as a search strategy: Compression EDAs}{Theoretical Computer Science, 2006}
+\begin{items}
+\item E.g., if in all selected distributions, the 3rd bit equals the
+7th bit, then the search distribution $p_\t(x)$ should put higher
+probability on such candidates
+\item In discrete domains,
+graphical models can be used to learn the dependencies between variables, e.g.
+\textbf{Bayesian Optimization Algorithm (BOA)}
+\item In continuous domains, CMA is an example for an EDA
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{Further Ideas}{
+
+%% \item We could learn a distribution over steps
+
+%% -- which steps have decreased $f$ recently $\to$ model
+
+%% ~~ (Related to ``differential evolution'')
+
+%% ~
+
+%% \item We could learn a distributions over directions only
+
+%% $\to$ sample one $\to$ line search
+
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Simulated annealing}
+\slide{Simulated Annealing ~ (accepts also uphill steps)}{
+
+\small
+
+\item Could be viewed as extension to avoid getting stuck in local optima, which
+accepts steps with $f(y)>f(x)$ -- but better viewed as sampling technique (see next page)
+
+~
+
+\begin{algo}
+\Require initial point $x$ ($\equiv\t$), function $f(x)$, \textbf{proposal distribution} $q(y|x)$ ($\equiv p_x(y)$)
+\State initialilze the temperature $T=1$
+\Repeat
+\State Sample single $y \sim q(y|x)$
+\State Acceptance probability $A
+=\min\big\{1,~ e^{\frac{f(x)-f(y)}{T}}  \frac{q(x|y)}{q(y|x)}\big\}$
+%=\min\big\{1,~ \frac{e^{-f(y)/T} q(x|y)}{e^{-f(x)/T} q(y|x)}\big\}
+\State With probability $A$ update $x \gets y$
+\State Decrease $T$, e.g.\ $T \gets (1-\e) T$ for small $\e$
+\Until $x$ converges
+\end{algo}
+
+\item Typically: $q(y|x) \propto \exp\{-\half(y-x)^2/\s^2\}$
+
+\item Instance of our general scheme for $x\equiv \t$, $p_\t(x) \equiv q(x|\t)$, $\l=1$, update stochastic as above
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Simulated Annealing}{
+
+\small
+
+\item Simulated Annealing is a Markov chain Monte Carlo (MCMC) method.
+\begin{items}
+\item Must read!: \emph{An Introduction to MCMC for Machine Learning}
+\item These are iterative methods to sample from a distribution, in
+our case
+$$p(x) \propto e^{\frac{-f(x)}{T}}$$
+\end{items}
+
+\item For a fixed temperature $T$, one can prove that the set of
+accepted points is distributed as $p(x)$ (but non-i.i.d.!) The acceptance probability
+$$A=\min\big\{1,e^{\frac{f(x)-f(y)}{T}}  \frac{q(x|y)}{q(y|x)}\big\}$$
+compares the $f(y)$ and $f(x)$, but also the reversibility of $q(y|x)$
+
+\item When cooling the temperature, samples focus at the extrema.
+Guaranteed to sample all extrema \emph{eventually}
+
+%% \item Of high theoretical relevance, less of practical
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Simulated Annealing}{
+
+\show[.5]{simulatedAnnealing}
+{\tiny\hfill [MCMC introduction (2003)]}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Stochastic search conclusions}{\label{lastpage}
+
+\begin{algo}
+\Require initial $\t$, function $f(x)$, distribution model $p_\t(x)$, update heuristic $h(\t,D)$
+\Ensure final $\t$ and best point $x$
+\Repeat
+\State Sample $\{x_i\}_{i=1}^\l \sim p_\t(x)$
+\State Evaluate samples, $D= \{(x_i,f(x_i))\}_{i=1}^\l$
+\State Update $\t \gets h(\t,D)$
+\Until $\t$ converges
+\end{algo}
+
+\item The framework is very general
+
+\item Algorithms differ in choice of $\t$,  $p_\t(x)$, and $h(t,D)$
+
+\item The update $h(\t,D)$ ``should train the distribution $p_\t(x)$ to match good points''
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slidesfoot

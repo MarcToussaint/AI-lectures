@@ -1,0 +1,60 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Optimization Algorithms}
+\renewcommand{\coursepicture}{optim}
+\renewcommand{\coursedate}{Winter 2024/25}
+\renewcommand{\exnum}{Weekly Exercises 8}
+
+\exercises
+
+\excludecomment{solution}
+
+\exercisestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Convergence of Stochastic Gradient Descent}
+
+For a cost function $f(w) = \frac{1}{n} \sum_{i=1}^n f_i(w),~ w\in\RRR^d$, we are interested to show that, when iterating $w_{k\po} \gets w_k - \a_k \na f_i(w_k)$ for random $i$, the gradient $\na f$ goes to zero. The typical assumption we make is Lipschitz continuity of the gradient, namely there exists a Lipschitz constant $L$ such that
+$$\norm{\na f(w) - \na f(\bar w)} \le L~ \norm{w - \bar w} ~,$$
+where $\norm{w} = \sqrt{w^2}$ is the $L_2$-norm.
+
+Based on this assumption, show that
+\begin{enumerate}
+\item For any $\d\in\RRR^d$, the Hessian $\he f(w)$ fulfills $\norm{\he f(w) \d} \le L \norm{\d}$. (This can also be written as $\norm{\he f(w)}_2 \le L$,  also means that the largest eigenvalue of $\he f$ is $\le L$, and we have an upper bound on curvature.)
+\item We have
+$$f(w) \le f(\bar w) + \na f(\bar w)^\T (w - \bar w) + \half~ L (w-\bar w)^2$$
+\item We have
+$$\Exp{f(w_{k+1})}
+\le f(w_k) - \a_k \norm{\na f(w_k)}^2 + \half~ \a_k^2~ L~ \Exp{\norm{\na f_i(w_k)}^2}$$
+\end{enumerate}
+
+(We then often assume a given variance $\Exp{\norm{\na f_i(w_k)}^2}=\s^2+\norm{\na f(w_k)}^2$ of the stochastic gradient and can continue convergence analysis as on the lecture slide.)
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Bound Constraints}
+
+Consider the problem:
+$$\min_{x\in\RRR^2} \half x^\T A x \st x_2 \ge \half\comma \text{with}~ A = \mat{cc}{200 & -160 \\ -160 & 200} $$
+
+Here a plot of isolines, and at the top right in green, a few steps of a Newton method that properly handles bound constraints:
+
+\show[.5]{boundPic}
+
+\begin{enumerate}
+\item Analytically compute the optimum for this problem. You may assume the constraint active. (For arbitrary positive definite $A$, the specific numbers are not important.)
+
+\item Assume we are at location $x=(0,1)$. In which direction does the gradient $-\na f$ point? (First compute it analytically, then plug in the 160,200 numbers of $A$). And in which direction does the Newton step $-\he f^\1 \na f$ point? (This should be obvious, without much computation.)
+
+\item Assume we initialize our bound constrained Newton method (slide 13 of lecture 11) at $x=(0,1)$, how many Newton iterations (where each iteration does line search in the determined direction $\d$), will it need until convergence. Illustrate roughly, where each step moves to.
+
+\item Let us define $r(x_1) = f(x_1, x_2=\half)$, which is the cost function on the hyperplane only. Given any point $x_1$ on the hyperplane, what is the Newton step within the hyperplane w.r.t.\ $x_1$? Is this the same as the (clipped) Newton step for $f(x_1,x_2)$ when deleting the off-diagonal terms from $A$ (as our method does)?
+\end{enumerate}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exerfoot

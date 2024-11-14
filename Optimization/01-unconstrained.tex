@@ -1,0 +1,114 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Optimization Algorithms}
+\renewcommand{\coursepicture}{optim}
+\renewcommand{\coursedate}{Winter 2024/25}
+
+\renewcommand{\topic}{Overview -- Downhill Algorithms for Unconstrained Optimization}
+\renewcommand{\keywords}{}
+%% \renewcommand{\keywords}{Descent direction \& stepsize,
+%% plain gradient descent, stepsize adaptation \& backtracking line
+%% search, trust region, steepest descent, Newton, Gauss-Newton,
+%% Quasi-Newton, BFGS, conjugate gradient, exotic: Rprop}
+
+\slides
+
+\newcommand{\lscurv}{\r_{\text{ls2}}}
+
+\slidestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Problem Formulation}{
+
+\item Unconstrained non-linear mathematical program:
+$$\min_{x\in\RRR^n} f(x)$$
+\begin{items}
+\item for smooth function $f: \RRR^n \to \RRR$
+\item we can query $f(x)$, $\na f(x)$ (gradient methods),\\
+and sometimes $\he f(x)$ (2nd order methods)
+\end{items}
+
+~\pause
+
+~
+
+\item Application examples in robotics, model fitting, parameter optimization, etc.
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\hspace*{-5mm} We aim for methods that are:
+
+~
+
+\item \textbf{monotone} 
+  \begin{items}
+    \item generates a sequence of points $x_i$ that gradually reduce the value $f(x_i) \le f(x_{i\1})$
+  \end{items}
+
+\item \textbf{convergent}
+  \begin{items}
+  \item under bounded positive curvature assumptions we want exponential convergence rates guaranteed
+  \end{items}
+
+\item \textbf{invariant to rescaling of $f$}
+
+\item \textbf{invariant to rescaling of $x$} (or to linear transform of $x$)
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Note on local vs.\ global optimization}{
+
+\item Part I and II focus on local optimization -- the key challenge is to converge to local optima as fast as possible
+
+~
+
+\item Global optimization requires to search for various local optima
+  \begin{items}
+  \item Restart local downhill solvers from various points
+  \item Use Bayesian Optimization or other explicit global search concepts
+
+  $\to$ Global Optimization lecture
+  \end{items}
+  
+  
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Note on convex vs.\ non-convex optimization}{
+
+\item The methods we discuss equally apply to convex and non-convex problems
+  \begin{items}
+  \item If convex (with bounded curvature) they have strong convergence guarantee
+  \item If non-convex, they still run downhill to local minima, but without the same guarantee
+  \end{items}
+  
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Outline}{\label{lastpage}
+
+  ~
+  
+\item Gradient descent, \textbf{stepsize} adaptation, \& backtracking line search
+
+  ~
+  
+\item Steepest descent \textbf{direction}, Newton, damping \& non-convex fallback, trust region
+
+\item Quasi-Newton, Gauss-Newton, BFGS, conjugate gradient
+
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slidesfoot

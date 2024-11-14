@@ -1,0 +1,519 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Optimization Algorithms}
+\renewcommand{\coursepicture}{optim}
+\renewcommand{\coursedate}{Winter 2024/25}
+
+\renewcommand{\topic}{Stochastic Gradient Descent}
+\renewcommand{\keywords}{}
+
+\slides
+
+\slidestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{References}{
+
+\item Léon Bottou: Stochastic Gradient Descent Tricks! (2012)
+
+\item Bottou, Curtis, Nocedal: Optimization Methods for Large-Scale Machine Learning (2018)
+
+\item Lecture by Mark Schmidt ``SGD Convergence Rate''
+
+\item Nemirovski et al: Robust Stochastic Approximation Approach to Stochastic (2009)
+
+\item Lecture by Christopher De Sa
+https://www.cs.cornell.edu/courses/cs4787/2020sp/
+
+\item Wikipedia ``Stochastic approximation''
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\item For consistency with references, we change our notation a bit:
+
+~
+
+\item We consider the problem
+
+$$\min_{w\in\RRR^d} f(w)$$
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\sublecture{Stochastic Gradient Descent Basics \& Convergence}{
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Plain Gradient Descent -- Recall}{
+
+\item Plain gradient descent iterates, e.g.\ with constant $\a$
+
+$$w \gets w - \a \na f(w)$$
+
+~
+
+\item Core issue (cf.\ Part 1): Stepsize! (e.g., small gradient $\to$ small step?)
+
+~
+
+\item Solution: Backtracking line search
+\begin{items}
+\item Theorem: Gradient descent with backtracking line search converges exponentially with convergence rate $\g=(1-2 \frac{m}{M}\lsstop\adec)$
+
+\item we have regret $O(\g^t)$ for some $\g<1$
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Typical Setting for Stochastic Gradient Descent}{
+
+\item Additive cost function:
+$$\min_w \frac{1}{n} \sum_{i=1}^n f_i(w)$$
+\begin{items}
+\item E.g.: least squares problem $\min_w \sum_{i=1}^n \phi_i(w)^2$
+\end{items}
+~
+
+\item Core example: Machine Learning, with data $D=\{ (x_i,y_i) \}_{i=1}^n$
+$$f(w) = \frac{1}{n}\sum_{i=1}^n \ell(f(x_i;w), y_i)~ \color{grey}{+ \frac{\l}{2} \norm{w}^2}$$
+
+\item We are interested in large $n$ ~ (big data)
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Stochastic Gradient Descent (SGD)}
+\slide{Stochastic Gradient Descent (SGD)}{
+
+\item Instead of computing $\na f$ in each iteration, we only compute $\na f_i$ of \emph{one} cost component
+\begin{items}
+\item E.g., only the gradient w.r.t.\ a mini-batch (subset) of the full data
+\end{items}
+
+~
+
+\only<1>{
+\item Stochastic Gradient Descent:
+
+\begin{algo}
+\Require initial $w_0\in\RRR^n$, gradient functions $\na f_i(w)$, stepsize schedule $\a_k$
+\For{$k=0,..,$}
+\State Sample $i$ uniformly (iid) from $\{1,..,n\}$
+\State $w_{k\po} \gets w_k - \a_k \na f_i(w_k)$
+\EndFor
+\end{algo}
+}
+\only<2>{
+\item Stochastic Gradient Descent (episodic):
+
+\begin{algo}
+\Require initial $w_0\in\RRR^n$, gradient functions $\na f_i(w)$, stepsize schedule $\a_k$,
+\State initialize $k=0$
+\For{episode $j=0,..,$}
+\For{$i=1,..,n$ (or $i=\text{RandomPermutation}(\{1,..,n\})$)}
+\State $w_{k\po} \gets w_k - \a_k \na f_i(w_k)$
+\State $k \gets k+1$
+\EndFor
+\EndFor
+\end{algo}
+}
+
+\item $\na f_i(w)$ has expectation $\Exp{\na f_i(w)} = \na f(w)$
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Converenge of SGD}
+\slide{Converenge of SGD}{
+
+\item SGD is a method to find a point such that $\na f(w)\approx 0$
+
+\item Convergence analysis investigates how $\norm{\na f(w_k)}$ decreases  with $k$ (in expectation)
+
+~\pause
+
+\item Mathematics: see ``Stochastic Approximation''
+
+\item Typical assumptions:
+\begin{items}
+\item Lipschitz continuity of $\na f(w)$:
+$$\exists L\in\RRR \st \forall w,\bar w:~ \norm{\na f(w) - \na f(\bar w)} \le L~ \norm{w - \bar w} ~,$$
+where $\norm{w} = \sqrt{w^2}$ is the $L_2$-norm; $L$ is called Lipschitz constant.
+\item This means, ``the change of gradient $\na f(w)$ is limited''
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Convergence of SGD}{
+
+\item \textbf{Theorem}: Assuming $\na f(w)$ is $L$-continuous, and $\Var{\na f_i(w)} = \s^2$, we have
+$$
+\min_k\{\Exp{\norm{\na f(w_k)}^2}\}
+\le \frac{f(w_0) - f^*}{\sum_{k=0}^{t\1} \a_k} + \frac{\sum_{k=0}^{t\1} \a_k^2}{\sum_{k=0}^{t\1} \a_k}~ \frac{L \s^2}{2}
+$$
+
+~\pause
+
+\item Implications:
+
+\begin{items}
+\item If gradient had no noise $\s=0$ (plain GD): constant $\a$ leads to convergence $O(1/t)$
+
+~\pause
+
+\item Stochasticity: rate is determined by $\frac{\sum_{k=0}^{t\1} \a_k^2}{\sum_{k=0}^{t\1} \a_k}$. Ensure $\lim_t \sum_{k=0}^{t\1} \a_k^2 <\infty$ and $\lim_t\sum_{k=0}^{t\1} \a_k = \infty$.
+
+\item Constant $\a$ is bad choice: right becomes a constant $\frac{\a L \s^2}{2}$
+
+\item Diminishing step size $\a_k = \frac{\a_0}{1+\g k}$ is good:~ we have $\sum_k \a_k = O(\log t)$ and error $O(1/\log(t))$
+\end{items}
+
+%% \tiny
+
+%% If we made stronger assumptions (namely, $f$ is strictly cvx, $\text{eig}(\he f)$ lower bounded), we could get exponential convergence in the \emph{deterministic} case, but still not better than 
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Converenge of SGD -- Derivation}{
+
+\item Based on assuming Lipschitz continuity of $\na f(w)$, we derive how SGD decreases function values in expectation:
+
+~
+
+\begin{items}
+\item We assume $\norm{\na f(w) - \na f(\bar w)} \le L~ \norm{w - \bar w}$ for any $w,\bar w$.
+
+\item For any step $\d=w-\bar w$ the Hessian $\he f(w)$ fulfills $\norm{\he f(w) \d} \le L \norm{\d}$.
+\item Using this in a 2nd order Taylor, it follows
+$$f(w) \le f(\bar w) + \na f(\bar w)^\T (w - \bar w) + \half~ L (w-\bar w)^2 ~.$$
+\item And applying this to $w_{k\po} \gets w_k - \a_k \na f_i(w_k)$, we get in expectation
+$$\Exp{f(w_{k+1})}
+\le f(w_k) - \a_k \norm{\na f(w_k)}^2 + \half~ \a_k^2~ L~ \Exp{\norm{\na f_i(w_k)}^2} ~.$$
+\end{items}
+
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Converenge of SGD -- Derivation}{
+
+\item From this, we derive how $\norm{\na f(w_k)}$ decreases with $k$ in expectation:
+\begin{items}
+\item Assume $\s^2$ is the variance of $\na f_i(w)$, and rearrange terms
+\begin{align*}
+\Exp{f(w_{k+1})}
+& \le f(w_k) - \a_k \norm{\na f(w_k)}^2 + \a_k^2~ \frac{L}{2}~ \Exp{\norm{\na f_i(w_k)}^2} \\
+& \le f(w_k) - \a_k \norm{\na f(w_k)}^2 + \a_k^2 \frac{L \s^2}{2} \\
+\a_k \norm{\na f(w_k)}^2
+&\le f(w_k) - \Exp{f(w_{k+1})} + \a_k^2 \frac{L \s^2}{2}
+\end{align*}
+\item Sum over $k=1,..t$, pull min.\ gradient out of left sum, and notice the telescope sum on the right:
+\begin{align*}
+\sum_{k=1}^t \a_{k\1} \norm{\na f(w_k)}^2
+& \le \sum_{k=1}^t[f(w_{k\1}) - \Exp{f(w_k)}] + \sum_{k=1}^t \a_{k\1}^2 \frac{L \s^2}{2} \\
+\min_k\{\Exp{\norm{\na f(w_k)}^2}\}~ \sum_{k=1}^t \a_{k\1}
+&\le f(w_0) - \Exp{f(w_t)} + \sum_{k=1}^t \a_k^2 \frac{L \s^2}{2}
+\end{align*}
+\item Replace $\Exp{f(w_t)} \ge f^*$, and rearrange terms:
+\begin{align*}
+\min_k\{\Exp{\norm{\na f(w_k)}^2}\}
+&\le \frac{f(w_0) - f^*}{\sum_{k=0}^{t\1} \a_k} + \frac{\sum_{k=0}^{t\1} \a_k^2}{\sum_{k=0}^{t\1} \a_k}~ \frac{L \s^2}{2}
+\end{align*}
+\end{items}
+
+}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{When is SGD efficient?}{
+
+(from Bottou ``tricks'')
+
+\small
+
+\item For strongly convex assumptions, deterministic gradient can converge exponentially, requiring $O(\log \frac{1}{\rho})$ iterations to reach precision $\rho$. SGD requires $O(\frac{1}{\rho})$ iterations.
+
+~
+
+\item HOWEVER: The time-per-iteration is also important!: ~ (see 3rd line)
+
+\show{bottou}
+
+{\tiny 2GD = ``2nd order gradient method'' (that uses some approx.\ of the inv.\ Hessian)}
+
+~
+
+\cen{\textbf{$\to$ for large $n$, SGD is faster!}}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Practical Recommendations}{
+
+(from Bottou ``tricks'')
+
+~
+
+\item Randomly shuffle $i$, but then `zip' through
+
+\pause
+
+\item In ML: Monitor training and validation after each zip, through full data
+
+\pause
+
+\item Use learning rate $\a_k = \frac{\a_0}{1+\a_0 \l k}$, when $\l$ is a known minimal eigenvalue of Hessian (e.g., $L_2$-regularization in ML)
+
+\pause
+
+\item Empirically choose best $\a_0$ on small data subset
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\sublecture{How to improve Stochastic Gradient Descent}{
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{How to improve over basic SGD?}{
+
+\item There are three core approaches:
+
+~
+
+\item Gradient Variance Reduction
+
+\item 2nd-order information
+
+\item Momemtum Methods
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\key{Reducing Gradient Variance}
+\slide{Reducing Gradient Variance}{
+
+\small
+
+\item Use flexible mini-batch sizes,
+$$ w_{k\po} \gets w_k + \frac{\a_k}{|B_k|}~ \sum_{i\in B_k} \na f_i(w_k) $$
+and increase $|B_k|$ over time. But how? (cf. Bottou et al. Sec 5.2)
+
+~\pause
+
+\item Gradient aggregation: E.g., store \emph{all} gradients $\na f_j(w_{[j]})$ you've seen latest for $j$, then sample $i$, update $w_{[i]} \gets w_k$, query\&store $\na f_i(w_k)$ and iterate (Bottou Sec 5.3.2)
+$$w_{k\po} \gets w_k + (1/n)\sum_{j=1}^n \na f_j(w_{[j]})$$
+
+\pause
+
+\item \emph{Iterate} Averaging: Let $w_k$ create ``noise'', but care about
+$\bar w_t = \frac{1}{t-k}\sum_{k'=k}^t w_{k'}$. (Polyak-Ruppert method)
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{RMSprop}
+\slide{Second Order Information}{
+
+\small
+
+\item Try to estimate Hessian, e.g.\ stochastic version of BFGS
+\begin{items}
+\item Many possible approaches \& maths, Sec 6
+\item But require more complex operations that plain SG
+\end{items}
+
+\pause
+
+\item[$\to$] Estimate diagonal of Hessian, or ``scaling'' of gradient only \textbf{coordinate-wise}
+
+\pause
+
+\item \defn{RMSprop} (running avg.\ of elem-wise gradient squares)
+\begin{align*}
+v_k &\gets (1-\l)~ v_{k\1} + \l~ [\na f_i(w_k)]^{2} \quad [\text{elem-wise}] \\
+w_{k\po} &\gets w_k -\frac{\a_k}{\sqrt{v_k+\m}} \na f_i(w_k) \quad [\text{elem-wise}]
+\end{align*}
+
+\item \defn{Adagrad} (accumulate squares for diminishing stepsize with constant $\a$)
+\begin{align*}
+v_k &\gets v_{k\1} + [\na f_i(w_k)]^{2} \quad [\text{elem-wise}] \\
+w_{k\po} &\gets w_k -\frac{\a}{\sqrt{v_k+\m}} \na f_i(w_k) \quad [\text{elem-wise}]
+\end{align*}
+
+(``Theoretical explaination for good performance pending''; Bottou et al, Sec 6.5)
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Why divide by $\sqrt{\<g^2\>}$?}{
+
+\item RMSprop makes a step $-\frac{\a_k}{\sqrt{\<g^2\>+\m}} \na f_i$ (elem-wise), where $\<g^2\>$ averages gradient squares (elem-wise) -- Why?
+
+~\pause
+
+\item Scale invariance: Rescaling $f_i \gets a f_i$ scales $\na_i f$ and $\sqrt{\<g^2\>}$ equally
+
+\item Accounts for different conditioning along different coordinates
+
+\item Gradient steps in all directions become somewhat equal/normalized
+
+~\pause
+
+\item If $f_i$ has some curvature, e.g.\ $f_i = a w^2$, then $\na f_i = 2 a w$, and $\sqrt{\<g^2\>}\propto a$
+
+\item $\sqrt{\<g^2\>}$ is proportional to curvature, and mimics a diagonal Hessian
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{SGD with Momentum}
+\slide{SGD with Momentum}{
+
+\small
+
+\item SGD with momentum: ~ (c.f.\ conjugate gradient method)
+\begin{align*}
+w_{k\po}
+&\gets w_k - \a_k \na f_i(w_k) + \b_k ( w_k - w_{k\1} )
+\end{align*}
+{\tiny Written as low-pass of the adaptation step ($m_k = w_{k\po}-w_k$):
+\begin{align*}
+m_k &\gets \b_k m_{k\1} - \a_k \na f_i(w_k) \comma w_{k\po} \gets w_k + m_k
+\end{align*}
+Recommended version, easier to tune with constant beta $\b$ and decay $\a_k=\a_0/(1+\l k)$:
+{\color{blue}
+\begin{align*}
+m_k &\gets \b~ m_{k\1} - (1-\b)~ \a_k \na f_i(w_k) \comma w_{k\po} \gets w_k + m_k
+\end{align*}
+}
+
+}\pause
+
+\item Nesterov Accelerated Gradient (``Nesterov Momentum''):
+\begin{align*}
+\tilde w_k
+&\gets w_k  + \b_k ( w_k - w_{k\1} ) \\
+w_{k\po}
+&\gets \tilde w_k - \a_k \na f_i(\tilde w_k)
+\end{align*}
+
+{\tiny Yurii Nesterov (1983): \emph{A method for solving the convex programming problm with convergence rate $O(1/k^2)$}
+
+}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Adam}
+\slide{Adam}{
+
+\item Adam: A Method for Stochastic Optimization (DP. Kingma, J. Ba) arXiv:1412.6980
+
+~
+
+``Our method is designed to combine the advantages
+of two recently popular methods: AdaGrad (Duchi et al., 2011), which works well with sparse gra-
+dients, and RMSProp (Tieleman \& Hinton, 2012), which works well in on-line and non-stationary
+settings''
+
+~
+
+(Roughly, Adam = cleaner version of RMSprop with momentum.)
+
+~
+
+
+\item Prove convergence rate
+$$
+\frac{1}{T}~ \sum_{k=1}^T [f(w_k) - f(w^*)] \le O(1/T)
+$$
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Adam}{
+
+\show[.75]{adam}
+{\tiny(all operations interpreted element-wise) \hfill arXiv:1412.6980}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Adam \& Nadam}{\label{lastpage}
+
+\item Adam interpretations (everything element-wise!):
+\begin{items}
+\item $m_t \approx \<g\>$ the mean gradient in the recent iterations
+\item $v_t \approx \<g^2\>$ the mean gradient-square in the recent iterations
+\item $\hat m_t, \hat v_t$ are bias corrected (check: in first iteration, $t=1$, we have $\hat m_t = g_t$, unbiased, as desired)
+\item $\D \t \approx - \frac{\a}{\sqrt{\<g^2\>}}~ g$ \emph{would} be a Newton step if $\sqrt{\<g^2\>}$ \emph{were} the Hessian...
+\end{items}
+
+~\pause
+
+\item Incorporate Nesterov into Adam: Replace parameter update by
+$$\t_t \gets \t_{t\1} - \a/(\sqrt{\hat v_t}+\e) \cdot (\b_1 \hat m_t + \frac{(1-\b_1)g_t}{1-\b_1^t})$$
+
+{\tiny Dozat: \emph{Incorporating Nesterov Momentum into Adam}, ICLR'16}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Appendix: Convergence \& Convergence Rate}{
+
+\small
+
+\item Convergence: $\lim x_k = x^* ~\iff~ \forall \e>0:~ \exists K:~ \forall k>k:~ |x_k -x^*| \le \e$
+
+\item Convergence Rate: $\lim_{k\to\infty} \frac{x_{k\po} - x^*}{x_k - x^*} = \mu$
+
+\item We care about convergence of the gradient $\lim_{k\to\infty} |g_k| = 0$ to zero
+
+~\pause
+
+\item Typically you try to prove a step-wise decrease inequality, e.g.:
+$$|g_{k\po}| \le \m~ |g_k|$$
+We call this ``convergence with rate $\m$'', which is also called linear convergence (``convergence with linear step-wise reduction'') or exponential convergence,  as we have $|g_k| \le O(\m^k)$.
+
+
+~
+
+\item Or one directly finds a converging upper bound, e.g.
+$$|g_k| \le O(1/k) $$
+We call this ``converges to zero with 1/k'', but not with a constant (``linear'') rate, but slower.
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slidesfoot

@@ -1,10 +1,16 @@
 # AI lectures:
 
+These are some basic lectures I gave over the years, many of them
+developed at U Stuttgart, now some new for TU Berlin. Please see also
+my [teaching page](https://www.user.tu-berlin.de/mtoussai/teaching/)
+for older courses and more materials. I focus here on the core courses
+
+* Robot Learning
+* Optimization Algorithms
+* Maths for Intelligent Systems
 * Introduction to Artificial Intelligence
 * Introduction to Robotics
 * Introduction to Machine Learning
-* Introduction to Optimization
-* Maths for Intelligent Systems
 
 ## Precompiled:
 

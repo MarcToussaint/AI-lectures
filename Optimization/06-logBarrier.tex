@@ -1,0 +1,241 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Optimization Algorithms}
+\renewcommand{\coursepicture}{optim}
+\renewcommand{\coursedate}{Winter 2024/25}
+
+\renewcommand{\topic}{Log Barrier Method}
+\renewcommand{\keywords}{Log barrier, central path, relaxed KKT}
+
+\slides
+
+\providecommand{\ninc}{\r_\nu^+}
+
+\slidestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{General approaches}{
+
+%% \item Penalty \& Barriers
+%% \begin{items}
+%% \item Associate a (adaptive) penalty cost with violation of the constraint
+
+%% \item Associate an additional ``force compensating the gradient into the
+%%    constraint'' (augmented Lagrangian)
+
+%% \item Associate a log barrier with a constraint, becoming $\infty$ for violation (interior point method)
+%% \end{items}
+
+%% ~
+
+%% \item Gradient projection methods (mostly for linear contraints)
+%% \begin{items}
+%% \item For `active' constraints, project the step direction to become
+%%    tangantial
+
+%% \item When checking a step, always pull it back to the feasible region
+%% \end{items}
+
+%% \item Lagrangian \& dual methods
+%% \begin{items}
+%% \item Rewrite the constrained problem into an unconstrained one
+
+%% \item Or rewrite it as a (convex) dual problem
+%% \end{items}
+
+%% \item Simplex methods (linear constraints)
+%% \begin{items}
+%% \item Walk along the constraint boundaries
+%% \end{items}
+
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Barriers \& Penalties}{
+
+
+\item The general approach is to define unconstrained problems that help tackling the constrained problem
+\begin{items}
+\item We typically add penalties or barriers to the cost function
+\item Iteratively solving the unconstrained problem converges to the solution of the constrained problem
+\end{items}
+
+~
+
+\item A \defn{barrier} is $\infty$ for $g(x)>0$
+
+~
+
+\item A \defn{penalty} is zero for $g(x)\le 0$ and increases with $g(x)>0$
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Unconstrained ``inner'' problems to tackle constraints}{
+
+\item General approach is to \emph{augment} $f(x)$ with some terms to define an ``inner'' problem:
+
+\begin{align*}
+B(x,\mu) &= f(x) - \mu \sum_i \log(-g_i(x)) && \text{(log barrier)}\\
+S(x,\mu,\nu) &= f(x) + \mu \sum_i [g_i(x)>0]~ g_i(x)^2 + \nu \sum_j h_j(x)^2 && \text{(sqr.\ penalty)}\\
+L(x,\l,\k) &= f(x) + \sum_i \l_i g_i(x) + \sum_j \k_j h_j(x) && \text{(Lagrangian)} \\
+A(x,\l,\k,\mu,\nu) &= f(x) + \sum_i \l_i g_i(x)  + \sum_j \k_j h_j(x) ~+ \\
+&\qquad\quad  + \mu \sum_i [g_i(x)>0]~ g_i(x)^2 + \nu\sum_j h_j(x)^2 && \text{(Aug.\ Lag.)}\nonumber
+\end{align*}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Log barrier method}
+\slide{Log barrier (Interior Point) method}{
+
+\item To solve the original problem
+$$\min_x~ f(x) \st g(x)\le 0$$
+we define the unconstrained \emph{inner} problem
+$$\min_x B(x,\m) \comma B(x,\mu) = f(x) - \mu \sum_i \log(-g_i(x))$$
+with \defn{log barrier} function $-\m\log(-g)$:
+
+~
+
+\show[.2]{logBarrier}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Log barrier}{
+
+\show[.25]{logBarrier}
+
+\item For $\mu\to 0$, the log barrier $-\mu\log(-g)$ converges to $\infty [g>0]$
+
+{\tiny\hfill{Notation:} $[\textit{boolean expression}] \in \{0,1\}$}
+
+\item The neg barrier gradient $\na \log(-g) = \frac{\na g}{g}$ pushes
+away from the constraint
+
+\item Eventually we want to have a very small $\mu$
+\begin{items}
+\item But choosing small $\mu$ from the start makes the barrier ``non-smooth''
+\item[$\to$] gradually \emph{decrease} $\mu$
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Log barrier method}{
+
+\begin{algo}
+\Require initial $x\in\RRR^n$, functions $f(x), g(x)$, tolerance $\t$, parameters (defaults: $\mdec=0.5, \mu_0=1$)
+\Ensure $x$
+\State initialize $\mu=\mu_0$
+\Repeat
+\State \defn{centering: solve unconstrained problem} $x \gets \argmin_x~ B(x,\mu)$
+%with tolerance $\sim\!10\t$
+\State decrease $\mu \gets \mdec \mu$
+\Until $|\D x|<\t$ repeatedly
+\end{algo}
+
+~
+
+\small
+\item Note: See Boyd \& Vandenberghe for alternative stopping criteria based on $f$ precision (duality gap) and better choice of initial $\mu$ (which is
+called $t$ there).
+
+~ \tiny
+\item For reference:
+%B(x,\mu) &=  f(x) - \mu \sum_i \log(-g_i(x)) \\
+$\na_x B(x,\mu) = \na f(x) - \mu \sum_i \frac{1}{g_i(x)}~ \na g_i(x) \comma
+\he[x] B(x,\mu) \approx \he f(x) + \mu \sum_i \frac{1}{g_i(x)^2}~ \na g_i(x) \na g_i(x)^\T $
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Central path}
+\slide{Central Path}{
+
+
+\item Every $\mu$ defines a different  $x^*(\mu) = \argmin_x~ B(x,\mu)$
+
+\show[.3]{centralPath}
+
+
+\item Varying $\mu$ creates the \defn{Central path} with points $x^*(\mu)$, gradually approaching the optimum for $\mu\to 0$ from the \textbf{interior}
+
+\item This is an \defn{Interior Point Method}: all iterates will always fulfill $g_i(x) < 0$
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Comments}{
+
+\item We always have to initialize log barrier with an interior point
+
+\item Equality constraints need to be handled separately (e.g.\ AugLag)
+
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Log barrier as relaxed KKT}
+\slide{Log barrier {\protect$\oto$} relaxed KKT}{
+
+\item Let's look at the gradients at the optimum $x^*(\mu) = \argmin_x B(x,\mu)$
+\begin{align*}
+& \na f(x) - \sum_i \frac{\mu}{g_i(x)} \na g_i(x) = 0 \\
+\iff\qquad & \na f(x) + \sum_i \l_i \na g_i(x) = 0 \comma \l_i g_i(x) = -\mu
+\end{align*}
+where we defined(!) $\l_i = -\mu/g_i(x)$, which guarantees $\l_i \ge 0$ as long as we are in the interior ($g_i\le 0$)
+
+\item These are called \defn{modified (=relaxed) KKT conditions} with \defn{relaxed complementarity}
+\begin{items}
+\item Inequalities also push in the interior
+\item For $\mu\to 0$ we converge to the exact KKT conditions
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Log barrier {\protect$\oto$} relaxed KKT}{\label{lastpage}
+
+~
+
+\item \emph{Centering (solving the unconstrained problem) in the log barrier
+method is equivalent to solving the relaxed KKT conditions!}
+
+~
+
+{\tiny (Reference for later: $\m$ can be interpreted as upper bound on the sub-optimality).}
+
+~\pause
+
+\item Nice about the log barrier method:
+\begin{items}
+\item It ``smoothes out'' the combinatorics of constraint activity, smoothly approaching the optimum from the interior
+\item This smoothing mathematically relates to relaxing the complementarity condition: constraints can push also in the interior,  $\mu$ relates to the degree of smoothing/relaxation
+\end{items}
+
+~
+
+\item Demo...
+%% ~
+
+%% Note also: On the central path, the duality gap is $m \mu$:
+
+%% \cen{$l(\l^*(\mu)) = f(x^*(\mu)) + \sum_i \l_i g_i(x^*(\mu)) = f(x^*(\mu))
+%% - m \mu$}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slidesfoot

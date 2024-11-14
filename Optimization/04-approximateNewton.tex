@@ -1,0 +1,487 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Optimization Algorithms}
+\renewcommand{\coursepicture}{optim}
+\renewcommand{\coursedate}{Winter 2024/25}
+
+\renewcommand{\topic}{Approximate Newton Methods}
+\renewcommand{\keywords}{Gauss-Newton, BFGS, conjugate gradient}
+
+\slides
+
+\slidestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Approximate Newton Methods}{
+
+\item In high dimensions, computing exact Newton steps can be inefficient:
+\begin{items}
+\item Computing and storing the dense Hessian $H\in\RRR^{n\times n}$ is already inefficient
+\end{items}
+
+~
+
+\item Newton makes particularly sense, if the \textbf{Hessian is sparse}
+\begin{items}
+\item Sparse Hessian $\oto$ graphical models of dependencies
+
+\show[.25]{vl3-Jordan-FG}
+
+\item Factor graphs, large-scale structured least squares problems (cf.\ ceres)
+\item in robotics: path optimization, computer vision: bundle adjustment, graph SLAM (cf.\ gtsam), probabilistic inference (MAP)
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Approximate Newton Methods}{
+
+\item \textbf{Least Squares problems} and the Gauss-Newton approximation!
+\begin{items}
+\item Very important problem class -- ubiquitous in AI, ML, robotics, etc
+\item Approximates the Hessian, scalable if the \textbf{Jacobian is sparse}
+\end{items}
+
+~\pause
+
+\item Other methods approximate the Hessian from gradient observations:
+\begin{items}
+\item BFGS, (L)BFGS (``quasi-Newton method'') -- a default solver in science
+\item Conjugate Gradient
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Least Squares \& Gauss-Newton method}
+\slide{Gauss-Newton method}{
+
+\item Consider a \defn{least squares} problem (cost is a \defn{sum-of-squares}):
+\begin{align*}
+\min_x f(x) \qquad\text{where}~ f(x) = \phi(x)^\T \phi(x) = \sum_{i=1}^d \phi_i(x)^2
+\end{align*}
+with \textbf{features} $\phi(x) \in \RRR^d$, and we can evaluate $\phi(x)$ and $J=\Del x \phi(x)$ for any $x\in\RRR^n$
+
+~\pause\tiny
+
+\item $\phi(x)\in\RRR^d$ is a vector; each entry contributes a squared
+cost term to $f(x)$
+
+\item $\Del x \phi(x)$ is the \textbf{Jacobian} ~ ($d\times n$-matrix)
+$$J=\Del x \phi(x) = {\small\mat{cccc}{
+\frac{\del}{\del_{x_1}} \phi_1(x) &
+\frac{\del}{\del_{x_2}} \phi_1(x) &
+\cdots &
+\frac{\del}{\del_{x_n}} \phi_1(x) \\
+\frac{\del}{\del_{x_1}} \phi_2(x) &
+& & \vdots \\
+\vdots & & & \vdots \\
+\frac{\del}{\del_{x_1}} \phi_d(x) &
+\cdots &
+\cdots &
+\frac{\del}{\del_{x_n}} \phi_d(x)}} ~\in\RRR^{d\times n}$$
+
+%with 1st-order Taylor expansion~ $\phi(x+\d) = \phi(x) + \Del x \phi(x)~ \d$
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Gauss-Newton method}{
+
+\item The gradient and Hessian of $f(x)$ are
+\begin{align*}
+f(x)
+ &= \phi(x)^\T \phi(x) \\
+\na f(x)
+ &= 2 \Del x\phi(x)^\T \phi(x) \qquad \text{\small(recall $\na f(x) \equiv \Del x f(x)^\T$)}\\
+\he f(x)
+ &= 2 \Del x\phi(x)^\T \Del x\phi(x) + 2 \phi(x)^\T \he \phi(x)
+\end{align*}
+%{\hfill\tiny $\he \phi(x)$ is a ${}^{d}{}_{nn}$-tensor}
+
+~
+
+\item \emph{The Gauss-Newton method is the Newton method for         
+$f(x) = \phi(x)^\T \phi(x)$ while approximating $\he \phi(x)\approx 0$, i.e.}
+
+\eqbox{$\he f(x) \approx 2 \Del x\phi(x)^\T \Del x\phi(x) = 2 J^\T J$}
+
+\medskip
+
+\ttiny (Use this approximation when computing the step $\d$ is the standard Newton algorithm.)
+
+%% ~
+
+%% In the Newton algorithm, replace line \ref{alg0} by solving
+%% $$(2\Del x\phi(x)^\T \Del x\phi(x)
+%% + \l \Id)~ \step = - 2\Del x\phi(x)^\T \phi(x)$$
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Gauss-Newton method}{
+
+\item The approximate Hessian $H = 2J^\T J$ is \textbf{always semi-pos-def!}
+
+~\pause
+
+\item $H$ is a sum of rank-1 matrices:
+$$H = 2 \sum_{i=1}^d \na \phi_i(x) \na \phi_i(x)^\T$$
+(which implies semi-pos-def)
+
+~\pause
+
+\item If the Jacobian $J$ is sparse, so is the Hessian $\to$ graphical structure
+
+%% ~\pause
+
+%% \item Computing $H$ requires only first-order derivatives of features $\phi$, no  computationally expensive Hessians 
+
+~\pause\tiny
+
+\item $H$ can be interpreted as pullback of the Euclidean
+norm $\phi^\T \phi$ in feature space. As it is $x$-dependent, this is a non-constant metric in $x$-space -- it defines a \emph{Riemannian} metric. (See math notes.)
+
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Robotics example}{
+
+\small
+
+\item Path optimization: Let $x = (x_1,..,x_T), x_t\in \RRR^n$ be a discretized path,
+$$\min_x \sum_{t=1}^T (x_t + x_{t\2} - 2 x_{t\1})^2 ~+~ \phi(x_T)^2$$
+where $x_0,x_{\1}$ are given, and $\phi(x_T)$ are some features of the end configuration $x_T$
+
+\show[.4]{path}
+
+\cit{Toussaint}{A tutorial on Newton methods for constrained trajectory optimization and relations to SLAM, Gaussian Process smoothing, optimal control, and probabilistic inference}{2017}
+
+~
+
+\item We use the formulation in terms of \textbf{features} throughout, also for hard constraints
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\sublecture{Quasi-Newton methods}{
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Quasi-Newton methods}
+\slide{Quasi-Newton methods}{
+
+~
+
+\item Assume we \emph{cannot} evaluate $\he
+f(x)$. \emph{Can we still use 2nd order methods?}
+
+~
+
+\item Yes: We can approximate $\he f(x)$ from the data $\{(x_i, \na
+f(x_i))\}_{i=1}^k$ of previous iterations
+
+~
+
+\item (General view: We can \emph{learn} from the data $\{(x_i, \na
+f(x_i))\}_{i=1}^k$ ~ $\leadsto$ e.g., Bayesian optimization or model-based optimization for blackbox optimization.)
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Basic example}{
+
+\small
+
+\item We've seen two data points $(x_1,\na f(x_1))$ and
+$(x_2,\na f(x_2))$ -- How can we estimate $\he f(x)$?
+
+~\pause
+
+\only<2>{
+
+\item In 1D:
+\begin{align*}
+\he f(x)
+ &\approx \frac{\na f(x_2) - \na f(x_1)}{x_2-x_1}
+% &= \frac{y}{\d} \comma y:=\na f(x_2) - \na f(x_1) \comma \d=x_2-x_1
+\end{align*}
+
+}
+
+\pause
+
+\item In $\RRR^n$: ~ Let $y=\na f(x_2) - \na f(x_1)$,~ $\d=x_2-x_1$
+
+What are matrices $H$ or $H^\1$ to fulfil the following?
+\begin{align*}
+H~ \d \overset{!}= y \qquad\text{or}\qquad  \d \overset{!}= H^\1 y
+\end{align*}
+{\tiny\small(The first equation is called \emph{secant equation})}
+
+~\pause
+
+\item ``Simplest'' symmetric rank-1 solutions for $\bar H\approx H$ and  $\hat H \approx H^\1$:
+\begin{equation}
+\bar H = \frac{y y^\T}{y^\T \d} \qquad\text{or}\qquad \hat H = {\color{blue}\frac{\d \d^\T}{\d^\T y}}
+\end{equation}
+
+\tiny
+[Left: how to update $\bar H \approx H$.~ Right: how to update directly $\hat H \approx H^\1$.]
+
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Broyden-Fletcher-Goldfarb-Shanno (BFGS)}
+\slide{BFGS}{
+
+\item Broyden-Fletcher-Goldfarb-Shanno (BFGS) method:
+
+\begin{algo}
+\Require initial $x\in\RRR^n$, functions $f(x), \na f(x)$, tolerance $\t$
+\Ensure $x$
+\State initialize $\hat H=\Id_n$
+\Repeat
+\State compute $\step = - \hat H \na f(x)$
+\State perform a line search $\min_\a f(x + \a \step)$
+\State $\d \gets \a \step$
+\State $y \gets \na f(x+\d) - \na f(x)$
+\State $x \gets x + \d$
+\State update $\hat H \gets {\color{red}\(\Id-\frac{y \d^\T}{\d^\T y}\)^\T \hat H
+\(\Id-\frac{y \d^\T}{\d^\T y}\)} + {\color{blue}\frac{\d \d^\T}{\d^\T y}}$
+\Until $\norm{\d}_\infty < \t$
+\end{algo}
+
+\begin{items}\ttiny
+
+\item The blue term is the $\hat H$-update as on the previous slide
+
+\item The red term ``deletes'' ``old'' $\hat H$-components. Check: $\hat H y = \d$
+
+\item equivalent to the Sherman-Morrison formula:
+$
+H \gets H - \frac{H \d \d^\T H^\T}{\d^T H \d} + \frac{y y^\T}{y^\T \d}
+$
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{L-BFGS}{
+
+%% \item BFGS is the most popular of all Quasi-Newton methods
+
+%% Others exist, which differ in the exact $\hat H$-update
+
+%% ~
+
+\item In high dimensions, we do not want to explicitly store a dense $\hat H$. Instead we store vectors $\{v_i\}$ such that $\hat H = \sum_i v_i
+v_i^\T$
+
+\item \defn{L-BFGS} (limited memory BFGS) limits the rank of the $\hat H$ and thereby the used memory (number of vectors $v_i$)
+
+~
+
+~\pause\small
+
+\item Some thoughts:
+
+In principle, there are alternative ways to estimate $H^\1$
+from the data $\{(x_i, f(x_i), \na f(x_i))\}_{i=1}^k$, e.g.\ using
+Gaussian Process regression with derivative observations
+\begin{items}
+\item not only the derivatives but also the value $f(x_i)$ should give
+   information on $H(x)$ for non-quadratic functions
+
+\item should one weight `local' data stronger than `far away'?\\
+ (GP covariance function)
+
+\item related to model-based search (see Blackbox Optimization lecture)
+\end{items}
+
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\sublecture{(Nonlinear) Conjugate Gradient}{
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Conjugate gradient}
+\slide{Conjugate Gradient}{
+
+\item The ``Conjugate Gradient Method'' is a method for solving
+(large, or sparse) linear eqn.\ systems $Ax+b=0$, without inverting or
+decomposing $A$. The steps will be ``$A$-orthogonal'' (=conjugate).
+
+We mention its extension for optimizing nonlinear functions $f(x)$
+
+~
+
+\item As before we evaluted $g'=\na f(x_1)$ and $g=\na f(x_2)$ at points $x_1,x_2\in\RRR^n$
+
+\item Additional assumption: \emph{exact line-search} step to $x_2$:
+\begin{items}
+\item $x_2 = x_1 + \a \d_1\comma \a = \argmin_\a f(x_1 + \a \d_1)$
+\item iso-lines of $f(x)$ at $x_2$ are tangential to $\d_1$
+\end{items}
+
+\item[$\To$] The next search direction should be ``orthogonal'' to the previous one, but orthogonal w.r.t.\ the Hessian $H$, i.e., $\d_2^\T H \d_1 = 0$, which is called conjugate
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Conjugate Gradient}{
+
+\begin{algo}
+\Require initial $x\in\RRR^n$, functions $f(x), \na f(x)$, tolerance $\t$
+\Ensure $x$
+\State initialize descent direction $\d = g = -\na f(x)$
+\Repeat
+\State $\a \gets \argmin_\a f(x+\a \d)$ \Comment{line search}
+\State $x \gets x + \a \d$
+\State $g' \gets g$,~ $g = -\na f(x)$ \Comment{store and compute grad}
+\State $\b \gets \max\left\{\frac{g^\T(g - g')}{g'^\T g'},0\right\}$
+\State $\d \gets g + \b \d$ \Comment{conjugate descent direction}
+\Until $|\D x| <\t$
+\end{algo}
+
+\begin{items}
+
+\item $\b>0$: The new descent direction always adds a bit of the old
+   direction!
+
+\item This \emph{momentum} essentially provides 2nd order information
+
+\item The equation for $\b$ is by Polak-Ribi{\`e}re: On a quadratic
+   function $f(x) = x^\T A x + b^\T x$ this leads to \defn{conjugate} search
+   directions, $\d'^\T A \d = 0$.
+
+%% \item Line search can be replaced by 1st \textbf{and 2nd Wolfe condition}
+%%    with $\lscurv<\half$
+
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Conjugate Gradient}{
+
+\cen{\twocol{.5}{.5}{
+\show{conjugateGradient}
+}{
+\show{conjugateGradient2}
+}}
+
+~
+
+~
+
+\item For quadratic functions CG converges in $n$ iterations.
+
+But each iteration does \emph{exact} line search
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{Convergence Rates Notes}{
+%% }
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{Convergence Rates Notes}{
+
+%% ~
+
+%% \item Linear, quadratic convergence (for $q=1,2$):
+%% $$\lim_k \frac{|x_{k\po}-x^*|}{|x_k-x^*|^p} = r$$
+%% with rate $r$. E.g.\ $x_k = r^k$ (linear) or $x_{k\po}=r x_k^2$
+%% (quadratic)
+
+%% }
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{Convergence Rates Notes}{
+
+%% \item Theorem 3.3 in Nocedal et al.:
+
+%% Plain gradient descent with exact line search applied to $f(x) = x^\T
+%% A x$, $A$ with eigenvalues $0 < \l_1 \le .. \le \l_n$, satisfies
+%% \begin{align*}
+%% \norm{x_{k\po}-x^*}^2_A
+%%  &\le \(\frac{\l_n-\l_1}{\l_n+\l_1}\)^2~ \norm{x_k-x^*}^2_A
+%% \end{align*}
+
+%% \item same on a smooth, locally pos-def function $f(x)$: For
+%% sufficiently large $k$
+%% $$ f(x_{k\po}) - f(x^*) \le r^2 [f(x_k)-f(x^*)] $$
+
+%% \item Newton steps (with $\a=1$) on smooth locally pos-def
+%% function $f(x)$:
+%% \begin{items}
+%% \item $x_k$ converges \emph{quadratically} to $x^*$
+%% \item $|\na f(x_k)|$ converges \emph{quadratically} to zero
+%% \end{items}
+
+%% \item Quasi-Newton methods also converge superlinearly if the Hessian
+%% approximation is sufficiently precise (Thm. 3.7)
+
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{Conjugate Gradient}{
+
+%% \item Useful tutorial on CG and line search:
+
+%% ~
+
+%% J.\ R.\ Shewchuk: \emph{An Introduction to
+%% the Conjugate Gradient Method
+%% Without the Agonizing Pain}
+
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Further Methods}{\label{lastpage}
+
+\item Beyond the standard canon -- but perhaps discussed later:
+\begin{items}
+\item Bound constrained optimization
+
+\item Stochastic Gradient
+
+~
+
+\item Blackbox Optimization, Bayesian Optimization
+\item model-based optimization, implicit filtering
+\item Stochastic Search, Evolutionary Algorithms, EDAs
+\item Simulated annealing
+\item Nelder-Mead downhill simplex, pattern search
+\item Rprop
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slidesfoot

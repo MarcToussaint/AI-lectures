@@ -1,0 +1,66 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Optimization Algorithms}
+\renewcommand{\coursepicture}{optim}
+\renewcommand{\coursedate}{Winter 2024/25}
+\renewcommand{\exnum}{Weekly Exercise 2}
+
+\exercises
+
+\providecommand{\Min}{\text{Min}}
+
+\excludecomment{solution}
+\exercisestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\exsection{Gradient Descent} 
+
+Consider the quadratic function $f(x) = x^\T A x + b^\T x + c$
+with $A\in\RRR^{n\times n}$ symmetric and positive definite,
+$b\in\RRR^n$ and $c\in\RRR$.  Starting at $x_0$, we do a line search
+using the gradient direction, i.e. $x' = x_0 - \alpha \nabla
+f(x_0)$. In this exercise, instead of doing backtracking, we can do
+exact line search, i.e., compute the optimal step length using the
+analytical expression of the quadratic function. Which is the best
+step size $\alpha$?
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Newton Step} 
+
+\begin{enumerate}
+
+\item Consider the quadratic function $f(x) = \half x^\T A x + b^\T x + c$ with $A\in\RRR^{n\times n}$ symmetric and positive definite,
+$b\in\RRR^n$, $c\in\RRR$. Which $x_\Min$ minimizes $f(x)$? At a given location $x$, what is the Newton step $\d$ that solves $\nabla^2 f(x)\delta = -\nabla f(x)$? How many iterations are required to reach $x_\Min$ if we take full Newton steps $x' = x + \delta $?
+
+
+\item A fixed-stepsize Newton method iterates $x \gets x + \a \d$, for constant stepsize $\a\in[0,1]$. Write down an explicit equation for the Newton iterates in the quadratic case of part a), i.e.\ find
+$x_k = \ldots$ for the $k$-th iterate which only depends on $A, b, c, \a$
+and $x_0$. For which values of $\a$ does it converge? How fast does it converge?
+
+
+%% \item Given a general function $f(x)$, show that an infinitesimal Newton step $x' = x_0 + \alpha \delta$ with $  \alpha \to 0, \delta = -  \nabla^2 f(x_0) ^{-1}  \nabla f(x_0)$ always reduces the cost if the function is locally (around $x_0$) strongly convex (that is, $\nabla^2 f (x_0) $ is positive definite).
+
+\end{enumerate}
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Levenberg-Marquardt regularization}
+
+Another small exercise to train you minimze a quadratic: Show that the regularized Newton step\\ $\d = -(\he f(x) + \l\Id)^\1 \na f(x)$ minimizes
+\begin{align*}
+\min_\d \[ \na f(x)^\T \d + \half \d^\T \he f(x) \d
++ \half \l \norm{\d}^2\] ~.
+\end{align*}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exerfoot

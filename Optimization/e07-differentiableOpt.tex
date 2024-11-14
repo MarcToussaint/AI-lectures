@@ -1,0 +1,56 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Optimization Algorithms}
+\renewcommand{\coursepicture}{optim}
+\renewcommand{\coursedate}{Winter 2024/25}
+\renewcommand{\exnum}{Weekly Exercises 7}
+
+\exercises
+
+\excludecomment{solution}
+
+\exercisestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Differentiable Optimization}
+
+Let's again consider the problem we had in exercise 5, but this time with parameter $\t\in\RRR$,
+$$\min_{x\RRR^2} 1^\T x \st g(x) \le 0 \comma g(x) = \mat{c}{x^\T x - 1 \\ -x_1 + \t} ~.$$
+Here, the second inequality $x_1 \ge \t$ is parameterized and we want to know $\Del \t x^*(\t)$.
+
+\begin{enumerate}
+\item As in exercise 5, derive the optimum $x^*(\t)$, but now as a function of $\t$. (You may assume that both constraints are active. What does this imply for possible values of $\t$?)
+
+\item Determine the derivative $\Del{\t} x^*(\t)$ based on the parameteric solution you found in a).
+
+\item Derive the KKT Jacobian $\Del{x\k\l} r \in \RRR^{4\times 4}$ at the optimum, and the vector $\Del \t r \in \RRR^{4}$ (see slide 13).
+
+\item Check that the first two entries of $\Del \t F = -[\Del {{}_{x\k\l}} r]^\1~ \Del \t r$ coincide with the gradient $\Del \t x^*(\t)$ you found in b).
+\end{enumerate}
+
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Trust Region}
+
+Consider a function $f(x)=\half x^\T A x + b^\T x$ for symmetric positive definite $A$. For a given $x_0$, we would like to solve the problem
+$$\min_x f(x) \st \norm{x-x_0}^2 \le \a$$
+
+This describes a Newton step under a \emph{Trust Region} approach: It considers a 2nd-order Taylor approximation $f$, and computes an optimal step under step length limit $\sqrt{\a}$, which is called trust region radius.
+
+\begin{enumerate}
+\item Try to solve this problem analytically as far as you can get. Eventually  you will not be able to solve it completely analytically and be left with an equation for the dual parameter $\l$. What numerical algorithm could you use (in an 'inner loop') to efficiently solve for the correct $\l$?
+
+\item Make explicit, how the $\l$ that arises in the Trust Region step is related to the damping (aka.\ Levenberg-Marquardt parameter) of a Newton step.
+
+\item Derive the dual function $l(\l) = \min_x L(x,\l)$ for the above problem. Can one solve $\max_{\l\ge0} l(\l)$ analytically?
+\end{enumerate}
+
+
+
+\exerfoot

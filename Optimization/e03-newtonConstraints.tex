@@ -1,0 +1,100 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Optimization Algorithms}
+\renewcommand{\coursepicture}{optim}
+\renewcommand{\coursedate}{Winter 2024/25}
+\renewcommand{\exnum}{Weekly Exercise 3}
+
+\exercises
+
+\excludecomment{solution}
+
+\exercisestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Gauss-Newton basics}
+
+\begin{enumerate}
+
+\item Let $f(x) = \norm{\phi(x)}^2$ be a sum-of-squares cost for the features $\phi:\RRR^n\to \RRR^d$. Derive the Gauss-Newton approximation $\he f(x) \approx 2J(x)^\T J(x)$ from a linear approximation (first order Taylor) of features $\phi$, with the Jacobian $J(x) = \Del x \phi(x)$.
+
+
+
+%% \item Repeat the same but this time for gradient descent. What are conditions under which it converges? Tip: Neumann series.
+        
+%% \item What can be said for the gradient descent method if $A = I$?
+        
+%% \item Implement this for the function of the last exercise and see if your convergence criteria hold in practice (or what happens if you choose an $\alpha$ for which your analysis says it should not converge).
+
+\item Show that for any vector
+$v\in\RRR^n$ the matrix $v v^\T$ is symmetric and
+semi-positive-definite.\footnote{ A matrix $A\in\RRR^{n\times n}$ is
+semi-positive-definite simply when for any $x\in\RRR^n$ it holds $x^\T
+A x \ge 0$. Intuitively: $A$ might be a metric as it ``measures'' the
+norm of any $x$ as positive. Or: If $A$ is a Hessian, the function is
+(locally) convex.} Based on this, argue that the Gauss-Newton approximation
+$J(x)^\T J(x)$ is also symmetric and
+semi-positive-definite.
+
+\end{enumerate}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Conjugate Gradient}
+
+The conjugate gradient methods initialized $\d_0=g=-\na f(x_0)$ and then iterates the following steps:\\
+\begin{algo}
+\State $\a \gets \argmin_\a f(x+\a \d)$ \Comment{exact line search}
+\State $x \gets x + \a \d$
+\State $g' \gets g$,~ $g = -\na f(x)$ \Comment{store old and compute new gradient}
+\State $\b \gets \max\left\{\frac{g^\T(g - g')}{g'^\T g'},0\right\}$
+\State $\d \gets g + \b \d$ \Comment{conjugate descent direction}
+\end{algo}
+
+Consider the quadratic cost function $f(x) = \half
+x^\T A x + b^\T x + c$ with $A=\begin{bmatrix}2&0\\0&1\end{bmatrix},~b=\begin{bmatrix}0\\0\end{bmatrix}$ and $c=0$ whose minimum is achieved at $x^*=(0,0)$.
+\begin{enumerate}
+\item Compute, by hand, two iterations of the conjugate gradient descent from $x_0 = (1,1)$ and from $x_0 = (-1,2)$, respectively.
+\item Show that the first and second descent directions are $A$-orthogonal, i.e., $\d_0^\T A \d_1 = 0$.
+\end{enumerate}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Solve by Sketch and check KKT}
+
+In this exercise, for each of the following problems do the following:
+\begin{items}
+	\item Sketch the problem on paper
+	and, without much maths, figure out where the optimum $x^*$ is.
+	\item State which contraints are active at $x^*$.
+	\item Compute (by hand) the gradient $\na f$ and gradients $\na
+	g_i$, $\na h_j$ of active constraints at $x^*$.
+	\item Identify dual parameters $\l_i,\k_j$ so that the
+	stationarity (1st KKT) condition holds at $x^*$.
+\end{items}
+
+\begin{enumerate}
+	\item A 1D problem:
+	$$\min_{x\in\RRR^1} x \st \sin(x)=0\comma x^2/4-1\le 0$$
+	
+	\item 2D problems: ~ (Note that $1^\T x = \sum_i x_i$ is a simple linear cost.)
+	$$\min_{x\in\RRR^2} 1^\T x \st |x|^2-1 \le 0$$
+	
+	\item 
+	$$\min_{x\in\RRR^2} 1^\T x \st |x|^2-1 \le 0,~ -x_1\le 0$$
+	
+	
+	
+	\item
+	$$\min_{x\in\RRR^2} 1^\T x \st x^2-1 \le 0,~ x_2^2-x_1 \le0$$
+\end{enumerate}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exerfoot

@@ -1,0 +1,545 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Optimization Algorithms}
+\renewcommand{\coursepicture}{optim}
+\renewcommand{\coursedate}{Winter 2024/25}
+
+\renewcommand{\topic}{Bayesian Optimization}
+\renewcommand{\keywords}{}
+
+\slides
+
+\slidestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{References}{
+
+\item \emph{Information-theoretic regret bounds for gaussian process
+optimization in the bandit setting}
+Srinivas, Krause, Kakade \& Seeger, Information Theory, 2012.
+
+\item \emph{A taxonomy of global optimization
+methods based on response surfaces} Jones, Journal of Global
+Optimization, 2001.
+
+\item \emph{Explicit local models: Towards optimal optimization
+algorithms}, Poland, Technical Report No. IDSIA-09-04, 2004.
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\sublecture{Global Optimization}{
+
+\item Let $x\in\RRR^n$, $f:~ \RRR^n \to \RRR$, ~ find
+\begin{align*}
+\min_x~ & f(x)
+\end{align*}
+
+\item Blackbox optimization: find a global optimium by sampling values
+$y_t = f(x_t)$
+\begin{items}
+\item No access to $\na f$ or $\he f$
+\item Observations may be noisy $y \sim \NN(y \| f(x_t), \s^2)$
+\end{items}
+
+~\pause
+
+\item Global Optimization = infinite Bandits, with infinite decision space,
+$x\in\RRR^n$
+\begin{items}
+\item Bandit problems are archetype for sequential decision making under uncertainty
+\item Upper Confidence Bound (UCB) decisions have provably bounded regret!
+\item Resolves exploration/exploitation ``dilemma''
+\item Bayesian Optimization (GP-UCB) transfers bandits to continuous decisions $x\in\RRR^n$
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Random restarts}
+\slide{Random Restarts ~ (run downhill multiple times)}{
+
+\item first the most basic approach...
+
+~\pause
+
+\item We assume to have a start distribution $q(x)$, and restart greedy search:
+
+\begin{algo}
+\Repeat
+\State Sample $x\sim q(x)$
+\State $x \gets \texttt{GreedySearch}(x)$ or
+$\texttt{StochasticSearch}(x)$
+\State \textbf{If} $f(x)<f(x^*)$ \textbf{then} $x^*\gets x$
+\Until run out of budget
+\end{algo}
+
+\small
+
+\item When gradients are available, replace greedy search by BFGS or Newton
+
+~\pause
+
+\item Can we not \emph{learn} more from all the evaluated points and found local optima?
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Optimization and Learning}
+\slide{Optimizing and Learning}{
+
+\item Blackbox optimization is often related to learning:
+\begin{items}
+\item When we have local a gradient or Hessian, we can take that local
+   information and run downhil -- no need to keep track of the history or
+   learn (exception: BFGS, momentum)
+\item In the Blackbox case we have no local information directly
+   accessible $\to$ one needs to account of the history in some way or another to have an idea where to continue search
+\end{items}
+   
+\item ``Accounting for the history'' often means learning or maintaining data:
+\begin{items}
+\item Learning a local or global model of $f$ itself, learning which steps
+have been successful recently (gradient estimation), or which step
+directions, or other heuristics
+\item Maintaining data: populations, evolutionary algorithms, EDAs, etc.
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\item Where we left when discussing No Free Lunch:
+
+~
+
+\emph{What are algorithms that literally start by making assumptions about $P(f)$ and then derive an
+optimization algorithm for that $P(f)$?}
+
+~
+
+\item In Bayesian Optimization we maintain a particular belief $b_t = P(f\|D)$, namely a \emph{Gaussian Process}, and choose the next query based on that.
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\sublecture{Gaussian Processes}{
+
+~\small
+
+\item In my ML lectures, I introduce Gaussian Processes as Bayesian Kernel Ridge Regression
+
+But here, the function space view of GPs relates more directly to NLF
+
+{\tiny (see also Welling: ``Kernel Ridge Regression'' Lecture Notes;  Rasmussen \& Williams sections 2.1 \& 6.2; Bishop sections 3.3.3 \& 6)\\}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Gaussian Process definition}{
+
+\item The function space view: We have a prior $P(f)$ and data, then
+$$P(f|\text{Data}) = \frac{P(\text{Data}|f)~ P(f)}{P(\text{Data})}$$
+
+\item Gaussian Processes define a probability distribution over
+functions:
+\begin{items}
+\item A function is an infinite dimensional thing -- how could we
+define a Gaussian distribution over functions?
+\item For every finite set $\{x_1,..,x_M\}$, the function values
+$f(x_1),..,f(x_M)$ are Gaussian distributed with mean and covariance
+\begin{align*}
+\Exp{f(x_i)} &= \mu(x_i) \qquad\text{(often zero)} \\
+\Exp{[f(x_i)-\m(x_i)][f(x_j)-\mu(x_j)]} &= k(x_i,x_j)
+\end{align*}
+where, $\mu(x)$ is called \textbf{mean function}, and $k(x,x')$ is called \defn{covariance function}
+\item $\mu$ and $k$ generalize the notion of \emph{mean vector} $\mu_x$ and \emph{covariance matrix} $\S_{xx'}$ from finite $x\in\{1,..,n\}$ to continuous $x\in\RRR^n$
+\end{items}
+
+\item Second, Gaussian Processes define an observation probability
+$$P(y|x,f) = \NN(y | f(x),\s_0^2)$$
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Gaussian Process posterior}{
+
+\small
+
+\item Given a Gaussian Process prior $GP(f|\mu,k)$ over $f$ and data
+$D = \{ (x_i,y_i) \} _{i=1}^n$,
+the posterior $P(f\|D)$ has new posterior mean and variance:
+\begin{align*}
+\Exp{f(x)\|D}
+ &= \mu(x|D) = \k(x)^\T (K + \s_0^2 \Id)^\1 y\\
+\Exp{[f(x)-\hat f(x)]^2\|D}
+ &= \s^2(x|D) = k(x,x)
+  - \k(x)^\T (K + \s_0^2 \Id_n)^\1 \k(x)
+\end{align*}
+{\tiny where $\k(x) = (k(x,x_1), \ldots, k(x,x_n))^\T\in\RRR^n$
+contains covariances of $x$ to all data points; $K
+= \left(k(x_i,x_j)\right)_{i,j=1}^{n,n}$ contains covariances between
+all data points; and $y = (y_1,\ldots, y_n)^\T\in\RRR^n$
+contains all data output values; the choice of kernel $k(\cdot,\cdot)$ and the observation sdv $\s_0$ are parameters
+
+}
+
+~
+
+\item Side notes:
+\begin{items}
+\item Note: Don't forget that
+$\text{Var}(y^*|x^*,D) = \s_0^2 + \text{Var}(f(x^*)|D)$
+
+\item Gaussian Processes ~=~ Bayesian Kernel Ridge Regression
+
+\item GP classification ~=~ Bayesian Kernel Logistic Regression
+
+%% \item We can also handle discrete-valued functions $f$ using GP
+%%   classification
+\end{items}
+
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{GP examples}{
+
+\show[.6]{gaussianProcess1}
+{\tiny\hfill(from Rasmussen \& Williams)}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{}{
+%% \show[.6]{BayesianPredictiveDistribution}
+%% {\tiny\hfill(from Bishop)}
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{GP examples: different covariance functions}{
+
+~
+
+\show[.6]{gaussianProcess2}
+{\tiny\hfill(from Rasmussen \& Williams)}
+
+~
+
+\item These are examples from the $\g$-exponential covariance function
+
+$$k(x,x') = a~ \exp\{-|(x-x')/l|^\g\}$$
+
+{\tiny with $a$ the prior variance of function values}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{GP examples: derivative observations}{
+
+~
+
+\show[.6]{gaussianProcess3}
+{\tiny\hfill(from Rasmussen \& Williams)}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\sublecture{Heuristics / Acquisition Functions}{
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Bayesian Optimization Algorithm}{
+
+\begin{algo}
+\Require GP prior given as $\mu(x)$ and $k(x,x')$, black-box function $f(x)$
+\Ensure $x$
+\State initialize empty data $D=\{\}$
+\Repeat
+\State find optimal query $x \gets \argmax_x \a(x|D)$  ~ (where $\a$ depends on $\mu(x|D), \s^2(x|D)$)
+\State query $y \gets f(x)$
+\State add to data $D \gets D \cup \{(x,y)\}$, update GP posterior $\mu(x|D), \s^2(x|D)$
+\Until resources
+\end{algo}
+
+~
+
+\item $\a(x;D)$ is called \textbf{acquisition function}
+\begin{items}
+\item $\a(x;D)$ characterizes how ``interesting'' it is to query $x$ next, given $D$
+\item $\a(x;D)$ is a descriminative function for the next decision
+\item $\a(x;D)$ analogous to a $Q$-function $Q(D,x)$ for the next decision $x$ in state $D$
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Acquisition Functions}{
+
+\twocol[-.05]{.6}{.5}{
+
+~
+
+\item Maximize Probability of Improvement ~ (MPI)
+$$\a(x;D) = \int_{-\infty}^{y^*} \NN(y|\mu_D(x),\s^2_D(x))$$
+
+\item Maximize Expected Improvement ~ (EI)
+$$\a(x;D) = \int_{-\infty}^{y^*} \NN(y|\mu_D(x),\s^2_D(x))~ (y^*-y)$$
+
+\item Maximize UCB
+$$\a(x;D) = \mu_D(x) + \b_t \s^2_D(x)$$
+
+
+}{
+\showh[1]{jones01}
+
+\cen{\qquad\tiny(from Jones, 2001)}
+
+}
+
+~
+
+~\tiny
+
+(Often, $\b_t=1$ is chosen. UCB theory allows for
+better choices. See Srinivas et al.\ citation.)
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Each step requires solving an optimization problem}{
+
+\item Note: each $\argmax_x \a(x)$ on the previous slide is an optimization
+problem!
+
+\item As $\mu(x|D),\s^2(x|D)$ are given analytically, we have gradients and
+Hessians. BUT: multi-modal problem!
+
+\item In practice:
+\begin{items}
+\item Many restarts of gradient/2nd-order optimization runs
+\item Restarts from a grid; from many random points
+\end{items}
+
+~\pause
+
+\item We traded a \emph{blackbox} global optimization problem by solving an \emph{analytical} global optimization problem in each iteration:
+\begin{items}
+\item Assumes evaluating the real $f(x)$ is very expensive
+\item The inner problem is analytical, can exploit gradients/Hessian, can run without real-world queries
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{GP-UCB}
+\slide{GP-UCB}{
+
+{\tiny From: \emph{Information-theoretic regret bounds for gaussian process
+optimization in the bandit setting}
+Srinivas, Krause, Kakade \& Seeger, Information Theory, 2012.
+
+}
+
+~
+
+%\show[1]{GP-UCB1}
+\show[.75]{GP-UCB2}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+\show[.75]{GP-UCB3}
+
+~
+
+\show[.75]{GP-UCB4}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\slide{Pitfall of using GPs as belief}{
+
+\item A real issue, in my view, is the choice of kernel (i.e.\ prior $P(f)$)
+\begin{items}
+\item 'small' kernel: almost exhaustive search
+\item 'wide' kernel: miss local optima
+\item adapting/choosing kernel online (with CV): might fail
+\item real $f$ might be non-stationary
+\item non RBF kernels? Too strong prior, strange extrapolation
+\end{items}
+
+~
+
+\item Assuming that we have the right prior $P(f)$ is really a strong assumption
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Further reading}{
+
+\item Classically, such methods are known as \emph{Kriging}
+
+~
+
+\item \emph{Information-theoretic regret bounds for gaussian process
+optimization in the bandit setting}
+Srinivas, Krause, Kakade \& Seeger, Information Theory, 2012.
+
+~
+
+\item \emph{Efficient global optimization of expensive black-box functions.} Jones, Schonlau, \& Welch, Journal of Global Optimization, 1998.
+
+\item \emph{A taxonomy of global optimization
+methods based on response surfaces} Jones, Journal of Global
+Optimization, 2001.
+
+\item \emph{Explicit local models: Towards optimal optimization
+algorithms}, Poland, Technical Report No. IDSIA-09-04, 2004.
+
+%\show{GP-UCB}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Further reading: Entropy Search}{
+
+\item P. Hennig \& C. Schuler: \emph{Entropy Search for
+Information-Efficient Global Optimization}, JMLR 13 (2012).
+
+~
+
+\item \textbf{Predictive Entropy Search}
+
+\item Hern{\'a}ndez-Lobato, Hoffman \& Ghahraman: \emph{Predictive Entropy
+Search for Efficient Global Optimization of Black-box Functions}, NIPS
+2014.
+
+\item Also for constraints!
+
+\item Code: \url{https://github.com/HIPS/Spearmint/}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Note: beyond Gaussian Processes}{
+
+~
+
+\item Use emsembles (e.g.\ bootstrap ensembles) of models and their discrepancy to decide on information gain, rather than variance!
+\begin{items}
+\item Can be realized also with more complicated function models (NNs)
+\item covariance function is implicit and more structured
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\sublecture{Appendix}{
+
+Other basic approaches...
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Iterated local search}
+\slide{Iterated Local Search}{
+
+\small
+
+\item Iterated Local Search (in discrete spaces) restarts in a \textbf{meta-neighborhood} $\NN^*(x)$ of the last visited local minimum $x$
+
+\item Iterated Local Search (Variant 1):\\
+\begin{algo}
+\Require initial $x$, function $f(x)$
+\Repeat
+\State $x \gets \argmin_{y'\in\{\texttt{GreedySearch}(y)\,:\,y\in\NN^*(x)\}} f(y')$
+\Until $x$ converges
+\end{algo}
+\begin{items}
+\item This evalutes a GreedySearch for all meta-neighbors
+$y\in\NN^*(x)$ of the last local optimum $x$
+\item The inner GreedySearch uses another neighborhood function
+$\NN(x)$
+\end{items}
+
+\item Variant 2: $x \gets $ the ``first'' $y\in\NN^*(x)$ such that $f(\texttt{GS}(y)) < f(x)$
+
+\item In \textbf{continuous space}: $\NN(x)$ and $\NN^*(x)$ are replaced by
+transition proposals $q(y|x)$ and $q^*(y|x)$
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Iterated Local Search}{\label{lastpage}
+
+\item Application to Travelling Salesman Problem:
+
+$k$-opt neighbourhood: solutions which differ by at most k edges
+
+~
+
+\show[.6]{TSP-neighborhoods}
+{\tiny\hfill from Hoos \& St{\"u}tzle: \emph{Tutorial: Stochastic
+Search Algorithms}}
+
+~
+
+\item GreedySearch uses 2-opt or 3-opt neighborhood
+
+Iterated Local Search uses 4-opt meta-neighborhood (double bridges)
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \key{Variable neighborhood search}
+%% \slide{Very briefly...}{
+
+%% \item Variable Neighborhood Search:
+%% \begin{items}
+%% \item Switch the neighborhood function in different phases
+%% \item Similar to Iterated Local Search
+%% \end{items}
+
+%% ~
+
+%% \item Tabu Search:
+%% \begin{items}
+%% \item Maintain a \emph{tabu list} points (or points features) which
+%% may not be visited again
+%% \item The list has a fixed finite size: FILO
+%% \item Intensification and diversification heuristics make it more global
+%% \end{items}
+
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slidesfoot

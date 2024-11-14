@@ -1,0 +1,53 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Optimization Algorithms}
+\renewcommand{\coursepicture}{optim}
+\renewcommand{\coursedate}{Winter 2024/25}
+\renewcommand{\exnum}{Weekly Exercises 9}
+
+\exercises
+
+\excludecomment{solution}
+
+\exercisestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{$(1+\l)$-ES}
+
+The $(1+\l)$-ES is one of the simplest stochastic search methods. Implement this method (for given parameters $\s$ and $\l$).
+
+Test $(1+\l)$-ES on the simple $n=2$-dimensional squared cost $f(x) = x^\T C x$, where $C$ is diagonal with entries $C_{ii} = c^{\frac{i-1}{n-1}}$ and conditioning $c=10$. Initialize the center with $\hat x_0 = (2,2)$.
+
+\begin{enumerate}
+\item For large $\l=100$ and fairly small $\s \approx 0.02$, how does the typical trace of the method look like? (The typical path the method takes in this 2D problem?)
+\item For $\l=1$, roughly what is the probability of improvement of each step \emph{in the early phase} (say, the very first step) of optimization?
+\item Qualitatively, what is the probability of improvement in the ``mid-phase'' (which should be clear from the typical path)? (Smaller or larger than in the early phase?) How would that change with increasing dimensions $n$?
+\end{enumerate}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{No Free Lunch (NFL)}
+
+You are given an optimization problem where the search space is the discrete
+set $X= \{1, \ldots, 10\}$ of size $10$, and the cost space $Y$ is the set of integers $\{1, \ldots, 10\}$. The unknown cost function $f:X \to Y$ is distributed by $P(f)$ and we assume that you (or the algorithm) knows $P(f)$ apriori. (The equivalence of not knowing anything about $f$ would be $P(f)$ is i.i.d.\ uniform (with maximal entropy), which is the NFL condition. To solve this exercise, you do not need to know NFL in detail -- if you are interested, I am uploading correspondings slides on ISIS.)
+
+\begin{enumerate}
+\item If you know that $f$-values of neighboring $x$ can only differ by 1, i.e.,
+$$\forall_{x_1,x_2\in X}:~ |x_1-x_2|\le 1 \To |f(x_1)-f(x_2)|\le 1 ~,$$
+and all possible $f$ are equally likely, how would you design an (optimal?) optimization algorithm?
+
+\item If you additionally to the above know that the function $f$ aquires \emph{all} values in $Y$ somewhere (i.e., the image of $f$ equals $Y$),
+and all possible $f$ are equally likely, how would you design an (optimal!) optimization algorithm?
+
+\item Bonus/Optional: Now, if you know that $f$-values of neighboring $x$ can only differ by 2, but again $f$ must be bijective (and all possible $f$ are equally likely), how would you design an (optimal?) optimization algorithm?
+\end{enumerate}
+
+The exercises are also meant to illustrate what it means to maintain a \emph{belief} $P(f|D)$ over the function, given observed data. Can you indicate what beliefs or similar your proposed algorithms maintain while exploring the function?
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\exerfoot

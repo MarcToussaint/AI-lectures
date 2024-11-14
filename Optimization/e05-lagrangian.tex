@@ -1,0 +1,97 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Optimization Algorithms}
+\renewcommand{\coursepicture}{optim}
+\renewcommand{\coursedate}{Winter 2024/25}
+\renewcommand{\exnum}{Weekly Exercises 5}
+
+\exercises
+
+\excludecomment{solution}
+
+\exercisestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Using the Lagrangian to solve a constrained problem analytically I}
+
+\begin{enumerate}
+	\item Consider the following constrained problem:
+	\begin{align}
+	\min_{x\in\RRR^n} \sum_{i=1}^n x_i \st& g(x) \le 0 \comma g(x) = \mat{c}{x^\T x - 1 \\ -x_1} ~.
+	\end{align}
+
+	\item Evaluate all possible combinations of active/inactive constraints to find a point that fulfills the KKT conditions. Which is the optimum, and what are the optimal dual parameters? Note that $x\in\mathbb{R}^n$ (not 2D as previously). 
+
+	\item Draw the feasible set and the optimal solution for $n=2$.
+\end{enumerate}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Using the Lagrangian to solve a constrained problem analytically II}
+	We consider again the following problem (which appeared in the very first exercise sheet): \par
+
+	In $\RRR^n$, a plane (through the origin) is described by
+the linear equation
+\begin{align}
+  c^\T x = 0 ~,
+\end{align}
+where $c\in\RRR^n$ parameterizes the plane and $x\in\RRR^n$ is a variable. Provide the matrix that describes the orthogonal projection of a point $x_0 \in \RRR^n$ onto this plane. 
+% (Hint: the solution has the form of 'Identity matrix minus a rank-1 matrix').
+
+
+	% 	, 5 a), where we asked for the
+	% matrix that describes the orthogonal projection onto the plane $c^\T x
+	% = 0$, for $x \in \RRR^n$. 
+
+
+\begin{enumerate}
+	\item Formulate a constrained optimization problem
+	that describes the projection.  Solve this analytically, writing down
+	the Lagrangian, and extract the projection matrix.
+\end{enumerate}
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Lagrangian and dual function}
+
+(Taken roughly from `Convex Optimization', Ex. 5.1)
+
+Consider the optimization problem
+\begin{align}\label{ex1}
+\min x^2 + 1 \st (x-2)(x-4) \le 0
+\end{align}
+with $x \in \RRR$.
+
+\begin{enumerate}
+\item Derive the optimal solution $x^*$ and the optimal value
+$p^*=f(x^*)$ by hand. Write down the Lagrangian $L(x,\l)$.
+
+\item For the same problem (\ref{ex1}), plot $L(x,\l)$ over $x$ for various values of $\l\ge 0$.
+The plots should verify the lower bound property $\min_x L(x,\l) \le
+p^*$, where $p^*$ is the optimum value of the primal problem.
+
+\item Derive the dual function $l(\l) = \min_x L(x,\l)$ and plot it (for $\l\ge
+0$). Derive the dual optimal solution $\l^* = \argmax_\l l(\l)$. Is
+$\max_\l l(\l) = p^*$ (strong duality)?
+\end{enumerate}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Phase I Optimization}
+
+Given an inequality-constrained mathematical program $\min_x f(x) \st g(x)\le0$, some solvers (like log barrier) require to be initialized with a \emph{feasible} starting point $x_0$. However, finding a feasible initial point is not always easy. The term ``Phase I Optimization'' denotes the approach to formulate another optimization problem (which can easily be initialized feasible), so that solving this one leads to a feasible initialization of the original problem.
+
+We will discuss standard approaches in the lecture. In this exercise, be creative yourself and come up with a ``Phase I Optimization'' formulation (which could be solved, e.g., by a log-barrier method).
+
+Tip: If you lack ideas, check the term ``slack variable'' on Wikipedia. But please be creative also having other ideas.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exerfoot

@@ -1,0 +1,443 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Optimization Algorithms}
+\renewcommand{\coursepicture}{optim}
+\renewcommand{\coursedate}{Winter 2024/25}
+
+\renewcommand{\topic}{Appendix}
+\renewcommand{\keywords}{Phase I Optimization, Bound Constraints, Primal-Dual Newton method}
+
+\slides
+
+\newcommand{\clip}{\text{clip}}
+\newcommand{\lowerB}{l}
+\newcommand{\upperB}{u}
+
+\slidestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\sublecture{Phase I Optimization}{
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Phase I optimization}
+\slide{Phase I: Finding a feasible initialization}{
+
+\item We might not have a feasible $x\in\RRR^n$ to initialize the NLP solver
+\begin{items}
+\item No issue for squared penalty and AugLag
+\item Also primal-dual can be ok ~ (although it is usually realized as interior point method)
+\item LogBarrier requires feasible initialization (e.g., also within SQP)
+\end{items}
+
+~
+
+\item \emph{Phase I Optimization} means finding a feasible initial $x$ by solving another optimization problem
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Phase I: formulation to minimize infeasibility}{
+
+\item Standard approach: introduce single or multiple variables of infeasibility
+
+\item Single (maximum) infeasibility variable
+$$\min_{(x,s)\in\RRR^{n\po}} s \st \forall_i:~ g_i(x)\le s,~ s\ge 0$$
+\begin{items}
+\item Given initial infeasible $x$, initialize $s = \max_i g_i(x) > 0$
+\end{items}
+
+\item Individual infeasibility variables
+$$\min_{(x,s)\in\RRR^{n+m}} \sum_{i=1}^m s_i \st \forall_i:~ g_i(x)\le s_i,~ s_i\ge 0$$
+\begin{items}
+\item Given initial infeasible $x$, initialize $s_i = \max\{g_i(x) , 0\}$
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\sublecture{Bound Constraints}{
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Bound Constraints}{
+
+\item A \defn{bound constrained} NLP, with bounds $l,u\in\RRR^n$, ~ $l\le u$
+ $$\min_{\lowerB \le x \le \upperB} f(x) \st g(x) \le 0,~ h(x) = 0$$
+
+\item Other words:
+\begin{items}
+\item \emph{simply constrained problem} or NLP with simple constraints (Bertsekas)
+\item box or rectangle constraints
+\end{items}
+
+~\pause
+
+\item Since we know how to deal with constraints $g, h$, we only discuss:
+$$\min_{\lowerB \le x \le \upperB} f(x)$$
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Bound Constraints -- Motivation}{
+
+\item Do we need to handle them specially? Not necessarily
+\begin{items}
+\item \textbf{Treat bounds just like any other inequality}
+\item Sound, we know what we're doing -- \textbf{recommended, if possible}
+\end{items}
+
+~\pause
+
+\item However, \textbf{reasons to treat bounds directly:}
+\begin{items}
+\item The primal-dual Newton method requires Newton steps that respect bounds
+\item Sometimes undesirable to have an AugLag or LogBarrier with inner/outer loop, only to account for bounds
+\item Simpler/more direct solutions to handling bounds other than general (non-linear) inequalities?
+\end{items}
+
+~\pause
+
+\item Note: Naively clipping (``projecting'') all queries in a line search can go badly wrong!
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{References}{
+
+\item Mainstream: Projected gradient (or rather ``projected line search'')
+\begin{items}
+\item not focus here, mention briefly
+\item (SLIDES) Leyffer, S. Bound Constrained Optimization - GIAN Short Course on Optimization:  Applications, Algorithms, and Computation. 30.
+\end{items}
+
+~
+
+\item \textbf{Our focus:} Bound-constrained Newton method
+\begin{items}
+\item Maintain the strength of Newon method as inner loop in AugLag, primal-dual, etc
+\item D.P. Bertsekas. Projected Newton methods for optimization problems with simple constraints. SIAM Journal on Control and Optimization 20, 221-246 (1982).
+\item Facchinei, F., Júdice, J. \& Soares, J. An active set Newton algorithm for large-scale nonlinear programs with box constraints. SIAM Journal on Optimization 8, 158–186 (1998).
+\item Cheng, W., Chen, Z. \& Li, D. An active set truncated Newton method for large-scale bound constrained optimization. Computers \& Mathematics with Applications 67, 1016–1023 (2014).
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Bound Constraints \& Newton}{
+
+\item Recap basic Newton method:
+
+\begin{algo}
+\Require initial $x\in\RRR^n$, functions $f(x), \na f(x), \he f(x)$,
+tolerance $\t$, parameters (defaults:
+$\ainc=1.2, \adec=0.5, \lsstop=0.01, \l$)
+\State initialize stepsize $\a=1$, fixed damping $\l$
+\Repeat
+\State compute $\step$ to solve $(\he f(x) + \l \Id)~ \step = - \na f(x)$
+\While{$f(x+\a\step) > f(x) + \lsstop \na f(x)^\T (\a\step)$} \Comment{line search}
+\State $\a \gets \adec\a$ \Comment{decrease stepsize}
+\EndWhile
+\State $x \gets x + \a\step$ \Comment{step is accepted}
+\State $\a \gets \min\{\ainc\a,1\}$ \Comment{increase stepsize}
+\Until $\norm{\a\step}_\infty < \t$
+\end{algo}
+
+\small
+
+\item Naive approach: clipping: query $y = \text{clip}(x+\a\d)$
+\begin{items}
+\item with $\clip(x) \equiv \min(\max(x,\lowerB), \upperB)$ elem-wise
+\end{items}
+
+\pause
+
+\item Can go badly wrong -- understanding why and when is the key to do it properly
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Example}{
+
+\item Core case to consider (from Bertsekas):\anchor{50,-50}{\showh[.35]{bertsekas-fig1}}
+
+~
+
+~
+
+~
+
+\item Example problem: ~ $x\in\RRR^2$
+$$\min \half x^\T A x \st x_1 \ge \half\comma \text{with}~ A = \mat{cc}{200 & -160 \\ -160 & 200} $$
+
+\pause
+
+\item The standard Newton direction is bad! Naively clipping (projecting line search queries) sends in the wrong direction!
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Active Set Identification}{
+
+\item The key is to (try to) identify the active set!
+\begin{items}
+\item This is consistent to our general understanding of the complexity of constrained optimization: If the active inequalities were known apriori, everything would be much simpler! (Recall complexity of Simplex.) This is the same for the simple bound inequalities.
+\item For general inequalities, we had the LogBarrier relaxing the hard decision of active constraints, and AugLag using the indicator $[g_i(x)\ge 0 \vee \l_i>0]$
+\end{items}
+
+\item Bertsekas proposes to define the active set as:
+$$ I^+(x) = \{ i :~ 0 \ge x_i \ge \e, \na f_i(x)\ge0 \}$$
+{\tiny (where he assumes $\lowerB=0$, i.e., $x\ge 0$ as bounds)}
+
+\item Facchinei proposes:
+\begin{align}
+L(x) &:= \{i :~ x_i \le \lowerB_i + a_i(x) \na f_i(x)\}\\
+U(x) &:= \{i :~ xi \ge \upperB_i + b_i(x)~ \na f_i(x)\}
+\end{align}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Hessian Modification for Active Set}{
+
+\item Assuming we had the active set identified, how can we modify the Newton method?
+
+~\pause
+
+\item (Active variables could be hard-assigned to bound.)
+\item We compute Newton step only for the free variables!
+\begin{items}
+\item The free variables form a \emph{hyperplane} -- we want a Newton step only in this hyperplane
+\item Following Bertsekas: Let $H$ be the original Hessian, we \textbf{delete correlations} of active bound variables to free variables, by \textbf{deleting off-diagonal} entries for the active variables
+
+{\ttiny
+$$
+H \gets \text{remove}_i(H) \quad:\quad
+\mat{ccc}{
+ & & \\
+A & \vdots & B \\
+ & & \\
+\cdots & h_{ii} & \cdots \\
+ & & \\
+B^\T & \vdots & C \\
+ & &}
+\gets
+\mat{ccc}{
+ & 0 & \\
+A & \vdots & B \\
+ & 0 & \\
+0 \cdots 0 & h_{ii} & 0 \cdots 0 \\
+ & 0 & \\
+B^\T & \vdots & C \\
+ & 0 &}
+$$
+}
+
+The curvature along $i$ remains, but it becomes decorrelated from all other variables
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Newton method with Bound Constraints}{
+
+\begin{algo}
+\Require initial $x\in\RRR^n$, functions $f(x), \na f(x), \he f(x)$,
+{\color{blue}bounds $\lowerB, \upperB$}, parameters $\t,\ainc, \adec, \lsstop, \l$
+\State initialize stepsize $\a=1$, fixed damping $\l$
+\State {\color{blue} $x \gets \clip(x)$} \Comment{otherwise the first $\na f(x), \he f(x)$ are horribly wrong}
+\Repeat
+\State compute $g \gets \na f(x), H \gets \he f(x)$
+\State {\color{blue} Identify $I = \{ i:~ (x=\lowerB\w g_i>0) \vee (x=\upperB\w g_i<0) \}$} \Comment{no $\e$; assume previous $\clip$}
+\State {\color{blue} $H \gets \text{remove}_I(H)$} \Comment{delete correlations}
+\State compute $\step$ to solve $(H + \l \Id)~ \step = - g$
+\While{$f({\color{blue}y}) > f(x) + \lsstop \na f(x)^\T {\color{blue}(y-x)}$,~ {\color{blue}for $y = \clip(x+\a\step)$},~} \Comment{line search}
+\State $\a \gets \adec\a$ \Comment{decrease stepsize}
+\EndWhile
+\State $x \gets {\color{blue}y}$ \Comment{step is accepted}
+\State $\a \gets \min\{\ainc\a,1\}$ \Comment{increase stepsize}
+\Until $\norm{\a\step}_\infty < \t$
+\end{algo}
+
+\begin{items}
+\item since we clip within line search, clipped $x_i$ are exactly on bound and identified in next iteration
+\item $\d$ can point away from bound (depending on $g_i$ only), to free a previously bound $x_i$
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\item Line search sometimes an issue, when bound variable was not yet identified
+
+\item Facchinei mentions a ``nonmonotone stabilization technique
+proposed in [27]'', which seems very interesting alternative to naive Wolfe in bound-constrained case!
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Projected-Gradient Methods}{
+
+\item Nice tutorial reference:
+\begin{items}
+\item (SLIDES) Leyffer, S. Bound Constrained Optimization - GIAN Short Course on Optimization:  Applications, Algorithms, and Computation. 30.
+\end{items}
+
+~
+
+~
+
+\item Let $\step = -\na f(x)$ (gradient directly) \anchor{120,-50}{\showh[.2]{projectedGradient}}
+\begin{items}
+\item Consider the full line (infinite half-line) projected (clipped)
+\item Identify the piece-wise linear pieces of this path
+\item Find minimizer along this full path
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\sublecture{Primal-Dual interior-point Newton Method}{
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Primal-dual interior-point Newton method}
+\slide{Primal-Dual interior-point Newton Method}{
+
+\item In the unconstraint case, Newton methods find a point $x$ for which $\na f(x)=0$
+
+\item The KKT conditions generalize the condition $\na f(x)=0$ to the constraint case, and can be interpreted as saddle point conditions $L(x,\k,\l)$
+
+\item We think of the KKT conditions as an equation system
+$r(x,\k,\l)=0$, and use a Newton method for solving it
+
+%% \cen{$\na r \mat{c}{\D x\\\D \l\\\D k} = -r$}
+
+~
+
+\item This leads to a \textbf{primal-dual} algorithm that adapts $(x,\k,\l)$
+concurrently.
+
+The Newton steps are done in the $(x,\k,\l)\in\RRR^{n+l+m}$ space.
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Primal-Dual interior-point Newton Method}{
+
+\item We consider the KKT equation system
+\begin{align*}
+  \na f(x) + \l^\T \Del x g(x) + \k^\T \Del x h(x) &= 0 \\
+  h(x) &= 0 \\
+  \diag(\l) g(x) + \m \one_m &=0
+\end{align*}
+\vspace*{-5mm}\begin{items}
+\item With the 1st, 2nd, and \emph{relaxed} 4th KKT condition
+\item The ineq feasibility $g(x) \le 0$ and $\l\ge 0$ is implicit.
+\end{items}
+
+~
+
+\item We re-write this as
+\begin{align*}
+r(x,\k,\l)
+&=0 \comma
+r(x,\k,\l)
+\stackrel{\text{def}}= \mat{c}{
+  \na {~} [f(x) + \l^\T g(x)  + \k^\T h(x)] \\
+  h(x) \\
+  \diag(\l)~ g(x) + \m \one_m}
+\end{align*}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{KKT Jacobian}
+\slide{Primal-Dual interior-point Newton Method}{
+
+\item We compute the regularized Newton step $\d$ in $(x,\k,\l)$-space as
+\begin{align*}
+\d = - [\Del {{}_{x\k\l}} r(x,\k,\l) + \hat\l \Id]^\1 ~ r(x,\l)
+\end{align*}
+
+~
+
+\item With the \defn{KKT Jacobian} $\Del {{}_{x\k\l}} r \in \RRR^{(n+l+m)\times (n+l+m)}$ replacing the role of the Hessian:
+\begin{align*}
+\Del {{}_{x\k\l}} r(x,\k,\l)
+ &= \mat{ccc}{
+  \he {} [f(x) + \l^\T g(x) + \k^\T h(x)] & \Del x h(x)^\T & \Del x g(x)^\T \\
+  \Del x h(x) & 0 & 0 \\
+  \diag(\l)~ \Del x g(x) & 0 & \diag(g(x)) 
+}
+\end{align*}
+
+~\pause
+
+\item Pseudo code $\to$ just like Newton method, but with $\d$ as above
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Primal-Dual interior-point Newton Method}{\label{lastpage}
+
+\item The method uses the Hessians $\he f(x), \he g_i(x), \he h_j(x)$
+\begin{items}
+\item One can approximate the constraint Hessians $\he g_i(x), \he h_j(x) \approx 0$
+\item Gauss-Newton approximation: $f(x)=\phi(x)^\T \phi(x)$ only requires
+$\na\phi(x)$
+\end{items}
+
+~
+
+\item \emph{No need for nested iterations, as with penalty/barrier methods!}
+
+~
+
+\item The above formulation allows for a duality gap $\m$
+\begin{items}
+\item Choosing $\m=0$ is not robust
+\item We adapt $\m$ on the fly, before each Newton step:
+\item First evaluate the current duality measure
+$\tilde \mu = -\frac{1}{m}~ \sum_{i=1}^m \l_i g_i(x)$, then choose 
+$\mu = \half \tilde \mu$ to half that
+\item See also Boyd sec 11.7.3.
+\end{items}
+
+\item The dual feasibility $\l_i \ge 0$ needs to be handled explicitly by
+the root finder!
+\begin{items}
+\item Specialized method for bound-constrained optimization
+\end{items}
+
+%% ~
+
+%% \item The \textbf{feasibility constraints} $g_i(x) \le 0$ and
+%% $\l_i \ge 0$ need to be handled explicitly by the root finder (the
+%% line search needs to ensure these constraints)
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slidesfoot

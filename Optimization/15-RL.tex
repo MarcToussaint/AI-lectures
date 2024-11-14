@@ -1,0 +1,327 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Optimization Algorithms}
+\renewcommand{\coursepicture}{optim}
+\renewcommand{\coursedate}{Winter 2024/25}
+
+\renewcommand{\topic}{Reinforcement Learning \& Optimization}
+\renewcommand{\keywords}{}
+
+\slides
+
+\slidestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\item Reinforcement Learning is an optimization problem -- how far can we get with standard optimization approaches rather than specialized RL methods?
+
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Reinforcement Learning Basics}{
+
+\item \emph{The world:} An MDP $(\SS, \AA, P, R, P_0, \g)$ with state space $\SS$, action space $\AA$, transition probabilities $P(s_{t\po} \| s_t,a_t)$, reward fct $R(s_t,a_t)$, initial state distribution $P_0(s_0)$, and discounting factor $\g\in[0,1]$.
+
+\pause
+
+\item \emph{The agent:} A policy $\pi(a_t|s_t)$.
+
+~\pause
+
+\item Together they define the path distribution $(\xi=(s_{0:T\po},a_{0:T}))$
+\anchor{10,-40}{\showh[.25]{mdp1}}
+$$P_\pi(\xi) = P(s_0)~ \prod_{t=0}^T \pi(a_t|s_t)~ P(s_{t\po}|s_t,a_t)\qquad\qquad$$
+
+\pause
+
+and the \textbf{expected total return}
+$$J(\pi) = \EEE_{\xi\sim P_\pi}\big\{\underbrace{\tsum_{t=0}^\infty \g^t R(s_t,a_t)}_{R(\xi)}\big\}
+= \int_\xi P_\pi(\xi)~ R(\xi)~ d\xi$$
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Reinforcement Learning Basics}{
+
+\item We assume the policy $\pi_\t(a|s)$ is parameterized by some $\t\in\RRR^n$
+
+\item The problem is
+$$\max_\t J(\t) \qquad\text{or}\qquad \max_\t \int_\xi P_{\t}(\xi)~ R(\xi)~ d\xi $$
+
+\pause
+
+\begin{items}
+\item $J(\t)$ is just a function we want to optimize
+\item $J(\t)$ is a ``weighted sum'' over all paths (cf.\ additive cost function \& SGD)
+\item We can't really compute/evaluate $f(\t)$ exactly -- we can only get a sample $\xi\sim P_{\t}$ and $R(\xi)$ in each iteration (cf.\ SGD case!)
+\item Different: $\sum_i f_i(x)$ $\oto$ fixed distribution over $i$; $\int_\xi P_\t(\xi) R(\xi)$ $\oto$ non-stationary distribution over $\xi$
+%% \item If we don't have a gradient, this is a \textbf{stochastic black box optimization problem}
+\end{items}
+
+~\pause
+
+\textbf{Can knowing about the MDP process simplify the optimization problem?}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\textbf{Can knowing about the MDP process simplify the optimization problem?}
+
+~
+
+\item Yes, in at least 2 ways:
+
+~
+
+\item Bellman optimality -- we understand sth.\ about the optimal policy beyond KKT
+
+\item Policy gradients -- we can derive gradients
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Bellman optimality condition}{
+
+\item In general optimization, optima $x^*$ are only characterized by KKT, or stationarity
+
+\pause
+
+\item When $\max_\t J(\t)$, we know another \emph{condition of optimality}: \textbf{Bellman optimality}
+\begin{items}
+\item The value function $V^*(x)$ over state space fulfills 
+$$V^*(s) = \max_a \[ R(s,a) + \g \Exp[s'|s,a]{ V^*(s') } \]$$
+\item Knowing that function implies the optimal policy $\pi^*$
+\pause
+\item But that also raises a problem! If $\pi_\t$ is parameteric! And/or $V(s)$ is parameteric! We raise extra function approximation problems. Read:
+
+\cit{Lagoudakis \& Parr}{Least-squares policy iteration}{JMLR 2003}
+\end{items}
+
+\pause
+
+\item The Bellman optimality condition truely exploits the MDP structure, and gives further conditions on the optimum beyond stationarity of $J(\t)$.
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\item Learning (=optimizing) while collecting more and more data
+\begin{items}
+\item Unusual from the optimization perspective $\oto$ instable ``target'' (objective, $\xi$-distribution)
+\item Leads to breadth of RL-methodologies (model-based/model-free RL, TD-, Q-learning, etc)
+\end{items}
+
+~\pause
+
+\item But there are also trends to avoid this
+\begin{items}
+\item ``Offline RL'', classical system identification, model-based RL
+\item separating data collection issue from optimization issue
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Stochastic Policy Gradient}{
+
+\item Recall
+
+$$J(\t) = \int_\xi P_{\t}(\xi)~ R(\xi)~ d\xi$$
+
+\item We have
+{\small\begin{align*}
+\na_\t J(\t)
+&=
+\na_{\t}
+\int P_\t(\xi)~ R(\xi)~ d\xi
+= \int P_\t(\xi) \na_{\t} \log P_\t(\xi) R(\xi) d\xi \\
+\hspace*{-5mm}
+&=
+\Exp[\xi|\t]{\na_{\t} \log P_\t(\xi) R(\xi)}
+ = \Exp[\xi|\t]{\tsum_{t=0}^H \na_\t \log\pi(a_t|s_t) R(\xi)} \\
+&=
+\EEE_{\xi|\t}\bigg\{ \tsum_{t=0}^H \na_\t \log\pi(a_t|s_t)~ \g^t 
+ \underbrace{\tsum_{t'=t}^H \g^{t'-t} r_{t'}}_{\hat Q_{\xi,t}}\bigg\}
+\end{align*}}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Deterministic Policy Gradient}{
+
+\item However, in practise, policies are often not stochastic. Esp.\ neural networks. We have $a = \pi_\t(s) \in\RRR^d$, parameterized by $\t$. What is the correct gradient then?
+
+\item As introduced in reference [2]:
+\begin{align*}
+\na_\t J(\t)
+&=
+\Exp[s\sim P_{\t}]{\na_\t \pi_\t(s) ~\na_a Q^{\pi_\t}(s,a)\big|_{a=\pi_\t(s)}}
+\end{align*}
+(NOTE: unusual convention about Jacobians... I'd write it $\del_a Q^{\pi_\t}(s,a) \del_\t \pi(s)$ )
+
+\cit{Silver et al}{Deterministic policy gradient algorithms}{2014}
+
+~\pause
+
+\item So we in principle also have a gradient! But very noisy! Better: D4PG
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Conclusions}{
+
+\item \textbf{Can knowing about the MDP process simplify the optimization problem?} Yes:
+\begin{items}
+\item Bellman optimality, gradients
+\item interleaved learning/optimization and data collection
+\item Esp.\ if ``reward signal'' is informative beyond total return (dense rewards)
+\end{items}
+
+~\pause
+
+\item \textbf{However,} reasons to ignore structure of underlying MPD:
+\begin{items}
+\item Avoid implied problems, e.g.\ by function approximation, value estimation, policy iteration
+\item very noisy gradient estimates
+\item Robustness to mis-assumptions
+\end{items}
+\item $\to$ black-box or \textbf{derivative-free optimization}
+
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{References}{
+
+\item Salimans, T., Ho, J., Chen, X., Sidor, S., \& Sutskever, I. (2017). Evolution strategies as a scalable alternative to reinforcement learning. arXiv preprint arXiv:1703.03864.
+
+\item Such, F. P., Madhavan, V., Conti, E., Lehman, J., Stanley, K. O., \& Clune, J. (2017). Deep neuroevolution: Genetic algorithms are a competitive alternative for training deep neural networks for reinforcement learning. arXiv preprint arXiv:1712.06567.
+
+\item Stulp, F., \& Sigaud, O. (2013). Robot skill learning: From reinforcement learning to evolution strategies. Paladyn, Journal of Behavioral Robotics, 4(1), 49-61.
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\show{openai-ES1}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\item The ES they employ:
+
+~
+
+\show{openai-ES3}
+
+\begin{items}
+\item Is an instance of our ``General Stochastic Search'' scheme:
+
+\quad $\t$ is the mean; $\l=n$ samples $x_t \sim \NN(\t, \s^2 I)$; evaluations $f(x_i)$
+
+\item The update is more like a stochastic gradient step rather than selection
+
+\quad In expectation, $F_i\e_i \dot= (F_\t + \na F^\T \s\e_i)\e_i \approx 0 + \s \na F$.
+
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\item \small Ratio of ES timesteps to TRPO timesteps needed to reach various percentages of TRPO's learning progress at 5 million timesteps:
+
+~
+
+\show{openai-ES2}
+
+}
+
+%% go through paper
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\show{clune-ES3}
+
+~
+
+\cen{\emph{(Do you spend your time training nets, or simulating?)}}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\show{clune-ES1}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\show[.5]{clune-ES2}
+
+~
+
+\item Conclusion: It varies from problem to problem what is better.
+
+And it is suprising that ``naive'' black-box ES can beat elaborate RL-methods
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Conclusions}{\label{lastpage}
+
+\item Overall, it is not so clear at all whether RL is actually better than black-box/derivative-free optimization
+
+\item For small problems where we have little function approximation or noisy gradient problems, yes; but for large scale problems?
+
+~
+
+\item For discussion:
+\begin{items}
+\item If you have a problem with dense rewards and smooth dynamics...?
+\pause
+\item If you have a sparse reward problem, but with smooth/easy dynamics...?
+\pause
+\item If you have a sparse reward problem with hard dynamics...?
+\end{items}
+
+~\pause \small
+
+\item RL-methods rely on reward signals/gradients that can be ``propagated'' through time/steps (credit assignment, Q-learning, Bellman)
+
+\item Black-box search is ignorant to this, sometimes to the better
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slidesfoot

@@ -1,0 +1,311 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Optimization Algorithms}
+\renewcommand{\coursepicture}{optim}
+\renewcommand{\coursedate}{Winter 2024/25}
+
+\renewcommand{\topic}{Gradient Descent \& Backtracking Line Search}
+\renewcommand{\keywords}{plain gradient descent, stepsize adaptation, backtracking line search, Wolfe conditions, exponential convergence}
+
+\slides
+
+\providecommand{\lscurv}{\r_{\text{ls2}}}
+\providecommand{\Min}{\text{Min}}
+\renewcommand{\subtopic}{Gradient Descent}
+
+\slidestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Plain gradient descent}
+\slide{Gradient descent}{
+
+
+\item Problem:~ $\min_{x\in\RRR^n} f(x)$ ~ for smooth objective function:~ $f:~ \RRR^n \to \RRR$
+
+\medskip
+
+Gradient vector:~ $\na f(x) = \[\Del x f(x)\]^\T ~ \in \RRR^n$
+
+
+~\pause
+
+\item Plain gradient descent: iterative steps in the direction $-\na f(x)$:
+
+\twocol{.7}{.3}{
+\begin{algo}
+\Require initial $x\in\RRR^n$, function $\na f(x)$, stepsize $\a$, tolerance $\t$
+\Ensure $x$
+\Repeat
+\State $x \gets x - \a \na f(x)$
+\Until $|\D x| <\t$ ~ [perhaps for 10 iterations in sequence]
+\end{algo}
+}{
+\showh[.6]{gradient_descent}
+}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Stepsize and step direction as core issues}
+\slide{}{
+
+\item Plain gradient descent may not be efficient
+
+\item Two core issues (for any downhill method):
+
+~
+
+\begin{center}\large
+\textbf{1. Stepsize}
+
+\textbf{2. Step direction}
+\end{center}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Stepsize}{
+
+\item Making steps proportional to $\na f(x)$?
+
+~
+
+\show[.35]{gradientOpt}
+
+\item We need methods that robustly adapt stepsize
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Stepsize adaptation}
+\slide{Stepsize Adaptation: Backtracking Line Search}{
+
+\begin{algo}
+\Require initial $x\in\RRR^n$, functions $f(x)$ and $\na f(x)$,
+tolerance $\t$, parameters (defaults:
+$\ainc=1.2, \adec=0.5, \stepmax=\infty, \lsstop=0.01$)
+\State initialize stepsize $\a=1$
+\Repeat
+\State $\step \gets -\frac{\na f(x)}{|\na
+f(x)|}$ \Comment{(alternative: $\step=-\na f(x)$)}
+\While{$f(x+\a\step) > f(x) {\color{blue}+ \lsstop \na f(x)^\T (\a\step)}$} \Comment{\textbf{line search}}
+\State $\a \gets \adec \a$ \Comment{REJECT \& decrease stepsize}
+\EndWhile
+\State $x \gets x + \a\step$ \Comment{ACCEPT}
+\State $\a \gets \min\{\ainc\a,\stepmax\}$ \Comment{increase stepsize}
+\Until $|\a\step| <\t$ ~ \Comment{perhaps for 10 iterations in sequence}
+\end{algo}
+%% \begin{algo}
+%% \Require initial $x\in\RRR^n$, functions $f(x)$ and $\na f(x)$,
+%% tolerance $\t$, parameters (defaults: $\ainc=1.2, \adec=0.5, \lsstop=0.01$)
+%% \Ensure $x$
+%% \State initialize stepsize $\a=1$
+%% \Repeat
+%% \State $\step \gets -\frac{\na f(x)}{|\na
+%% f(x)|}$ \Comment{(alternative: $\step=-\na f(x)$)}
+%% \While{$f(x+\a\step) > f(x) {\color{green}+ \lsstop \na f(x)^\T (\a\step)}$} \Comment{backtracking line search}
+%% \State $\a \gets \adec \a$ \Comment{decrease stepsize}
+%% \EndWhile
+%% \State $x \gets x + \a\step$
+%% \State $\a \gets \ainc \a$ \Comment{increase stepsize
+%% (alternative: $\a=1$)}
+%% \Until $|\a\step| <\t$ ~ [perhaps for 10 iterations in sequence]
+%% \end{algo}
+
+~
+
+\item $\a$ determines the absolute stepsize
+
+\item Guaranteed monotonicity (by construction)
+
+(``Typically'' ensures convergence to locally convex minima; see later)
+%% ~
+
+%% If $f$ is convex $\To$ convergence
+
+%% For typical non-convex bounded $f$ $\To$ convergence to local optimum
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Backtracking Line Search}
+\key{Line Search}
+\slide{Backtracking line search}{
+
+\item Line search in general denotes the problem
+$$\min_{\a\ge 0} f(x+\a\step)$$
+for some step direction $\step$.
+
+\item The most common line search is \textbf{backtracking}, which
+decreases $\a$ as long as
+$$f(x+\a\step) > f(x) + \lsstop \na f(x)^\T (\a\step)$$
+
+$\adec$ describes the stepsize decrement in case of a rejected step
+
+$\lsstop$ describes a minimum desired decrease in $f(x)$
+
+%% \item In the 2nd order methods we described, we chose $a=0$:
+
+%% We did not invest into further line search steps if $f(x+\a\step) \le f(x)$
+
+\item Boyd at al: typically $\lsstop\in[0.01,0.3]$ and $\adec\in[0.1,0.8]$
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Backtracking line search}{
+
+~
+
+~
+
+\show[.6]{backtracking}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Wolfe conditions}
+\slide{Wolfe Conditions}{
+
+~
+
+\item The 1st Wolfe condition (``sufficient decrease condition'')
+$$f(x+\a\step) \le f(x) + \lsstop \na f(x)^\T (\a\step)$$
+requires a decrease of $f$ at least $\lsstop$-times ``as expected''
+
+\item The 2nd (stronger) Wolfe condition (``curvature condition'')
+$$|\na f (x + \a\step)^\T \step| \le \lscurv |\na f(x)^\T \step|$$ 
+requires a decrease of the slope by a factor $\lscurv$.
+
+$\lscurv\in(\lsstop,\half)$ (for conjugate gradient)
+
+\item See Nocedal~et~al., Section 3.1 \& 3.2 for more general proofs of convergence of any
+method that ensures the Wolfe conditions after each line search
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Convergence for strong convexity}
+\slide{Convergence for strongly convex functions}{
+
+~
+
+\item \textbf{Theorem} (Exponential convergence on convex functions)
+\begin{items}
+\item Let $f:\RRR^n \to \RRR$ be an objective function
+\item with eigenvalues $\l$ of the Hessian $\he f(x)$  bounded by $m < \l < M$, ~ with $m>0$, $\forall x\in\RRR^n$
+\item Then gradient descent with backtracking line search converges
+exponentially with convergence rate $(1-2 \frac{m}{M}\lsstop\adec)$.
+
+~
+
+{\tiny More precisely: Let $x_i$ and $x_{i+1}$ be two accepted iterates
+(backtracking line search started at $x_i$ and stopped by accepting
+$x_{i+1}$), then
+  $$f(x_{i+1}) - f_\Min \le \[1-\frac{2m\lsstop\adec}{M}\]~ (f(x_i) -
+  f_\Min) ~.$$
+
+}
+\end{items}
+
+
+~
+
+(I leave the proof to the exercises.)
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{Convergence for convex functions}{
+
+%% {\tiny following Boyd et al.\ Sec 9.3.1}
+
+%% \small
+
+%% \item \textbf{Assume} that $\forall_x$ the Hessian is
+%% $m \le \text{eig}(\he f(x)) \le M$. If follows
+%% \begin{align*}
+%% f(x) + \na f(x)^\T (y-x) + \frac{m}{2} (y-x)^2
+%% &\le f(y) \\
+%% &\le f(x) + \na f(x)^\T (y-x) + \frac{M}{2} (y-x)^2 \\
+%% f(x) - \frac{1}{2m} |\na f(x)|^2
+%% &\le f_\Min
+%%  \le f(x) - \frac{1}{2M} |\na f(x)|^2 \\
+%% |\na f(x)|^2 
+%% &\ge 2m(f(x) - f_\Min)
+%% \end{align*}
+
+%% \item Consider a \textbf{perfect line search} with $y=x-\a^*\na f(x)$,
+%% $\a^*=\argmin_\a f(y(\a))$. The following eqn.\ holds as $M$ also
+%% upper-bounds $\he f(x)$ along $-\na f(x)$:
+%% \begin{align*}
+%% f(y)
+%%  &\le f(x) - \frac{1}{2M} |\na f(x)|^2 \\
+%% f(y) - f_\Min
+%%  &\le f(x) - f_\Min - \frac{1}{2M} |\na f(x)|^2 \\
+%%  &\le f(x) - f_\Min - \frac{2m}{2M} (f(x) - f_\Min) \\
+%%  &\le \[1-\frac{m}{M}\]~ (f(x) - f_\Min)
+%% \end{align*}
+%% $\to$ each step is contracting at least by $1-\frac{m}{M}<1$
+
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{Convergence for convex functions}{
+
+%% {\tiny following Boyd et al.\ Sec 9.3.1}
+
+%% \small
+
+%% \item In the case of \textbf{backtracking line search}, backtracking
+%% will terminate \emph{latest} when $\a\le \frac{1}{M}$, because for
+%% $y=x-\a\na f(x)$ and $\a\le \frac{1}{M}$ we have
+%% \begin{align*}
+%% f(y)
+%% &\le f(x) - \a |\na f(x)|^2 + \frac{M\a^2}{2}|\na f(x)|^2 \\
+%% &\le f(x) - \frac{\a}{2} |\na f(x)|^2 \\
+%% &\le f(x) - \lsstop \a |\na f(x)|^2
+%% \end{align*}
+%% As backtracking terminates for any $\a\le\frac{1}{M}$, a step $\a\ge\frac{\adec}{M}$ is chosen,
+%% such that
+%% \begin{align*}
+%% f(y)
+%% &\le f(x) - \frac{\lsstop\adec}{M} |\na f(x)|^2 \\
+%% f(y) - f_\Min
+%%  &\le f(x) - f_\Min - \frac{\lsstop\adec}{M} |\na f(x)|^2 \\
+%%  &\le f(x) - f_\Min - \frac{2m\lsstop\adec}{M} (f(x) - f_\Min) \\
+%%  &\le \[1-\frac{2m\lsstop\adec}{M}\]~ (f(x) - f_\Min)
+%% \end{align*}
+%% $\to$ each step is contracting at least by $1-\frac{2m\lsstop\adec}{M}<1$
+
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Discussion of Complexity}{\label{lastpage}
+
+\item Each line search reduces $f(x)$ at least by
+$$f(x_\new) - f_\Min ~ \le ~ \[1-\frac{2m\lsstop\adec}{M}\]~ (f(x_\old) - f_\Min)$$
+
+~\pause
+
+\item How does it scale with the decision space dimension $n$?
+
+~\pause
+
+\item What's the intuition behind it being independent of $n$?
+
+}
+
+
+\slidesfoot

@@ -1,0 +1,430 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Optimization Algorithms}
+\renewcommand{\coursepicture}{optim}
+\renewcommand{\coursedate}{Winter 2024/25}
+
+\renewcommand{\topic}{Newton Method \& Steepest Descent}
+\renewcommand{\keywords}{steepest descent, Newton, damping, trust region, non-convex fallback}
+
+\slides
+
+\providecommand{\lscurv}{\r_{\text{ls2}}}
+
+\slidestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Steepest descent direction}
+\slide{Detour: Steepest Descent Direction}{
+
+\item The gradient $-\na f(x)$ is sometimes called \emph{steepest
+  descent direction}
+
+~
+
+\cen{\emph{Is it really?}}
+
+~\mypause
+
+\item Here is a possible definition:
+
+~
+
+\emph{The steepest descent direction is the one where, {\color{red} when you
+      make a step of length 1}, you get the largest decrease of $f$ in
+    its linear approximation.}
+
+\begin{align*}
+\argmin_\d \na f(x)^\T \d \text{\qquad s.t.~} \norm{\d}=1
+\end{align*}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Detour: Steepest Descent Direction}{
+
+\item But the norm $\norm{\d}^2=\d^\T A \d $ depends on the metric $A$!
+
+~
+
+Let $A = B^\T B$ (Cholesky decomposition) and $z = B \d$
+\begin{align*}
+\d^*
+&= \argmin_\d \na f^\T \d \text{\qquad s.t.~} \d^\T A \d=1 \\
+&= B^\1 \argmin_z (B^\1 z)^\T \na f \text{\qquad s.t.~} z^\T z = 1\\
+&= B^\1 \argmin_z z^\T B^\mT \na f \text{\qquad s.t.~} z^\T z = 1\\
+&\propto B^\1 [- B^\mT \na f] = - A^\1 \na f
+\end{align*}
+
+~
+
+\item The steepest descent direction is $\d=- A^\1 \na f$
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Covariant gradient descent}
+\slide{Detour: Steepest Descent Direction}{
+
+\item \textbf{Behavior under linear coordinate transformations:}
+
+\begin{items}
+
+\item Let $B$ be a matrix that describes a linear transformation in
+  coordinates
+
+~
+
+\item A coordinate vector $x$ transforms as $z = B x$
+
+\item The plain gradient $\na_x f(x)$ transforms as $\na_z f(z) =
+  B^\mT \na_x f(x)$
+
+\item The metric $A$ transforms as $A_z = B^\mT A_x B^\1$
+
+\item The steepest descent transforms as $A_z^\1 \na_z f(z) = B A_x^\1
+  \na_x f(x)$
+
+\end{items}
+
+\item[$\To$] \textbf{The steepest descent vector is a covariant.} (I.e., it's coordinates transform like those of an ordinary vector.)
+{\hfill\ttiny (more details in the \emph{Maths script}) }
+
+~\pause
+
+\item Relevance in practise:
+\begin{items}
+\item When the decision variable $x$ lives in a non-Euclidean space
+\item E.g.\ when $x$ is a probability distribution $\to$ use the \textbf{Fisher metric} in probability space $\to$ leads to the \textbf{natural gradient}
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\sublecture{Newton Method}{
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Newton Step}{
+
+\item For finding roots (zero points) of $f(x)$
+
+\cen{\twocol{.3}{.4}{
+\show[1]{newton}
+}{
+$$x \gets x - \frac{f(x)}{f'(x)}$$
+}}
+
+\item For finding optima of $f(x)$ in 1D (which are roots of $f'(x)$):
+$$x \gets x - \frac{f'(x)}{f''(x)}$$
+
+\item For finding optima in higher dimensions $x\in\RRR^n$:
+
+\medskip
+
+\eqbox{$x \gets x - \he f(x)^\1 \na f(x)$}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Hessian}{
+
+\item The \defn{Hessian} of $f$ is defined as
+$$\he f(x) = {\small\mat{cccc}{
+\frac{\del^2}{\del_{x_1}\del_{x_1}} f(x) &
+\frac{\del^2}{\del_{x_1}\del_{x_2}} f(x) &
+\cdots &
+\frac{\del^2}{\del_{x_1}\del_{x_n}} f(x) \\
+\frac{\del^2}{\del_{x_1}\del_{x_2}} f(x) &
+& & \vdots \\
+\vdots & & & \vdots \\
+\frac{\del^2}{\del_{x_n}\del_{x_1}} f(x) &
+\cdots &
+\cdots &
+\frac{\del^2}{\del_{x_n}\del_{x_n}} f(x)}} ~\in\RRR^{n\times n}$$
+
+~\small
+
+\item Provides the Taylor expansion:
+$$f(x+\d) \approx f(x) + \na f(x)^\T \d + \half \d^\T~ \he f(x)~ \d$$
+{\tiny Note: $\he f(x)$ acts like a \textbf{metric} for $\d$\\}
+
+\item $\na f(x)^\T \d$ is the \defn{directional derivative}, and $\d^\T~ \he f(x)~ \d$ the \defn{directional 2nd derivative}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Notes on the Newton Step}{
+
+\item If $f$ is a 2nd-order polynomial, the Newton step
+jumps to the optimum in just one step.
+
+\item \emph{Unlike the gradient magnitude $|\na f(x)|$}, the magnitude of the
+Newton step $\d$ is meaningful and scale invariant!
+\begin{items}
+\item If you'd rescale $f$ or $x$, $\d$ is unchanged
+\end{items}
+
+\item \emph{Unlike the gradient $\na f(x)$}, the Newton step $\d$ is truely a
+vector!
+\begin{items}
+\item The Newton step is invariant under coordinate
+transformations; the coordinates of $\d$ transform contra-variant,
+as it is supposed to for vector coordinates
+\item The proof is exactly the same as for the steepest descent with a non-Euclidean metric -- the Hessian acts as a metric
+\end{items}
+
+%% \item \textbf{The hessian as metric, and the Newton step as steepest descent:} Assume that the hessian $H = \he
+%% f(x)$ is pos-def. Then it fulfils all necessary conditions to define a
+%% scalar product $\<v ,w\> = \sum_{ij} v_i w_j H_{ij}$, where $H$ plays
+%% the role of the metric tensor. If $H$ was the space's metric, then the
+%% steepest descent direction is $- H^\1 \na f(x)$, which is the Newton
+%% direction!
+
+%% Another way to understand the same: In the 2nd-order Taylor
+%% approximation $f(x+\d) \approx f(x) + \na f(x)^\T\d + \half \d^\T H
+%% \d$ the Hessian plays the role of a metric tensor. Or: we may think
+%% of the function $f$ as being an isometric parabola $f(x+\d) \propto
+%% \<\d,\d\>$, but we've chosen coordinates where $\<v,v\> = v^\T H v$ and
+%% the parabola seems squeezed.
+
+%% Note that this discussion only holds for pos-dev hessian.
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Why 2nd order information is better}{
+
+~
+
+\item Better direction:
+
+\show[.3]{2ndOrder}
+
+~
+
+\item Better stepsize:
+\begin{items}
+\item A full Newton step jumps directly to the minimum of the local
+squared approx.
+
+\item Robust Newton methods combine this with line search and damping (Levenberg-Marquardt)
+\end{items}
+
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Newton method}
+\slide{Basic Newton method}{
+
+\begin{algo}
+\Require initial $x\in\RRR^n$, functions $f(x), \na f(x), \he f(x)$,
+tolerance $\t$, parameters (defaults:
+$\ainc=1.2, \adec=0.5, \lsstop=0.01, \l$)
+\State initialize stepsize $\a=1$, fixed damping $\l$
+\Repeat
+\State compute $\step$ to solve $(\he f(x) + \l \Id)~ \step = - \na f(x)$ \label{alg0}
+\While{$f(x+\a\step) > f(x) + \lsstop \na f(x)^\T (\a\step)$} \Comment{line search}
+\State $\a \gets \adec\a$ \Comment{decrease stepsize}
+\EndWhile
+\State $x \gets x + \a\step$ \Comment{step is accepted}
+\State $\a \gets \min\{\ainc\a,1\}$ \Comment{increase stepsize}
+\Until $\norm{\a\step}_\infty < \t$
+\end{algo}
+
+~\tiny
+
+\item Notes:
+\begin{items}\tiny
+\item Line \ref{alg0} computes the Newton step $\step = -\he f(x)^\1 \na f(x)$,
+
+e.g.\ using a special Lapack routine \texttt{dposv} to solve $A x = b$ (using Cholesky)
+
+%% \item Line \ref{algEig} chooses $\l$ to ensure that $(\he f(x) + \l \Id)$
+%% is indeed pos-dev---and a Newton step actually decreases $f$ instead
+%% of seeking for a maximum
+
+%% (There would be other options:
+%% instead of adding to all eigenvalues we could only set the negative
+%% ones to some $\l>0$.)
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Basic Newton method}{
+
+\item What if the Hessian is \emph{negative} definite? $\to$ The Newton step jumps to a \emph{maximum}!
+
+~\pause
+
+\item What if some eigenvalues are positive, some negative? (This is called a \emph{saddle point}?
+
+~\pause
+
+\item[$\to$] For robust minimization, we need to have a fallback for non-positive definite Hessian
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Newton method with non-pos-def fallback}
+\key{Levenberg-Marquardt}
+
+\slide{Newton method with non-pos-def fallback}{
+
+\begin{algo}
+%% \Require initial $x\in\RRR^n$, functions $f(x), \na f(x), \he f(x)$,
+%% tolerance $\t$, parameters (defaults:
+%% $\ainc=1.2, \adec=0.5, \linc=\ldec=1, \lsstop=0.01$)
+\State initialize stepsize $\a=1$
+\Repeat
+\State {\color{blue}try to} compute $\step$ to solve $(\he f(x) + \l \Id)~ \step = - \na
+f(x)$
+\If{$\na f(x)^\T \step > 0$ (non-descent) or fails (ill-def.\ linear system)}
+\State $\step \gets -\frac{\na f(x)}{|\na f(x)|}$ \Comment{(gradient direction)}
+\State (Or: choose $\l>[-\text{minimal eigenvalue of $\he f(x)$}]^+$ and repeat) \label{algEig}
+\EndIf
+\While{$f(x+\a\step) > f(x) + \lsstop \na f(x)^\T (\a\step)$} \Comment{line search}
+\State $\a \gets \adec\a$ \Comment{decrease stepsize}
+\State optionally: $\l \gets \linc\l$ and recompute $\d$ \Comment{increase damping}
+\EndWhile
+\State $x \gets x + \a\step$ \Comment{step is accepted}
+\State $\a \gets \min\{\ainc\a,1\}$ \Comment{increase stepsize}
+\State optionally: $\l \gets \ldec\l$ \Comment{decrease damping}
+\Until $\norm{\a\step}_\infty < \t$ repeatedly
+\end{algo}
+
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Newton method with non-pos-def fallback -- Notes}{
+
+\item The $\l$ shifts the eigenvalues: Adding to the diagonal of a matrix, all eigenvalues are shifted
+
+\pause
+
+\item This is also called \emph{damping} or \defn{Levenberg-Marquardt}, and related to trust regions
+
+\pause \tiny
+
+\item The specific algo on previous slide is subjective -- literal from our research code. But other extensions might be better in other applications; and existing optimization libraries use other tricks to robustify their Newton method.
+\begin{items}\ttiny
+\item Line 3 of the method on slide 20 says ``try to''. This assumes that a  solver might fail to solve $(\he f(x) + \l \Id)~ \d = - \na f(x)$ for $\d$. This is in particular the case when the solver is based on a Cholesky decomposition, which is highly efficient but only defined for pos-def matrices. The Newton method would have to catch the error signal of this solver.
+
+\item Other solvers can solve also non-pos-dev linear equation systems, but then the computed step $\d$ might not point downhill (e.g., it might point to a sattle point or maximum of $f(x)$). To catch this case, line 4 additionally tests whether $\d$ points downhill.
+
+\item In these failure cases, the extended Newton method uses the plain gradient direction as the fallback (Line 5).
+
+\item Note that the scaling and meaning of $\a$ when transitioning between Newton steps and gradient steps is an issue. Both $\d$'s have very different scales and adapting $\a$ for one does not translate automatically to the other. A solution might be to maintain separate $\a$'s for Newton steps and gradient steps -- I have not tested.
+
+\item Lines 6, 10 and 14 mention possible heuristics to adapt the damping $\l$ (which is related to adapting the implicit trust region). However, by default, I would not use these options.
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Trust Regions}
+\slide{Relation to Trust-Region}{\label{lastpage}
+
+\small
+
+\item The damped Newton step $\step$ solves the problem
+\begin{align*}
+\min_\step \[ \na f(x)^\T \step + \half \step^\T \he f(x) \step
++ \half \l \step^2)\] ~.
+\end{align*}
+\vspace*{-5mm}
+\begin{items}
+\item where $\l$ introduces a squared penalty for large steps
+\end{items}
+
+\pause
+
+\item \defn{Trust region method}:
+\begin{align*}
+\min_\d \[ \na f(x)^\T \step + \half \step^\T \he f(x) \step\] \st \step^2 \le \b
+\end{align*}
+\vspace*{-5mm}
+\begin{items}
+\item where $\b$ defines the \emph{trust region}
+\end{items}
+
+\pause
+
+{\tiny
+
+\item Solving this using Lagrange parameters (as we will learn it later):
+\vspace*{-3mm}
+$$
+L(\step, \l)
+= \na f(x)^\T \step + \half \step^\T \he f(x) \step + \l (\step^2 - \b) \comma
+\na_\step L(\step, \l)
+= \na f(x)^\T + \step^\T (\he f(x) +  2\l\Id)
+$$
+\vspace*{-5mm}
+
+gives the step $\step = -(\he f(x) + 2\l\Id)^\1 \na f(x)$, with  $\l$ the \defn{dual variable}
+
+}
+
+\item For $\l\to\infty$, $\step$ becomes aligned
+with $-\na f(x)$ ~ (but $|\step|\to 0$)
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{Computational issues}{
+
+%% \item Let
+
+%% $C_{f}$ be computational cost of evaluating $f(x)$ only
+
+%% $C_\text{eval}$ be computational cost of evaluating $f(x), \na f(x), \he f(x)$
+
+%% $C_\D$ be computational cost of solving $(\he f(x) + \l \Id)~ \D = - \na f(x)$
+
+%% ~
+
+%% \item If $C_\text{eval} \gg C_f$ ~$\to$~ proper line search instead of
+%% stepsize adaptation
+
+%% If $C_{\D} \gg C_f$ ~$\to$~ proper line search instead of
+%% stepsize adaptation
+
+%% \item However, in many applications (in robotics at least)
+%% $C_\text{eval} \approx C_f \gg C_\D$
+
+%% ~
+
+%% \item Often, $\he f(x)$ is banded (non-zero around diagonal only)
+
+%% $\to$ $A x = b$ becomes super fast using \texttt{dpbsv} ~ (Dynamic
+%% Programming)
+
+%% ~
+
+%% \tiny
+
+%% (If $\he f(x)$ is a ``tree'': Dynamic Programming on the ``Junction
+%% Tree'')
+
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slidesfoot

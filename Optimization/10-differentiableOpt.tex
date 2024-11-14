@@ -1,0 +1,356 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Optimization Algorithms}
+\renewcommand{\coursepicture}{optim}
+\renewcommand{\coursedate}{Winter 2024/25}
+
+\renewcommand{\topic}{Implicit Functions \& Differentiable Optimization}
+\renewcommand{\keywords}{}
+
+\slides
+
+\slidestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Outline}{
+
+\item Implicit Functions
+\begin{items}
+\item Definition
+\item Implicit Function Theorem and differentiation
+\end{items}
+
+\item Differentiable Optimization
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\sublecture{Implicit Functions}{
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Implicit Functions}
+\slide{What is an Implicit Function?}{
+
+\item A function $F: \RRR^d \to Y$ can be defined \textbf{implicitly}, e.g.\ via
+$$F(x) = \argmin_y f(x,y) \qquad \text{optimality formulation}$$
+or alternatively via
+$$F(x) = y \st f(x,y) = 0 \qquad \text{standard (root) formulation}$$
+
+\item $F$ is called \emph{implicit function}, $f$ is sometimes called \textbf{discriminative function}, as it discriminates ``correct'' outputs $y$
+from others. \pause Examples:
+\begin{items}
+\item \textbf{ML classification}: A classifier $F: \RRR^d \to \{A,B,C\}$ is represented via a discriminative function $f(x,y)$ that assignes different neg-likelihoods to the three possible outputs $y\in\{A,B,C\}$ (cf.\ logistic regression, multi-class classification, conditional random fields).
+\item \textbf{Implicit Surface Functions}: A 3D surface is implicitly defined as the \emph{set} of points $y\in\RRR^3$ for which $f(y)=0$ (often no parameter $x$ here) (cf. recent work in CV and robotics to use neural implicit functions (NIF) to represent objects and scenes).
+\item \textbf{Control \& Robot Motion}: Optimal control and robot are described via optimality principles, e.g., motion such that various constraints $h(\text{environment},\text{motion})=0$ are fulfilled.
+\end{items}
+
+%% ~\pause
+
+%% \item Both formulations (optimality, root) are of course related. The standard is the root formulation $F(x) = y \st f(x,y) = 0$.
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Implicit Function Theorem}{
+
+$$F: x \mapsto y \st f(x,y) = 0$$
+where $f: \RRR^d \times \RRR^n \to \RRR^n$ has $n$-dimensional output
+
+~
+
+\item Is $F$ really well-defined? E.g., what if no $y$ solves $f(x,y) = 0$? What if multiple $y$ solve $f(x,y) = 0$?
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Implicit Function Theorem}
+\slide{Implicit Function Theorem}{
+
+\small
+
+\item \textbf{Theorem:} Let $f(x,y)$, $x\in\RRR^d, y\in\RRR^n$ be a continuously differentiable $\RRR^n$-valued function (in $C^1$). Assume we have a point $(x^*,y^*)\in\RRR^{d+n}$ where
+$$f(x^*,y^*)=0 \quad\text{and}\quad \det \Del y f(x^*,y^*) \not=0 ~.$$
+
+a) Then there exists a radius $r$ such that for each $x$, $|x-x^*|<r$, there exists a \textbf{unique} $y = F(x)$ such that $f(x,y)=0$.
+
+b) The implicit function $F$ is continuously differentiable, and
+
+\cen{$f(x,F(x)) = 0 \quad\To \quad \Del x f(x,y) + \Del y f(x,y) \Del x F(x) = 0$ \quad at $y=F(x)$,}
+
+and since $\Del y f$ is invertible, we have
+$$\Del x F(x) = - [\Del y f(x,y)]^\1 \Del x f(x,y)~.$$
+
+~\tiny \pause
+
+\item  $\det \Del y f(x^*,y^*) \not=0 \iff$ Jacobian w.r.t.\ $y$ has full rank $\iff$ $f(x,y)=0$ has non-zero gradient in all $y$-directions
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Interpretation in view of Newton step*}{
+
+\small
+
+(Same statement, just derived as Newton step for root finding)
+
+\item Assume you already found $y^*$ to solve $f(x^*,y^*)=0$ for a given $x^*$. But now the parameter/input $x$ varies slightly. How does the solution $y$ vary?
+
+\item Consider the 1st order Taylor approximation of $f$:
+$$f(x,y) = \underbrace{f(x^*,y^*)}_{=0} + \Del x f(x^*,y^*)~ (x-x^*) + \Del y f(x^*,y^*)~ (y-y^*)$$
+
+If we also want $f(x,y)=0$, then we need
+$$ (y-y^*) = - [\Del y f]^\1~ \Del x f~ (x-x^*) ~,$$
+
+which is the Newton step for root finding, and coincides with the Implicit Function Theorem.
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\sublecture{Differentiable Optimization}{
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Differentiable Optimization}
+\slide{The KKT Implicit Function}{
+
+\item Consider a \textbf{parameterized} problem $$x^*(\t) = \argmin_x f(\t,x) \st g(\t,x)\le0,~ h(\t,x)=0$$
+
+\pause
+
+\item We define the \textbf{implicit function} $F: \t \mapsto (x^*,\k^*,\l^*) \st r(\t,x,\k,\l)=0$ for the KKT residual
+\begin{align*}
+& r(\t,x,\k,\l) = 
+\mat{c}{
+\na {~} [f(\t,x) + \l^\T g(\t,x) + \k^\T h(\t,x)] \\
+h(\t,x) \\
+\diag(\l) g(\t,x)
+}
+\end{align*}
+(i.e., for any $\t$, $F$ outputs the primal and dual solution to the KKT conditions.)
+
+\pause
+
+\item In particular,  at $(x,\k,\l)=F(\t)$ we have
+$$
+\Del \t F = -[\Del {{}_{x\k\l}} r]^\1~ \Del \t r ~.
+$$
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{The KKT Implicit Function}{
+
+$$
+\Del \t F = -[\Del {{}_{x\k\l}} r]^\1~ \Del \t r ~.
+$$
+\begin{items}
+\item The matrix $\Del {x\k\l} r \in \RRR^{(n+l+m) \times (n+l+m)}$ is the \defn{KKT Jacobian} (cf. Primal-Dual Newton!)
+$$\Del {{}_{x\k\l}} r = \mat{ccc}{
+\he {} [f + \l^\T g + \k^\T h] & \del_x h^\T & \del_x g^\T \\
+\del_x h & 0 & 0 \\
+\diag(\l) \del_x g & 0 & \diag(g) \\
+}$$
+\item The vector $\Del \t r \in \RRR^{n+l+m}$ describes how the KKT residual depends on $\t$:
+$$
+\Del \t r
+= \mat{c}{
+\del_\t \na {~} [f + \l^\T g +\k^\T h]\\
+\del_\t h \\
+\diag(\l) \del_\t g
+}
+$$
+\end{items}
+
+\item E.g., for a small variation $(\t-\t^*)$, the new optimum is (in linear approx.) at
+$$(x,\k,\l) = (x^*,\k^*,\l^*) -[\Del {{}_{x\k\l}} r]^\1~ \Del \t r~ (\t-\t^*)$$
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{The KKT Implicit Function}{
+
+%% \item Consider variation $\tilde f = f+\e \hat f$,
+%% $\tilde g = g+\e \hat g$, $\tilde h = h+\e \hat h$; how does $x^*$ vary?
+
+%% \item The KKT-residual, and corresponding primal-dual Newton step are
+%% \begin{align*}
+%% \hat r
+%% &= \e\mat{c}{
+%% \na \hat f + \del \hat g^\T \l + \del \hat h^\T \k\\
+%% \hat h \\
+%% \diag(\l) \hat g
+%% } \\
+%% \e\mat{c}{
+%% \hat x \\
+%% \hat \l \\
+%% \hat \k
+%% }
+%% &=
+%% - \mat{ccc}{
+%% \he f & \del g^\T & \del h^\T \\
+%% \del h & 0 & 0 \\
+%% \diag(\l) \del g & \diag(g) & 0 \\
+%% }^\1~
+%% \e\mat{c}{
+%% \na \hat f + \del \hat g^\T \l + \del \hat h^\T \k\\
+%% \hat h \\
+%% \diag(\l) \hat g
+%% }
+%% \end{align*}
+
+%% \item The new optimum is at $x^* + \e\hat x$
+%% %% \begin{items}
+%% %% \item Insight: This derivation implies stability of constraint activity, which is ``standard constraint qualification'' in the optimization literature
+%% %% \end{items}
+
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Example}{
+
+\item Assume $\phi(x;\t)$ is a NN with parameters $\t\in\RRR^d$, inputs $x\in\RRR^n$, outputs $\phi(x;\t)\in\RRR^o$
+
+\item For given $\t$, a Newton method converges to $x^* = \argmin_x \phi(x;\t)^2$
+
+(We assume a least squares form $f(\t,x) = \phi(x;\t)^2$, it could be $o=1$)
+
+\item What is $\frac{d x^*}{d \t} = \Del \t F$?
+
+\item Since we have no $\k,\l$ here, we have
+\begin{align*}
+\Del \t F &= -[\Del x r]^\1~ \Del \t r \\
+\Del x r &= \he f \comma \Del \t r = \del_\t \na f \\
+\Del \t F &= -[\he f]^\1~ \del_\t \na f
+\end{align*}
+\tiny
+
+where we could approximate $\he f(x) \approx 2 J^\T J$, with the NN's Jacobian $J = \del_x \phi(x;\t)$.
+
+%% {\tiny ($ \del_\t \na f$ describes how the \emph{gradient} of $f$ at $x^*$ changes with $\t$ -- if the gradient does not change, the optimum $x^*$ does not vary.)
+
+}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Switching Constraints Example}{
+
+\item For $x\in\RRR$, Consider the problem
+$$\min_x (x-\t)^2 \st x\ge 0 ~.$$
+What is the implicit function $F(\t) = x^*$?
+
+~\pause
+
+$$F(\t)= x^* = \max \{0,\t\}$$
+\anchor{300,20}{\showh[.15]{relu}}
+
+~
+
+which is non-differentiable at $\t=0$.
+
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Limitation -- Constraint Activity Switching}{
+
+\small
+
+\item Note that the KKT residual $r(\t,x,\k,\l)=0$ neglects the conditions $g(\t,x)\le 0, \l\ge 0$
+
+\item The Implicit Function Theorem assumes $r \in C^1$ and $\det\del_{x\k\l}r \not= 0$, but when constraint activity switches, $r$ changes in a non-differentiable manner.
+
+~\pause
+
+\item[$\to$] In a \textbf{vicinity} of a solution $x^*,\k^*,\l^*$, we may assume that constraint activity is stable, the inequalities $g(x)\le 0, \l\ge 0$ remain fulfilled, and that the Jacobian of active constraints have full rank (aka.\ \emph{constraint qualification assumption}).
+
+THEN, \textbf{locally}, the implicit function theorem holds and we have the correct gradient.
+
+\item However, in general, constraint activity switches somewhere -- then we have a discontinuity in the active constraint Jacobians, and in the implicit function gradient.
+
+~\pause
+
+\cen{\textbf{$\To$ NLPs with inequalities are \emph{piece-wise} differentiable!}}
+
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Classical Literature: ``Sensitivity Analysis''}{
+
+\item Lot's of classical literature on differentiation through NLP solutions:
+  
+\begin{items}\tiny
+\item Ralph \& Dempe. \textbf{Directional derivatives of the solution of a parametric nonlinear program.} \textbf{1994}. Research Report.
+
+\item Fiacco \& Kyparisis.  \textbf{Sensitivity analysis in nonlinear programming} under second order assumptions. Lecture Notes in Control and Information Sciences, 74-97, \textbf{1985}.
+
+\item Kyparisis. Sensitivity analysis for nonlinear programs and variational inequalities with nonunique multipliers. Mathematics of Operations Research, 15:286–298, 1990.
+
+%% \item Levy \& Rockafellar. Sensitivity analysis of solutions to generalized equations. Trans. Amer. Math. Soc. 1993.
+
+%% \item Poliquin \& Rockafellar. \textbf{Proto-derivative} formulas for basic \textbf{subgradient mappings} in mathematical programming.
+%% Set-valued Analysis, 2:275–290, 1994.
+
+\item Levy \& Rockafellar. Sensitivity of solutions in nonlinear programs with nonunique multiplier. Recent Adv.\ in Nonsmooth Optimzation: 215-223, 1995
+
+\end{items}
+
+(More recent publications at NeurIPS (keyword ``Differentiable Optimization'') ignore this classical literature.)
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Classical Literature: ``Sensitivity Analysis''}{
+
+\item The implicit function $F(\t)$ is also called \emph{quasi-solution mapping:} Assume a parameterized NLP $\PP(\t)$
+\begin{align*}
+F: \t \mapsto \{ x : \text{KKT hold for } \PP(\t) \}
+\end{align*}
+
+\emph{``We show \textbf{under a standard constraint qualification}, not requiring uniqueness of the
+ multipliers, that the quasi-solution mapping is differentiable in a
+ generalized sense, and we present a formula for its derivative.''}
+
+\item Constant rank constraint qualification (CRCQ): For each subset of the gradients of the active inequality constraints and the gradients of the equality constraints the rank at a vicinity of $x^*$ is constant. 
+
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Conclusions}{\label{lastpage}
+
+\small
+
+\item We can analyze how changes in the optimization problem translate to changes of the optimium $x^*$
+
+\item Using the KKT Jacobian, we can provide the gradient of $x^*$ w.r.t.\ problem parameters $\t$
+
+\item We can embed optimization algos in auto-differentiation computation graphs (torch, tensorflow)
+
+\item Important implications for Differentiable Physics
+
+\item \textbf{But:} Gradients can be discontinuous across constraint activations
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slidesfoot

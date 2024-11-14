@@ -1,0 +1,174 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Optimization Algorithms}
+\renewcommand{\coursepicture}{optim}
+\renewcommand{\coursedate}{Winter 2024/25}
+
+\renewcommand{\topic}{Non-Linear Mathematical Programs \& KKT}
+\renewcommand{\keywords}{}
+%\renewcommand{\keywords}{General definition, force balance view \& KKT conditions}
+
+\slides
+
+\slidestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Constrained optimization}
+\slide{Problem Formulation}{
+
+\item General \defn{Non-linear Mathematical Program (NLP)} (constrained optimization problem):
+
+Let $x\in\RRR^n$, $f:~ \RRR^n \to \RRR$, $g:~ \RRR^n \to \RRR^m$,
+$h:~ \RRR^n \to \RRR^l$ find
+$$ \min_x~ f(x) \st g(x)\le 0,~ h(x) = 0 $$
+\begin{items}
+\item We typically assume $f,g,h$ to be differentiable or smooth.
+\item We can typically query $f,\na f, g, \na g, h, \na h$, optionally also $\he f$.
+\end{items}
+
+~
+
+~\small
+
+\item The lecture sometimes only mentions inequality constraints $g$,
+equality constraints are analogous/easier
+
+%% ~
+
+%% \item Applications
+
+%% -- Find an optimal, non-colliding trajectory in robotics
+
+%% -- Optimize the shape of a turbine blade, s.t.\ it must not break
+
+%% -- Optimize the train schedule, s.t.\ consistency/possibility
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{General approaches}{
+
+\item Roughly, try to somehow transform the constraint problem to
+\begin{items}
+\item a series of unconstraint problems ~ (log-barrier, AugLag, etc...)
+\item a single but larger unconstraint problem ~ (primal-dual)
+\item a (series of) other constraint problems, hopefully simpler ~ (dual, convex, SQP)
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Outline}{
+
+\item KKT conditions of optimality
+
+\item Core methods: \textbf{log barrier}, squared penalties, \textbf{Aug.\ Lagrangian}
+
+\item Introduce \textbf{Lagrangian} -- revisit KKT, log barrier, dual problem, primal-dual
+
+\item Further topics: Phase I, bound constraints, trust region, distributed optimization, simplex algorithm
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Solving by sketching}{
+
+\item Sketch the following problems and identify the solution:
+
+\begin{items}
+\item 1-dimensional: $\min x \st  \sin(x) = 0,~ x^2/4-1 \le 0$,
+\item 2-dimensional: $\min x_1 \st x^2 + y^2-1 \le 0$
+\end{items}
+
+\vspace{5cm}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\item \emph{At the optimum there must be a balance between the cost
+gradient $-\na f(x)$ pulling, and the gradient of the active constraints $-\na
+g_i(x)$ pushing back}
+
+~
+
+\show[.3]{KKT}
+
+~
+
+\small
+[Our convention: ``costs $f(x)$ \emph{pull}, constraints $g(x),h(x)$ \emph{push} back'']
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Karush-Kuhn-Tucker (KKT) conditions}
+\slide{Karush-Kuhn-Tucker conditions}{
+
+\item \emph{At the optimum there must be a balance between the cost
+gradient $-\na f(x)$ pulling, and the gradient of the active constraints $-\na
+g_i(x)$ pushing back}
+
+~\mypause
+
+\item \textbf{Theorem (Karush-Kuhn-Tucker conditions):} For any NLP,
+\begin{align*}
+x \text{~optimal~} \quad\To\quad \exists \l\in\RRR^m, \k\in\RRR^l \st& \nonumber\\
+\na f(x) + \sum_{i=1}^m \l_i \na g_i(x) + \sum_{j=1}^l \k_j \na h_j(x) &= 0
+ && \text{(stationarity)}\\
+h(x)=0 \comma  g(x) &\le 0 && \text{(primal feasibility)}\\
+\l &\ge 0  && \text{(dual feasibility)}\\
+\forall_i:~ \l_i g_i(x) &= 0 && \text{(complementarity)}
+\end{align*}
+
+{\small [stationarity in compact notation: $\na f(x) + \l^\T \del_x g(x) + \k^\T \del_x h(x) = 0$]
+
+}
+
+%% \item For optimal $x$ it must hold (necessary condition):~ $\exists_\l \st$
+%% \begin{align*}
+%% \na f(x) + \sum_{i=1}^m \l_i \na g_i(x) &= 0 && \text{(``stationarity'')}\\
+%% \forall_i:~ g_i(x) &\le 0 && \text{(primal feasibility)}\\
+%% \forall_i:~ \l_i &\ge 0  && \text{(dual feasibility)}\\
+%% \forall_i:~ \l_i g_i(x) &= 0 && \text{(complementary)}
+%% \end{align*}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Karush-Kuhn-Tucker conditions}{\label{lastpage}
+
+\item \defn{Stationarity (1st KKT)}: ``Force balance'' of the
+  cost pulling and the active constraints pushing back
+\begin{items}
+\item Existence of dual parameters $\l,\k$ is equivalent to
+\begin{align*}
+\na f (x) \in \Span \{ \na g_{1..m}, \na h_{1..l}\}
+\end{align*}
+\item The values of $\l$ and $\k$ ~ $\oto$ ~ how strongly the
+  constraints push
+  \end{items}
+
+~\pause
+
+\item \defn{Complementarity (4th KKT)}: ``Logic of constraint activity''
+\begin{items}
+\item An inequality can only push at the boundary, where $g_i=0$
+\item The formulation $\l_i g_i=0$ very elegantly describes this logic
+\item The combinatorics of which constraint is active ($O(2^m)$) is a core source of difficulty of constrained optimization
+\item If you would apriori know which constraints are active $\to$ inequalities become equalities $\to$ easier
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slidesfoot

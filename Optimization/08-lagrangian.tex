@@ -1,0 +1,341 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Optimization Algorithms}
+\renewcommand{\coursepicture}{optim}
+\renewcommand{\coursedate}{Winter 2024/25}
+
+\renewcommand{\topic}{The Lagrangian}
+\renewcommand{\keywords}{Definition, Relation to KKT conditions,
+saddle point view, dual problem, min-max max-min duality, modified KKT
+\& log barriers}
+
+\slides
+
+\providecommand{\ninc}{\r_\nu^+}
+
+\slidestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Lagrangian: definition}
+\slide{The Lagrangian}{
+
+\item Given a constraint problem
+$$ \min_x~ f(x) \st g(x)\le 0,~ h(x)=0$$
+we define the \defn{Lagrangian} as
+\begin{align*}
+L(x,\k,\l)
+&= f(x) + \sum_{i=1}^m \l_i g_i(x)  + \sum_{i=1}^l \k_i h_i(x) \\
+&= f(x) + \l^\T g(x) + \k^\T h(x)
+\end{align*}
+
+~
+
+\item The $\l_i \ge 0$ and $\k_i\in\RRR$ are called \defn{dual variables}
+or \emph{Lagrange multipliers}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{What's the point of this definition?}{
+
+~
+
+\item The Lagrangian relates strongly to the KKT conditions of optimality!
+
+~
+
+\item The Lagrangian is useful to compute optima analytically, on
+paper
+
+~
+
+\item Optima are necessarily at saddle points of the Lagrangian
+
+~
+
+\item The Lagrangian implies a dual problem, which is sometimes easier to solve than the primal
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Lagrangian: relation to KKT}
+\slide{Relations between Lagrangian and KKT}{
+
+\small
+
+\item $\na_x L = 0$ implies the \textbf{1st KKT} condition
+$$0 = \na_x L = \na f(x) + \Sum_{i=1}^m \l_i \na g_i(x)  + \sum_{i=1}^l \k_i \na h_i(x)$$
+
+\pause
+
+\item $\na_\k L = 0$, implies primal feasibility ($h=0$, \textbf{2nd KKT}) w.r.t.\ the equalities
+
+\pause
+
+\item $\max_{\l\ge 0} L$ is related to the remaining \textbf{2nd and 4th KKT} conditions:
+\begin{align}\label{eqMaxL}
+&\max_{\l\ge 0} L(x,\l) = 
+ F_{\!\infty}(x) \stackrel{\text{def}}= \begin{cases}
+   f(x) & \text{if }g(x)\le 0 \\
+   \infty & \text{otherwise} \end{cases}\\
+&\l=\argmax_{\l\ge 0} L(x,\l)
+  \quad\To\quad
+\begin{cases}
+\l_i=0 & \text{if }g_i(x)<0 \\ 0=\na_{\l_i} L(x,\l) = g_i(x) & \text{otherwise}
+\end{cases}
+\end{align}
+This implies either $(\l_i=0 \wedge g_i(x)<0)$ or $g_i(x)=0$,
+which is equivalent to the \emph{complementarity}
+and \emph{primal feasibility} for inequalities.
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Relations between Lagrangian and KKT}{
+
+\item We learnt that
+\begin{items}
+\item $\min_x L(x,\l,\k)$ reproduces 1st KKT
+\item $\max_{\l\ge0, \k} L(x,\l,\k)$ reproduces remaining KKT
+\end{items}
+
+\item KKT conditions are related to minimize w.r.t.\ $x$, and maximize w.r.t. $\l$... (more on this later)
+
+\pause
+
+
+\item How can we use this?
+\begin{items}
+\item The KKT conditions state that, at an optimum, there
+exist some $\l, \k$. This existance statement is not directly helpful to
+actually find them.
+\item In contrast, the Lagrangian tells us how the dual parameters can be
+found: by maximizing w.r.t.\ them.
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Solving constraint problems on paper}{
+
+\item For $x\in\RRR^2$, what is
+$$\min_x x^2 \st x_1+x_2 = 1$$
+
+\pause
+
+\item Solution:
+\begin{align*}
+L(x,\k)
+ &= x^2 + \k(x_1+x_2-1)\\
+0
+ &= \na_x L(x,\k)
+  = 2 x + \k\mat{c}{1\\1} \quad\To\quad x_1=x_2=-\k/2\\
+0
+ &= \na_\k L(x,\k)
+  = x_1+x_2-1 = -\k/2-\k/2-1 \quad\To\quad \k=-1 \\
+\To
+ & x_1=x_2=1/2
+\end{align*}
+
+\begin{items}
+\item $\k$ is also called \emph{Lagrange multiplier}, I prefer \emph{dual variables}
+\item When applying this to inequalities, you have to consider \emph{both cases} (inequality active, and inequality inactive) and check if the inactive solution is feasible ($g\le 0$) or the active solution dual-feasible ($\l\ge 0$). (For $m$ inequality constraints, you run into  $2^m$ combinatorics.)
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Lagrange dual problem}
+\slide{Saddle Points, Primal \& Dual Problems}{
+
+{\tiny [For simplicity, consider inequalities only.]}
+
+\item $\min_x L(x,\l)$ reproduces 1st KKT; $\max_{\l\ge0} L(x,\l)$ reproduces remaining KKT
+
+~\pause
+
+\item This motivates defining the \defn{Primal and dual problem} ~ (details later):
+\begin{align*}
+\min_x~ \underbrace{\max_{\l\ge 0}~ L(x,\l)}_{F_{\!\infty}(x) \text{\anchor{0,0}{\quad($\infty$-barrier function)}}} && \textbf{(primal problem)} \\
+\max_{\l\ge 0}~ \underbrace{\min_x~
+L(x,\l)}_{l(\l) \textbf{\anchor{0,0}{\quad(dual function)}}} && \textbf{(dual problem)}
+\end{align*}
+
+\begin{items}
+\item Convince yourself, that the first problem is the original problem $\min_x f(x) \st g(x)\le 0$
+\item Find a tabular function $L(x,\l)$ (for discrete $x,\l \in \{1,2\}$) where $\min_x \max_\l L \not= \max_\l \min_x L$
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{The Lagrange dual problem}{
+
+\small
+
+\vspace*{-8mm}
+\begin{align*}
+\min_x~ \underbrace{\max_{\l\ge 0}~ L(x,\l)}_{F_{\!\infty}(x)} && \textbf{(primal problem)} \\
+\max_{\l\ge 0}~ \underbrace{\min_x~
+L(x,\l)}_{l(\l)} && \textbf{(dual problem)}
+\end{align*}
+%% or
+%% \begin{align*}
+%% \min_x~ f(x) &\st g(x)\le 0 && \textbf{primal problem} \\
+%% \max_\l~ l(\l) &\st \l\ge 0 && \textbf{dual problem}
+%% \end{align*}
+
+\item We defined the \defn{dual function} as
+$$l(\l) = \min_x L(x,\l)$$
+
+\item \textbf{Theorem:} The dual problem is convex (objective=concave, constraints=convex), even if the primal is non-convex!
+\begin{items}
+\item $L(x,\l)$ is linear in $\l$
+\item $l(\l)=\min_x L(x,\l)$ is a point-wise minimization $\To$ $l(x)$ concave
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{The Lagrange dual problem}{
+
+\small
+
+\item Sometimes, $l(\l) = \min_x L(x,\l)$ can be derived analytically. We could swap
+a non-convex primal problem for a convex dual problem. However, in
+general $\min_x \max_y f(x,y) \not= \max_y \min_x f(x,y)$.
+
+~\pause
+
+\item The dual function is always a \defn{lower bound} (for $\l_i\ge 0$):
+\begin{align*}
+ \l_i \ge 0 \quad\To\quad L(x,\l) &\le F_{\!\infty}(x) \\
+ l(\l) = \min_x L(x,\l) ~&\le~ \min_x F_{\!\infty}(x) = p^* \stackrel{\text{def}}= \[\min_x f(x) \st g(x)\le 0\] \\
+\max_{\l\ge 0} \min_x L(x,\l) ~&\le~ \min_x \max_{\l\ge 0} L(x,\l)
+= p^*
+\end{align*}
+
+\cen{\eqbox{$l(\l) \le p^*$}}
+
+}{
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Strong Duality}
+\slide{The Lagrange dual problem}{
+
+\item We say \defn{strong duality} holds iff
+$$\max_{\l\ge 0} \min_x L(x,\l)  =  \min_x \max_{\l\ge 0} L(x,\l)$$
+
+~
+
+\item \textbf{Theorem:} If the primal is convex, and there exist an interior point
+$$\exists_x:~ \forall_i:~ g_i(x) < 0$$
+(which is called \defn{Slater condition}), then we
+have \emph{strong duality} (Boyd, Sec 5.3.2)
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\sublecture{Log barrier method revisited}{
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Log barrier and sub-optimality gap}
+\slide{Log barrier method revisited}{
+
+\small
+
+\item Recall, the inner iterations minimize $\min_x  f(x) - \mu \sum_i \log(-g_i(x))$:
+$$ \na f(x) + \Sum_i \l_i \na g_i(x) = 0 \comma \text{with~} \l_i g_i(x) = -\mu $$
+%for $\l_i = -\mu/g_i(x)$
+
+\item With the definition $\l_i = -\mu/g_i(x^*)$ and $x^*(\mu) = \argmin_x B(x,\mu)$, we have
+\begin{align*}
+\na B(x,\mu) 
+&= \na f(x) + \Sum_{i=1}^m \l_i \na g_i(x)
+ = \na L(x,\l) \\
+x^*(\mu)
+&= \argmin_x L(x,\l) \comma \text{with~} \l_i g_i(x) = -\mu
+\end{align*}
+
+\vspace*{-3mm}
+\item We also have ~ (with $m$ the count of inequalities)
+\begin{align*}
+l(\l)
+&= \min_x L(x,\l)
+ = f(x^*) + \Sum_{i=1}^m \l_i g_i(x^*)
+ = f(x^*) - m \mu
+\end{align*}
+
+%\item $m \mu$ is the duality gap between the (suboptimal)  $f(x^*)$ and $l(\l)$
+
+\item Further, as the
+dual function is a lower bound, $l(\l) \le p^*$, we have
+%(for $p^*=\min_x f(x) \st g(x)\le 0$),
+
+\cen{\eqbox{
+$f(x^*) - p^* \le m \mu$
+}}
+
+\cen{\textbf{$\mu$ is an upper bound on the suboptimality of the centering point $x^*$}}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Log barrier method -- Conclusions}{
+
+\item The $\mu$, which we introduced as factor for the log barrier, has ``deep semantics'':
+
+~
+
+\item $\mu$ defines a \textbf{relaxation of the 4th KKT} complementarity condition
+
+\item the log barrier gradients $\l_i = -\mu/g_i(x^*)$ have the semantics of dual variables
+
+\item $x^*(\mu)$ solves the relaxed KKT
+
+\item $f(x^*(\mu)) = l(\l) + m\mu$ gives the dual function value for $\l$
+
+\item $\mu$ defines an upper bound on the \defn{sub-optimality} of each  $x^*$: ~ $f(x^*) - p^* \le m \mu$
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Comments}{\label{lastpage}
+
+\item We first learnt about three basic methods to tackle constrained optimization by repeated unconstrained optimization:
+\begin{items}
+\item Log barrier method
+\item Squared penalty method (approximate only)
+\item Augmented Lagrangian method
+\end{items}
+
+~
+
+\item We understood KKT, Lagrangian, dual problem, saddle point view, duality gap, relation to $\mu$
+
+%% ~
+
+%% \item We derived a fourth fundamental method: the primal-dual Newton
+%% \begin{items}
+%% \item Updates $(x,\k,\l)$ jointly, without inner loop
+%% \end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slidesfoot

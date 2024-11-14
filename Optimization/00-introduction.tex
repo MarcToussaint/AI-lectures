@@ -1,0 +1,558 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Optimization Algorithms}
+\renewcommand{\coursepicture}{optim}
+\renewcommand{\coursedate}{Winter 2024/25}
+
+\renewcommand{\topic}{Introduction}
+\renewcommand{\keywords}{}
+
+\slides
+
+\slidestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Learning \& Intelligent Systems Lab}{
+
+~
+
+\small
+
+\hspace*{-5mm}\twocol[.05]{.5}{.45}{
+
+\medskip
+
+\cen{\url{argmin.lis.tu-berlin.de}}
+
+~
+
+\item[] \textbf{Research}
+\begin{items}
+\item Intersection of AI \& Robotics
+\item Combining learning and reasoning 
+\item physical reasoning, task-and-motion planning (logic-geometric programming)
+\item reinforcement learning, perception-based policies, reactive control/learning
+\item driven by robotics problems
+\end{items}
+
+%% ~
+
+%% \item[] \textbf{Physical Reasoning}
+
+%% \medskip
+
+%% \hspace*{-5mm}\twocol[0]{.3}{.75}{
+%% \showh[1]{kitchen}
+%% }{
+%% \begin{items}\ttiny
+%% \item CV:~ What objects? Labels? Segments?
+%% \item img2text, VQA:~ Answer ``Where is the knife?''
+%% \item Physical Reasoning: What can \emph{you do} in that scene? How could it look like after acting?
+%% \end{items}
+%% }
+
+}{
+
+\vspace*{-5mm}
+
+\item[] \textbf{Applications}
+
+\twocol{.5}{.5}{
+
+\movh[]{1.}{movies/RSS-concat600600}
+
+~
+
+\movh[]{1.}{movies/21-valentingRSSsubmission}
+
+}{
+
+\movc[]{.9}{videos/22-03-SecMPC-both-2x}
+
+~
+
+\show[.9]{jungsu2}
+
+~
+
+\show[.9]{jungsu1}
+
+}
+
+}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\sublectureHide{Motivation}{
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Why is Optimization interesting?}{
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\vfill
+
+$$\d \int_{t_0}^{t_1} L(q(t), \dot q(t), t)~ dt = 0$$
+
+\vfill
+
+\tiny\hfill Principle of Least Action
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\vfill
+
+\show[.3]{folding}
+
+\vfill
+
+\tiny\hfill protein folding
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\vfill
+
+$$\min_{\b}\norm{\b}^2 ~\st~ y_i (\phi(x_i)^\T \beta) \ge 1,~ i=1,\dots,n$$
+
+\vfill
+
+\tiny\hfill support vector machine
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\vfill
+
+$$\min_{f\in\HH}~ \sum_{i=1}^n \ell(f(x_i), y_i)$$
+
+\vfill
+
+\tiny\hfill loss minimization (e.g., NNs)
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\vfill
+
+$$\min_{u,x} \int_0^T\! f(x(t), u(t))~ dt 
+~\st~ \dot x = f(x,u),~ g(x(t))\le 0,~ h(x(T))=0$$
+
+\vfill
+
+\tiny\hfill optimal control
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\vfill
+
+\cen{\showh[.3]{statics}\qquad\showh[.3]{buga}}
+
+\vfill
+
+\tiny\hfill construction statics
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\threecol{.3}{.3}{.3}{
+
+\movh{.9}{movies/RSS-concat600600}
+
+~
+
+\movh{.9}{movies/20-IROS-BUGAassembly}
+
+~
+
+}{
+
+\movh{.9}{movies/20-DeepVisualReasoningData}
+
+~
+
+\movh{.9}{videos/19-banana-03}
+
+}{
+
+%%\movh{.9}{videos/19-forceBased-pushWithStickFloat3_COMP}
+\movh{.9}{videos/19-forceBased-pushWithStick-good_COMP}
+
+~
+
+\movh{.9}{videos/19-forceBased-liftRing-dynamic_COMP}
+
+%\movh{.9}{videos/19-forceBased-bookOnShelf2_COMP}
+
+}
+
+~
+
+\tiny\hfill ``Logic Geometric Programming''
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Why is Optimization interesting?}{
+
+%% \item {\small
+%% In an otherwise unfortunate interview I've been asked why ``we guys''
+%% (AI, ML, optimal control people) always talk about
+%% optimality. ``People are by no means optimal'', the interviewer
+%% said. I think that statement pinpoints the whole misunderstanding of
+%% the role and concept of optimality principles.}
+
+
+\item \emph{Optimality principles are a means of scientific and engineering
+description}
+
+\item It is often easier to describe a thing (natural or artifical)
+via an optimality priciple than directly
+
+\item Almost any scientific field uses optimality principles to
+describe nature \& artifacts
+\begin{items}
+\item Physics, Chemistry, Biology, Mechanics, ...
+\item Operations research, scheduling, ...
+\item Computer Vision, Speach Recognition, Machine Learning, Robotics, AI, ...
+\end{items}
+
+~
+
+\item Endless applications
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Teaching optimization}{
+
+\item Optimization includes largely different approaches/formalisms:
+\begin{items}
+\item Standard continuous, convex or non-linear optimization
+\item Discrete Optimization
+\item Global Optimization
+\item Stochastic Optimization, Evolutionary Algorithms, Swarm optimization, etc
+\end{items}
+
+~\mypause
+
+\item This lecture focusses on continuous, convex or non-linear optimization
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Optimization Problems}{
+
+\item Generic optimization problem, also called \textbf{Mathematical Program}:
+
+\medskip
+
+Let $x\in\RRR^n,~ f:~ \RRR^n \to \RRR,~ g:~ \RRR^n \to \RRR^m,~
+h: \RRR^n\to\RRR^l$. Find
+$$\min_x f(x) \st  g(x)\le 0,~ h(x)=0$$
+
+\pause
+\small
+
+\item \textbf{Blackbox}: only $f(x)$ can be evaluated
+
+\item \textbf{Gradient}: $\na f(x)$ can be evaluated
+
+{\tiny
+\item Gauss-Newton type: $f(x) = \phi(x)^\T \phi(x)$ and
+$\na \phi(x)$ can be evaluated
+}
+
+\item \textbf{Stochastic Gradient}: only ``samples of $\na f(x)$'' can be evaluated efficiently
+
+\item \textbf{2nd order}: $\he f(x)$ can be evaluated
+
+\item Approximate methods:
+\begin{items}
+\item Use samples of $f(x)$ to approximate $\na f(x)$ locally
+\item Use samples of $\na f(x)$ to approximate $\he f(x)$ locally
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Planned Outline}{
+\small
+\item Part 1: Downhill algorithms for unconstrained optimization:
+\begin{items}
+\item gradient descent, backtracking line search, Wolfe conditions, convergence properties
+\item covariant gradients, Newton, quasi-Newton methods, (L)BFGS
+\end{items}
+
+\item Part 2: Algorithms for constrained optimization:
+\begin{items}
+\item KKT conditions, Lagrangian
+\item Log-barrier, Augmented Lagrangian, primal-dual Newton
+\item SQP
+\end{items}
+
+\item Part 3: Extended topics (subject to change):
+\begin{items}
+\item Stochastic gradient methods
+\item Global optimization
+\item stochastic search, evolutionary algorithms
+\item maybe this year: ADMM \& NLP Reformulations
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{References}{
+
+~
+
+\item Maths for Intelligent Systems script on ISIS page
+
+~
+
+\item Boyd and Vandenberghe: \emph{Convex Optimization.}
+
+\url{http://www.stanford.edu/~boyd/cvxbook/}
+
+~
+
+\item Nocedal \& Wright: \emph{Numerical Optimization}
+
+\url{www.bioinfo.org.cn/~wangchao/maa/Numerical_Optimization.pdf}
+
+
+~
+
+\hfill \tiny(this course won't of course cover all this - just for reference)
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{Algorithms, Libraries}{
+
+%% \item Core Free Solver libraries:
+%% \begin{items}
+%% \item NLopt, IPopt, ceres
+%% \end{items}
+
+%% \item Useful lists:
+%% \begin{items}
+%% \item \url{http://roboptim.net/solvers.html}
+%% \item \url{https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#comparing-algorithms}
+%% \item \url{https://drake.mit.edu/doxygen_cxx/group__solvers.html}
+%% \end{items}
+
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\sublecture{Organization}{
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\item 6 LPs (180h, 12h/w, 15 weeks)
+
+\item Lectures, weekly, in person
+
+\item Exercise Sheets \& Coding Assignments:
+\begin{items}
+\item Weekly exercise sheets, mostly analytic problems, discussed in
+the tutorials
+\item Hand-in coding assignments, every $\sim3$ weeks:
+Submit your optimization algorithms/problems via git $\to$ are
+numerically evaluated/graded
+\end{items}
+
+~
+
+\item ISIS as central webpage
+
+\item Contact:
+\begin{items}
+\item Tutors: Sayantan Auddy \url{<auddy@tu-berlin.de>}, Cornelius
+Braun, Hongyou Zhou
+\item Office (grades/etc): Ilaria Cicchetti-Nilsson \url{<office@lis.ut-berlin.de>}
+\end{items}
+
+%% \newcommand{\face}[2]{
+%% \begin{minipage}{12mm}
+%% \centering
+%% \showh[.8]{faces/#1}\\
+%% \ttiny #2
+%% \end{minipage}
+%% }
+
+%% \hfill\face{quim}{Quim Ortiz de Haro}\quad
+%% \face{ilaria}{Ilaria Cicchetti-Nilsson}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Assignments \& Exam}{
+
+\item Voting System for the exercise sheets:
+\begin{items}
+\item Before attending the tutorial, students mark in an ISIS
+questionnaire which exercises they have worked on
+\item Students are randomly selected to present their solutions (no need for correct solutions -- just something to present and discuss)
+\item When not attending: upload pdf notes/solutions on ISIS
+\end{items}
+
+~
+
+\item \textbf{Exam prerequisites:}
+\begin{items}
+\item at least 50\% votes in the exercises, and
+\item at least 50\% points in the hand-in coding assignments
+%\item[] \emph{(Moses: Bestehen der benoteten Programmier- und
+%Hausaufgaben)}
+
+\medskip
+
+(If you fulfilled these prerequisites last year, you don't have to
+redo them.)
+\end{items}
+
+~
+
+\item The written exam will be about analytical problems, determines final grade (no portfolio)
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Registration}{
+
+\item Registration for the exam in Moses will open in January
+
+\item To gain the exam prerequisites you'll have to register for the coding
+exercises (will be organized in the second/third week), and submit your votes on the exercise sheets
+
+\item There is no further registration for this course necessary
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Prerequisites}{
+
+\item Module description:
+\begin{items}
+\item Good knowledge in linear algebra and calculus
+
+$\to$ Specifically, the \textbf{`Maths for Intelligent Systems Script'} up to Chapter 3.
+
+\item Basic programming in Python
+\end{items}
+
+~\pause
+
+\item Maths Self-Check:
+\begin{items}
+\item Are you familiar with basics on functions, Jacobians, Hessian, matrix derivatives? (Sec. 2)?
+\item Do you have intuition about basic linear algebra? (Fig. 2 and Sec. 3.6)
+\item Can you solve basic matrix equations and derive gradients/Jacobians? (e.g. Sec 2.4)
+\end{items}
+
+~\pause
+
+\item Coding:
+\begin{items}
+\item Numeric coding in Python (numpy)
+\item Familiarity with git will help
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Module description (Moses 41016)}{
+
+\item Learning Outcomes
+\begin{items}\ttiny
+\item The students will be able to develop and apply optimization algorithms.
+\item They can formulate real-world problems appropriately as mathematical programs.
+\item They have a detailed understanding of the different categories of optimization problems, and methods to approach them.
+\item They have a basic understanding of the theory behind and properties of optimization algorithms.
+\item They have an overview of and experience with existing optimization software and are able to apply them to solve optimization problems.
+\end{items}
+
+\item Content
+\begin{items}\ttiny
+\item The course is on continuous optimization problems, with focus on non-linear mathematical programming (constrained optimization).
+\item Part 1 introduces efficient downhill algorithms in the unconstrained case: ...
+\item Part 2 will introduce efficient algorithms for constrained optimization: ...
+\item Part 3 will cover extended topics (global optimization, stochastic gradient, stochastich search) ...
+\end{items}
+
+\item Prerequisites
+\begin{items}
+\item Good knowledge in linear algebra and calculus
+\item Basic programming knowledge in Python
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Module description (Moses 41016)}{\label{lastpage}
+
+\item Grading
+\begin{items}
+\item graded, written exam, English (120min)
+\end{items}
+
+\item This module is used in the following module lists:
+\begin{items}\ttiny
+\item Computational Engineering Science (Informationstechnik im Maschinenwesen) (Master of Science)
+\item Computer Engineering (Master of Science)
+\item Computer Science (Informatik) (Master of Science)
+\item Elektrotechnik (Master of Science)
+\item ICT Innovation (Master of Science)
+\item Medieninformatik (Master of Science)
+\item Physikalische Ingenieurwissenschaft (Master of Science)
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slidesfoot

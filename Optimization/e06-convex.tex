@@ -1,0 +1,81 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Optimization Algorithms}
+\renewcommand{\coursepicture}{optim}
+\renewcommand{\coursedate}{Winter 2024/25}
+\renewcommand{\exnum}{Weekly Exercises 6}
+
+\exercises
+
+\excludecomment{solution}
+
+\exercisestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Problems involving $\ell_1$- and $\ell_\infty$-norms}
+
+These exercises are from Boyd
+et al \url{http://www.stanford.edu/~boyd/cvxbook/bv_cvxbook.pdf}:
+
+(Ex. 4.11, pdf page 207) Formulate the following problems as LPs. Explain
+in detail the relation between the optimal solution of each problem and the solution of its equivalent LP. (See norm definitions below.)
+\begin{enumerate}
+\item Minimize $\norm{Ax - b}_\infty$
+\item Minimize $\norm{Ax - b}_1$
+\item Minimize $\norm{Ax - b}_1$ subject to $\norm{x}_\infty \le 1$
+%\item Minimize $\norm{x}_1$ subject to $\norm{Ax - b}_\infty \le 1$
+%\item Minimize $\norm{Ax - b}_1$ + $\norm{x}_\infty$
+\end{enumerate}
+In each problem, $A\in\RRR^{m\times n}$ and $b\in\RRR^m$ are given.
+
+Recall the general definition of a $p$-norm as $\norm{x}_p = \[\sum_i |x_i|^p\]^{1/p}$. In particular $\norm{x}_1 = \sum_i |x_i|$ (sum of absolute values), and $\norm{x}_\infty = \max_i |x_i|$ (largest absolute value (limit $p\to\infty$)).
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Minimum fuel optimal control}
+
+[This is a modification of Boyd's Ex 4.16, pdf page 208.] We consider a linear dynamical system with
+state $x(t)\in\RRR^n, t=0,..,N$, and actuator or input signal
+$u(t)\in\RRR$, for $t=0,..,N-1$. The dynamics of the system is given
+by the linear recurrence
+$$
+x(t+1) = A~ x(t) + b~ u(t)\comma t=0,..,N-1~,
+$$
+where $A\in\RRR^{n\times n}$ and $b\in\RRR^n$ are given. We assume that
+the initial state is zero, i.e., $x(0)=0$.
+
+The minimal fuel optimal control problem is to choose the inputs
+$u(0),..,u(N-1)$ so as to minimize the total fuel consumed, which is
+given by
+$$
+F = \sum_{t=0}^{N-1} c(u(t))~,
+$$
+subject to the constraint that $x(N) = x_\text{des}$, where $N$ is the
+(given) time horizon, and $x_\text{des}\in\RRR^n$ is the (given)
+desired final or target state. The function $c:\RRR \to \RRR$ is the
+fuel use map for the actuator, and gives the amount of fuel used as a
+function of the actuator signal amplitude. In this problem [modified from Boyd] we use
+$$
+c(u) = u^2 ~.
+$$
+%% $$
+%% f(x) = \begin{cases} |a| & |a|\le 1 \\ 2|a|-1 & |a| > 1 \end{cases}~.
+%% $$
+%% This means that fuel use is proportional to the absolute value of the
+%% actuator signal, for actuator signals between $-1$ and $1$; for larger
+%% actuator signals the marginal fuel efficiency is half.
+
+\begin{enumerate}
+	\item Formulate the minimum fuel optimal control problem as a Mathematical Program, where both controls and states are the optimization variable, and the goal and dynamics of the system are constraints. This should be an NLP where the cost function is quadratic, and all constraints linear (aka.\ Quadratic Program).
+	% Hint: the optimization variable of the NLP is $\mathbf{x} \in \RRR^{(1+n)N}  = [ u(0) , x(1), u(1), x(2), ..., u(N-1) , x(N) ]$.
+	%\item As preparation for the next coding assignment, implement the Mathematical Program using the Python Coding interface.
+\end{enumerate}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exerfoot
+

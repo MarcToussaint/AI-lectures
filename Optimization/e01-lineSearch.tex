@@ -1,0 +1,100 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Optimization Algorithms}
+\renewcommand{\coursepicture}{optim}
+\renewcommand{\coursedate}{Winter 2024/25}
+\renewcommand{\exnum}{Weekly Exercise 1}
+
+\exercises
+
+\providecommand{\Min}{\text{Min}}
+
+%\excludecomment{solution}
+\exercisestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Toy Problems and Plotting}
+
+Consider the following functions over $x\in\RRR^n$:
+\begin{align}
+f_\text{sq}(x)
+ &= x^\T C x ~,\\
+f_\text{hole}(x)
+ &= \frac{x^\T C x}{a^2 + x^\T C x} ~,\\
+f_\text{exp}(x)
+ &= -\exp\(- \half x^\T C x\) ~.
+\end{align}
+
+For $C=\Id$ (identity matrix) the first would be fairly simple to
+optimize. The $C$ matrix changes the \emph{conditioning} (ratio of largest and smalles Hessian eigenvalues) of these functions and makes them more
+interesting. We assume that $C$ is a diagonal matrix with entries $C_{ii} = c^{\frac{i-1}{n-1}}$.
+
+\begin{enumerate}
+\item What are the gradients $\na f(x)$ of these three functions?
+
+\item What are the Hessians $\he f(x)$ of these three functions?
+
+\item Implement these functions in python and plot the above functions for $c=10$ and $a=.1$ over $x = [-1,1]^2$. Tip: First evaluate the function over a @np.meshgrid@, then @matplotlib@ and @plot\_surface@ are useful.
+
+%% The example code also allows you to plot a \emph{trace} of points $x_0,
+%% x_1, .. x_k$ which are generated during an optimization run. Use this
+%% for future exercise/assignments.
+\end{enumerate}
+
+\textbf{Outlook:} We will soon have the first coding assignments, where you have to implement both, the problems (functions and their gradients), and the solvers. If you want to try already, implement the above functions to also return the gradient. Then try vanilla gradient descent starting at $x_0=(1,1)$, outputting basic information (\#iteration, current-cost) in each iteration, and storing the trace $x_{0,..}$ in a matrix for plotting.
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Convergence proof}
+
+The following aims to guide you through a proof of the convergence
+theorem. This course is not focussing on theory -- so this is an
+exception. But the steps below are also a good exercise to train basic
+maths that is relevant throughout the course.
+
+We are given a function $f:~\RRR^n \to \RRR$ with $f_\Min = \min_x
+f(x)$. Assume that the eigenvalues of its Hessian $\he f$ are lower
+bounded by $m>0$ and upper bounded by $M>m$, with $m,M\in\RRR$.
+Recall that the 2nd-order Taylor approximation of $f(y)$ around $x$ is
+$$f(y) \approx f(x) + \na f(x)^\T(y-x) + \half (y-x)^\T \he f(x) (y-x)$$
+\begin{enumerate}
+\item Analogous to the 2nd Taylor, provide an upper and lower bound
+  of $f(y)$, using the upper and lower curvatures $M$ and $m$,
+  respectively. This tells us that the function $f(y)$ is ``squeezed''
+  between a lower bound paraboloid with minimal curvature, and an
+  upper bound paraboloid with maximal curvature, which ``touch'' each
+  other at location $x$ with value $f(x)$ and gradient $\na f(x)$.
+ 
+\item Find the minima of both, the upper and lower bound
+   paraboloids.  Then prove that for any $x\in\RRR^n$ it holds
+ $$f(x) - \frac{1}{2m} |\na f(x)|^2
+  \le f_\Min
+  \le f(x) - \frac{1}{2M} |\na f(x)|^2 ~.$$
+ as well as
+ $$|\na f(x)|^2  \ge 2m(f(x) - f_\Min) ~.$$
+ 
+\item Consider backtracking line search with Wolfe parameter $\lsstop\le\half$,
+  and step decrease factor $\adec$. Assume that
+  $\a \le \frac{1}{M}$. Prove that the step $x+\a\d$ fulfills the
+  Wolfe condition (is sufficiently decreasing the function) and
+  therefore line search terminates.
+ 
+\item Also argue that, if $\a$ is initially large but then repeatedly
+  decreased with $\a \gets \adec \a$, line search terminates for some
+  $\a$ within $\frac{\adec}{M} \le \a \le \frac{1}{M}$.
+ 
+\item Conclude the prove by showing that line search stops at a point $y$ for which
+  $$f(y) \le f(x) - \frac{\lsstop\adec}{M} |\na f(x)|^2 ~.$$ and
+  $$f(y) - f_\Min \le \[1-\frac{2m\lsstop\adec}{M}\]~ (f(x) - f_\Min) ~.$$
+\end{enumerate}
+ 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exerfoot

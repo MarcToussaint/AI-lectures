@@ -1,0 +1,468 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Optimization Algorithms}
+\renewcommand{\coursepicture}{optim}
+\renewcommand{\coursedate}{Winter 2024/25}
+
+\renewcommand{\topic}{No Free Lunch}
+\renewcommand{\keywords}{}
+
+\slides
+
+\slidestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{References}{
+
+\item Toussaint: \emph{The Bayesian Search Game}. In Theory and Principled Methods for Designing Metaheuristics, Springer, 2012.
+
+\item Igel \& Toussaint: \emph{On Classes of Functions for which No Free Lunch Results Hold}. Information Processing Letters, 86, p.\ 317-321, 2003.
+
+\item Wolpert \& Macready. \emph{No free lunch theorems for optimization}. IEEE Transactions on Evolutionary Computation, 1(1):67–82, 1997.
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{No Free Lunch (NFL) Theorem}
+\slide{No Free Lunch Theorem -- Problem Setting}{
+
+{\tiny [Following \emph{The Bayesian Search Game} (2012)]}
+
+\item Finite(!) space $X$
+
+\item Distribution $P(f)$ over functions $f:~ X \to Y$
+
+\item A \textbf{non-revisiting} algorithm $\AA$ generates queries $x_t$ and observations $y_t = f(x_t)$. Formally, a probabilistic algorithm is defined by
+$$P(x_t \| x_{1:t\1}, y_{1:t\1}; \AA)$$
+and $P(x_1 ; \AA)$.
+
+~\pause\small
+
+\item Therefore, $\AA$ interacting with random function $f$ generates the joint process:
+\begin{align*}
+P(f,x_{1:T},y_{1:T};\AA)
+&= P(f)~ P(y_1 \| x_1,f)~ P(x_1;\AA)~
+ \prod_{t=2}^T P(y_t \| x_t,f)~ P(x_t \| x_{1:t\1},y_{1:t\1};\AA)
+\end{align*}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{No Free Lunch Theorem}{
+
+\item \textbf{Theorem:}
+\begin{align} 
+&\exists h:Y\to\RRR ~~\text{s.t.}~~ \forall K\in\NN^+, \{x_1,..,x_K\} \subset X:~
+ P(f_{x_1},..,f_{x_K}) = \prod_{k=1}^K h(f_{x_k}) \label{nflL}\\
+ &\qquad \Longleftrightarrow \qquad \forall_\AA, \forall_T:~ P(y_{1:T};\AA) = \prod_{i=1}^T h(y_i) \quad \text{(independent of $\AA$) } \label{nflR}
+\end{align}
+
+\item In words:
+
+\cen{$P(f)$ factorizes $\quad\iff\quad$ all $\AA$ generate the same random observations}
+
+~\tiny
+
+[Proof later]
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{No Free Lunch Theorem -- Comments}{
+
+\item Interpreting the LHS:
+\begin{items}
+\item $P(f_{x_1},..,f_{x_K}) = \prod_{k=1}^K h(f_{x_k})$ factorizes i.i.d.\
+\item \textbf{There is no mutual information between any $f(x_1), f(x_2), x_1\not=x_2$}, $I(f(x_1), f(x_2)) = 0$
+\item Observing $f(x_1)$ reveals no information whatsoever on what $f(x_2)$ might be
+\item Any (non-repeating!) algorithm is equally blind and uninformed about what future observations might be, not matter how it collected past information $(x_{1:t\1}, y_{1:t\1})$
+\end{items}
+
+~\pause\small
+
+\item Often we have a performance metric (see later); but ``all observations $P(y_t\|...;\AA)$ are indep.\ of $\AA$'' is stronger and implies equal expected performance with whatever metric
+
+\item Traditional statement: ``Averaged over \emph{all} problem instances, any algorithm performs equally. (E.g.\ equal to random.)''
+
+\item ``there is no one algorithm that works best for every problem''
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{No Free Lunch Theorem -- Comments}{
+
+\item The classical citation is Wolpert \& Macready (1997), but is less general than the above and proof overly complicated and less clear in my view.
+
+\begin{items}
+\item ``Averaging over all problems'' $\to$ expectation w.r.t.\ $P(f)$
+\item ``set of functions closed under permutation'' $\to$ $P(f)$ factorizes
+\item Our Theorem is strong $\iff$, not just $\To$ (Igel \& Toussaint, 2004)
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{NFL Proof}
+\slide{NFL Proof}{
+
+\item We defined the process $P(f,x_{1:T},y_{1:T};\AA)$ previously
+
+\item Basic definitions of probabilities to prove $\To$:
+\begin{align*} \label{eq4}
+P(y_t \| x_{1:t\1},y_{1:t\1};\AA)
+&= \sum_{x_t \in X} \[\sum_f P(y_t \| x_t,f)~ P(f \| x_{1:t\1},y_{1:t\1})\]~ P(x_t \| x_{1:t\1},y_{1:t\1};\AA) \feed
+&= \sum_{x_t \in X} P(f_{x_t}\=y_t \| x_{1:t\1},y_{1:t\1})~ P(x_t \| x_{1:t\1},y_{1:t\1};\AA) \feed
+&= \sum_{x_t \in X} h(y_t)~ P(x_t \| x_{1:t\1},y_{1:t\1};\AA) = h(y_t) ~.
+\end{align*}
+Last line: $\AA$ is non-revisiting, and $P(f_{x_t}\=y_t \|
+x_{1:t\1},y_{1:t\1}) = P(f_{x_t}\=y_t) = h(y_t)$.
+
+~\pause
+
+\item Prove $\oT$ by explicitly constructing algorithms that generate different outputs when $P(f)$ is non-factored.
+{\tiny [Details in \emph{The Bayesian Search Game}, 2012]}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{No Free Lunch for Optimization}{
+
+\item Consider the problem $\min_{x\in X} f(x)$ for finite $X$
+
+\item Also here, an algorithm $\AA$ is defined by $P(x_k \| x_{1:t\1}, y_{1:t\1}; \AA)$
+
+\item A typical performance metric could be \defn{regret}
+$$R(T) = \sum_{t=1}^T y_t - y^*$$
+
+~\pause
+
+\item But if for a non-repeating(!) $\AA$, $P(y_t)$ is indep.\ of $\AA$, so is the expected regret
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{No Free Lunch for Machine Learning}{
+
+\item Given data $D = \{ (x_i, y_i) \}_{i=1}^n$, find a predictor $\hat f:~ X \to y$ that minimizes expected loss $\Exp{\ell(\hat f(x^*), f(x^*))}$ for a future query $x^*$, where $f(x^*)$ is the ground truth
+
+\item A learning algorithm $\AA$ is a predictive distribution $P(y \| x^*, D; \AA)$
+
+(i.e., a mapping from $D$ to a prediction $P(y \| x^*)$ for a new query $x^*$)
+
+\item Assume $X$ is finite and $x^* \not\in D$ (non-repeating!)
+
+~
+
+\item But if $P(f)$ factorizes so that $P(f(x^*)\=y) = h(y)$ is fully independent from $D$ (zero mutual information), then no algorithm can learn anything or predict better than the prior.
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Bayes' Theorem}{
+
+{\Large\centering
+
+$$
+P(X|D) = \frac{P(D|X)}{P(D)}~ P(X)
+$$
+
+~
+
+{$\text{posterior} ~=~
+\frac{\text{likelihood} ~\cdot~ \text{prior}}{\text{normalization}}$\quad}
+
+}
+
+~\normalsize
+
+\item But if $X$ is indep.\ from $D$, then there is nothing to learn or predict better than the prior $P(X)$
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\sublecture{Conclusions from NFL?}{
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\item NFL is an almost trivial theorem, what is non-trivial is what to make of it
+
+~\pause
+
+\item First pressing question:
+\begin{items}
+\item Does NFL also hold for continuous $X$? What would it mean that $P(f)$ is factorized, or $I(f(x_1), f(x_2)) = 0$, for any $x_1\not= x_2$ in continous $X$?
+\end{items}
+
+\pause
+
+\item Thoughts on conclusions from NFL:
+\begin{items}
+\item Become aware, in your methods, what actually you are assuming - you must assume something
+\item Fight back if anybody ever states ``we don't (want to) make assumptions'' (e.g.\ in a talk on RL that claims it can solve any problem without assumptions)
+\item There is no Artificial General Intelligence if general would mean ``making NO assumptions''. So, the AGI community (say, Marcus Hutter) must make some assumptions -- what are they \emph{exactly}?
+\item What are assumptions we would ``generally'' accept to make in our physical universe? (In case we care about AI specifically in our physical universe.)
+\item What are algorithms that literally start by making assumptions about $P(f)$ and then derive an optimal algorithm for that $P(f)$? (see Bayesian Search Game...)
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{NFL in continuous domains}
+\key{Gaussian Processes}
+\slide{NFL in continuous domains}{
+
+\item The LHS describes $P(f)$ with $I(f(x_1), f(x_2)) = 0$ for any $x_1\not= x_2$
+\begin{items}
+\item How can we define probability distributions over functions (over continuous $X$) in the first place?
+\end{items}
+
+~\pause
+
+\item A typical way to define distributions over $f:\RRR^n \to \RRR$ is as a \defn{Gaussian Process}:
+\begin{items}
+\item For every finite set $\{x_1,..,x_M\}$, the function values
+$f(x_1),..,f(x_M)$ are Gaussian distributed with mean and covariance
+\begin{align*}
+&\Exp{f(x_i)} = \mu(x_i) \qquad\text{(often zero)} \\
+&\Exp{[f(x_i)-\m(x_i)][f(x_j)-\mu(x_j)]} = k(x_i,x_j)
+\end{align*}
+where, $\mu(x)$ is called \textbf{mean function}, and $k(x,x')$ is called \defn{covariance function}
+\item $\mu$ and $k$ generalize the notion of \emph{mean vector} $\mu_x$ and \emph{covariance matrix} $\S_{xx'}$ from finite $x\in\{1,..,n\}$ to continuous $x\in\RRR^n$
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{GP examples}{
+
+\show[.6]{gaussianProcess1}
+{\tiny\hfill(from Rasmussen \& Williams)}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{}{
+%% \show[.6]{BayesianPredictiveDistribution}
+%% {\tiny\hfill(from Bishop)}
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{GP examples: different covariance functions}{
+
+~
+
+\show[.6]{gaussianProcess2}
+{\tiny\hfill(from Rasmussen \& Williams)}
+
+~
+
+\item These are examples from the $\g$-exponential covariance function
+
+$$k(x,x') = \exp\{-|(x-x')/l|^\g\}$$
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{NFL in continuous domains}{
+
+\item Back to NFL: the LHS requires $I(f(x_1), f(x_2)) = 0$, which would mean, for GPs, zero covariance function $k(x,x')=0$ for any $x\not=x'$
+
+~\pause
+
+\item At first sight this might seem ok, but
+\begin{items}
+\item Auger \& Teytaud clarify that ``zero-covariance GP'' is not a proper Lebesgue measure over function
+\item Conversely, they state that for any Lebesgue meassure the LHS does not hold (and claim that Lebesgue meassures are the only sensible kind of $P(f)$)
+\end{items}
+
+\cit{A. Auger and O. Teytaud}{Continuous lunches are free plus the design of optimal optimization
+algorithms}{Algorithmica, 2008}
+
+~\pause\small
+
+\item Beyond my expertise as non-mathematician
+\item But the point of NFL remains the same: one would only have to replace ``non-revisiting'' by ``non-near-revisiting'' or so.
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{NFL in continuous domains -- conclusions}{
+
+\item Whether NFL holds in continuous domains depends on what $P(f)$ you consider mathematically sound
+
+\item The core point remains that if $I(f(x_1), f(x_2))=0$ (for non-close $x_1,x_2$), no non-(near)-revisiting algorithm can be smart
+
+~
+
+\item Gaussian Processes are the simplest instance for assuming non-zero $I(f(x_1), f(x_2)) \not= 0$, by assuming Gaussian dependencies between $x\not=x'$
+
+$\To$ GPs became a standard assumption to explicitly design algorithms exploiting that assumption and evading NFL
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\emph{Become aware, in your methods, what actually you are assuming - you must assume something}
+
+~
+
+\item What did our optimization algorithms assume so far?
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Assumptions in continuous optimization}{
+
+\item $f$ is continously differentiable $f\in C^1$!
+\begin{items}
+\item The limits exist! Clearly there are ``correlations'' when approaching infinitesimally!
+\item Sure we can predict to (infinitesimally close) points: The gradient gives an accurate 1st order Taylor prediction (in the vicinity)
+\item We can predict to go downhill following the gradient.
+\item All this would not be possible with NFL assumptions.
+\end{items}
+
+
+\pause
+
+\item Lipschitz continuity of $\na f(x)$ ~ (assumption of SGD convergence)
+
+\pause
+
+\item Strong convexity assumption (eigenvalues $\l$ of the Hessian $\he f(x)$ bounded by $m < \l < M$) ~ (exponential convergence of line search)
+
+~\pause
+
+\item All assumptions are \emph{local}, and were used to characterize local convergence behavior
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Assumptions made in AGI}{
+
+\item Kolmogorov \& Solomonoff complexity
+
+(also not my expertise...)
+
+
+\cit{Lattimore \& Hutter}{No free lunch versus Occam's razor in supervised learning}{In Algorithmic Probability and Friends. Bayesian Prediction and Artificial Intelligence, 2013}
+
+\cit{Baum, Hutter, \& Kitzelmann}{Artificial general intelligence}{In Proceedings of the Third Conference on Artificial General Intelligence, 2010}
+
+~
+
+\item Occam's rasor: $P(f)$ is higher for ``simpler'' functions $f$. Assuming all (relevant) $f$ are computable, simpler = of lower Kolmogorov/Solomonoff complexity.
+
+\item Obvious algorithm to exploit this universal prior: Sort all $f$ by complexity, test each in order -- will be better than random.
+
+\item Can also define optimal algorithms (optimal AGI) under this universal complexity prior
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\emph{What are assumptions we would ``generally'' accept to make in our physical universe? (In case
+we care about AI specifically in our physical universe.)}
+
+~\pause
+
+\item Beyond full discussion here. Some thoughts:
+\begin{items}
+\item physics $\oto$ space$\times$time; things (fields/objects); local(!) interactions between things; invariances(!)
+\pause
+\item images $\oto$ invariances; neighboring pixels correlated $\oto$ convolutional features, hierarchies, CNN
+\item time series $\oto$ Markovian, maybe smooth $\oto$ HMMs, MDPs, control, etc, etc
+\item Robotics, Language, Text, humans, animals, etc etc
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\emph{What are algorithms that literally start by making assumptions about $P(f)$ and then derive an
+optimal algorithm for that $P(f)$?}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Optimal Optimization}
+\slide{Optimal Optimization}{
+
+\item Optimization can be formalized as a sequential decision problem (MDP):
+\begin{items}
+\item Start with a prior $b_0 = P(f)$
+\item Choose a query $x_t$ based on $b_t$ ~ (policy, acquisition function)
+\item Query $x_t$, observe $y_t$, update data $D$, update belief $b_t \gets P(f\|D)$, iterate
+\end{items}
+\show[.6]{bsg}
+{\tiny\hfill[Bayesian Search Game]}
+
+\pause
+
+\item This defines a \emph{known} decision process, for which we can define an optimal policy
+\begin{items}
+\item Can in principle be computed using Dynamic Programming -- but intractable
+\end{items}
+
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Bayesian Optimization in a nutshell}{
+
+\item We maintain a particular belief $b_t = P(f\|D)$, namely a \emph{Gaussian Process}
+
+~\pause
+
+\item Don't plan an optimal query policy, but use a 1-step heuristic:
+
+\item An \defn{acquisition function} $\a(x, b_t)$ characterizes how ``interesting'' it is to query $x$ next, and defines the policy
+$$x_t = \argmax_x \a(x, b_t)$$
+
+\item Analogies:
+\begin{items}
+\item $\a(x, b_t)$ is a descriminative function for the next decision
+\item $\a(x, b_t)$ is like a $Q$-function $Q(b_t,x)$ for the next decision (but not learned)
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{\label{lastpage}
+
+to be continued with Bayesian Optimization...
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slidesfoot

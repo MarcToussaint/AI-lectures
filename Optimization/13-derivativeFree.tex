@@ -1,0 +1,244 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Optimization Algorithms}
+\renewcommand{\coursepicture}{optim}
+\renewcommand{\coursedate}{Winter 2024/25}
+
+\renewcommand{\topic}{Derivative-Free (Black-Box) Optimization}
+\renewcommand{\keywords}{}
+
+\slides
+
+\slidestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Derivative-Free (Black-Box) Optimization}{
+
+\item Let $x\in\RRR^n$, $f:~ \RRR^n \to \RRR$, ~ find
+\begin{align*}
+\argmin_x~ & f(x)
+\end{align*}
+
+\item Derivative-Free/Blackbox optimization:
+\begin{items}
+\item No access to $\na f$ or $\he f$, sometimes also noisy evaluations $f(x)$
+\end{items}
+
+\pause
+
+\item Algorithms needs to collect \emph{data} $D$ about $f$, and decide on next queries
+
+~
+
+\item Many variants:
+\begin{items}
+\item Classical derivative-free, implicit filtering, model-based optimization
+\item Heuristics: Nelder-Mead, Coordinate search, Twiddle, Pattern Search
+\item Stochastic Search, evolution strategies, EDAs, other EAs
+\item Bayesian Optimization, Global Optimization
+\item others?
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Implicit filtering}
+\slide{Implicit Filtering}{
+
+\item Estimates the local gradient using finite differencing
+$$\na_\e f(x) \approx \[\frac{1}{2\e} (f(x+\e e_i) - f(x-\e
+e_i))\]_{i=1,..,n}$$
+
+\item Lines search along the gradient; if not succesful, decrease $\e$
+
+\item Can be extended by using $\na_\e f(x)$ to update an
+approximation of the Hessian (as in BFGS)
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Model-based optimization}{
+\tiny
+following Nodecal et al.\ ``Derivative-free optimization''
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Model-based optimization}
+\slide{Model-based optimization}{
+
+\item The previous stochastic serach methods are heuristics to update
+$\t$
+
+\cen{\emph{Why not store the previous data directly?}}
+
+~
+
+\item Model-based optimization takes the approach
+\begin{items}
+\item Store a data set $\t=D=\{(x_i,y_i)\}_{i=1}^n$ of previously
+explored points
+
+(let $\hat x$ be the current minimum in $D$)
+\item Compute a (quadratic) model $D\mapsto \hat f(x) = \phi_2(x)^\T\b$
+\item Choose the next point as
+$$x^+ = \argmin_x \hat f(x) \st |x-\hat x|<\a$$
+\item Update $D$ and $\a$ depending on $f(x^+)$
+\end{items}
+
+\item The $\argmin$ is solved with constrained optimization methods
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Model-based optimization}{
+
+\begin{algo}
+\State Initialize $D$ with at least $\half (n+1)(n+2)$ data points
+\Repeat
+\State Compute a regression $\hat f(x) = \phi_2(x)^\T\b$ on $D$
+\State Compute $x^+ = \argmin_x \hat f(x) \st |x-\hat x|<\a$
+\State Compute the improvement ratio $\r = \frac{f(\hat x)-f(x^+)}{\hat
+f(\hat x)-\hat f(x^+)}$
+\If{$\r>\e$}
+\State Increase the stepsize $\a$
+\State Accept $\hat x \gets x^+$
+\State Add to data, $D \gets D \cup \{(x^+,f(x^+))\}$
+\Else
+\If{$\det(D)$ is too small} \Comment{Data improvement}
+\State Compute $x^+ = \argmax_x \det(D\cup\{x\}) \st |x-\hat x|<\a$
+\State Add to data, $D \gets D \cup \{(x^+,f(x^+))\}$
+\Else
+\State Decrease the stepsize $\a$
+\EndIf
+\EndIf
+\State Prune the data, e.g., remove $\argmax_{x\in\D} \det(D\setminus\{x\})$
+\Until $x$ converges
+\end{algo}
+\tiny
+\item \textbf{Variant:} Initialize with only $n+1$ data points and fit
+a linear model as long as $|D|<\half (n+1)(n+2) = \dim(\phi_2(x))$
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Model-based optimization}{
+
+
+\item Optimal parameters ~ (with data matrix $X\in\RRR^{n\times\dim(\b)}$)
+$$\hat \b^{\text{ls}} = (\vec X^\T \vec X)^\1 \vec X^\T y$$ The
+determinant $\det (\vec X^\T \vec X)$ or $\det(\vec X)$ (denoted
+$\det(D)$ on the previous slide) is a measure for well the data
+supports the regression. The data improvement explicitly selects a
+next evaluation point to increase $\det(D)$.
+
+\item Nocedal describes in more detail a geometry-improving procedure to update $D$.
+
+~
+
+\item Model-based optimization is closely related to Bayesian approaches. But
+\begin{items}
+\item Should we really prune data to have only a minimal set $D$ (of
+size $\dim(\b)$?)
+\item Is there another way to think about the ``data improvement''
+selection of $x^+$? ($\to$ maximizing uncertainty/information gain)
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Nelder-Mead simplex method}
+\slide{Nelder-Mead method -- Downhill Simplex Method}{
+
+\show[.4]{downsimplex}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Nelder-Mead method -- Downhill Simplex Method}{
+
+\item Let $x\in\RRR^n$
+
+\item Maintain $n+1$ points $x_0,..,x_n$, sorted by
+$f(x_0)<...<f(x_n)$
+
+\item Compute center $c$ of points
+
+\item Reflect: $y=c + \a (c-x_n)$
+\item If $f(y)<f(x_0)$:~  Expand: $y=c + \g (c-x_n)$
+\item If $f(y)>f(x_{n\1})$:~  Contract: $y=c + \r (c-x_n)$
+\item If still $f(y)>f(x_n)$:~ Shrink $\forall_{i=1,..,n} x_i \gets
+x_0 + \s(x_i-x_0)$
+
+~
+
+\item Typical parameters: $\a=1, \g=2, \r=-\half, \s=\half$
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Coordinate search}
+\slide{Coordinate Search}{
+
+\begin{algo}
+\Require Initial $x\in\RRR^n$
+\Repeat
+\For{$i=1,..,n$}
+\State $\a^* = \argmin_\a f(x+\a \vec e_i)$ \Comment{Line Search}
+\State $x \gets x+\a^* \vec e_i$
+\EndFor
+\Until $x$ converges
+\end{algo}
+\item The LineSearch must be approximated
+\begin{items}
+\item E.g.\ abort on any improvement, when $f(x+\a \vec e_i)<f(x)$
+\item Remember the last successful stepsize $\a_i$ for each
+coordinate
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Twiddle}{
+
+\begin{algo}
+\Require Initial $x\in\RRR^n$, initial stepsizes $\a_i$ for all $i=1:n$
+\Repeat
+\For{$i=1,..,n$}
+\State $x \gets \argmin_{y\in\{x-\a_i e_i, x, x+\a_i e_i\}} f(y)$ \Comment{twiddle $x_i$}
+\State Increase $\a_i$ if $x$ changed; decrease $\a_i$ otherwise
+\EndFor
+\Until $x$ converges
+\end{algo}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Pattern search}
+\slide{Pattern Search}{\label{lastpage}
+
+~
+
+\begin{items}
+\item In each iteration $k$, have a (new) set of search directions $D_k
+   = \{ d_{ki} \}$ and test steps of length $\a_k$ in these directions
+\item In each iteration, adapt the search directions $D_k$ and step
+   length $\a_k$
+\end{items}
+{\tiny\hfill Details: See Nocedal et al.}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slidesfoot
