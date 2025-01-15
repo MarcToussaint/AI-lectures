@@ -1,5 +1,4 @@
-Probabilities & Energy
-----------------------
+## Probabilities & Energy
 
 Given a density $p(x)$, we call
 
@@ -12,7 +11,7 @@ Conversely, given an energy function $E(x)$, the corresponding density
 (called Boltzmann distribution) is
 
 $$\begin{align}
-p(x) = \textstyle\frac 1Z \exp\lbrace-E(x)\rbrace ~,
+p(x) = \textstyle\frac 1Z \exp(-E(x)) ~,
 \end{align}$$
 
 where $Z$ is the normalization constant to ensure $\int_x p(x) = 1$, and
@@ -36,15 +35,16 @@ E(D) = -\log P(D) = \sum_{i=1}^n E(x_i) ~,\quad E(x_i) = -\log p(x_i) ~.
 \end{align}$$
 
 The minus is a convention so that we can call the quantity $E(D)$ a
-*loss* or *error* &ndash; something we want to minimize instead of
-maximize. We can show that whenever we want to define a quantity $E(x)$
-that is a function of probabilities (i.e., $E(x) =
+*loss* or *error* -- something we want to minimize instead of maximize.
+We can show that whenever we want to define a quantity $E(x)$ that is a
+function of probabilities (i.e., $E(x) =
 f(p(x))$ for some $f$) and that is additive, then it *needs* to be
 defined as $E(x) = -\log p(x)$ (modulo a constant, where the minus is
 just a convention):
 
-Let $P(D)$, $E(D)$ be two functions over a space of sets $D$, with
-properties (1) $P(D)$ is multiplicative, $P(D_1 \cup D_2) = P(D_1)
+::: proof
+*Proof.* Let $P(D)$, $E(D)$ be two functions over a space of sets $D$,
+with properties (1) $P(D)$ is multiplicative, $P(D_1 \cup D_2) = P(D_1)
 P(D_2)$, (2) $E(D)$ is additive $E(D_1\cup D_2) = E(D_1) + E(D_2)$, and
 (3) there is a mapping $P(D) = \textstyle\frac 1Z f(E(D))$ between both.
 Then it follows that
@@ -60,16 +60,16 @@ P(D_1\cup D_2)
 
 where we defined $E_i=E(D_i)$. The only function to fulfill the last
 equation for any $E_1,E_2\in{\mathbb{R}}$ is the exponential function
-$f(E) = \exp\lbrace -\beta E \rbrace$ with arbitrary coefficient $\beta$
-(and minus sign being a convention, $Z_0 = Z_1
+$f(E) = \exp( -\beta E )$ with arbitrary coefficient $\beta$ (and minus
+sign being a convention, $Z_0 = Z_1
  Z_2$). Boiling this down to an individual element $x\in D$, we have
 
 $$\begin{align}
-p(x) = \textstyle\frac 1Z \exp\lbrace-\beta E(x)\rbrace ~,\quad\beta E(x) = -\log p(x) - \log Z ~.
-\end{align}$$
+p(x) = \textstyle\frac 1Z \exp(-\beta E(x)) ~,\quad\beta E(x) = -\log p(x) - \log Z ~.
+\end{align}$$&nbsp;&EmptySmallSquare;
+:::
 
-Partition Function
-------------------
+## Partition Function
 
 The normalization constant $Z$ is called partition function. *Knowing
 the partition function means knowing probabilities instead of only
@@ -114,8 +114,7 @@ in each partition $i$, you need the partition function
 as states with same energy, and the question of how populated they are
 is highly relevant. This is where the word has its origin.
 
-Energy & Probability in Physics
--------------------------------
+## Energy & Probability in Physics
 
 The set $D$ in the proof above is a set of i.i.d.&nbsp;random variables.
 In physics, the analogy is a system composed of particles: Each particle
@@ -124,8 +123,8 @@ particle states and full-system state probabilities multiplicative.
 Axiomatically, each particle also has a quantity called energy which is
 additive. Now, an interesting question is why that particular quantity
 that physicists call "energy" has a one-to-one relation $f$ to
-probabilities &ndash; details can be found under the keyword "derivation
-of canonical ensemble" (e.g.&nbsp;Wikipedia), but two brief comments may
+probabilities -- details can be found under the keyword "derivation of
+canonical ensemble" (e.g.&nbsp;Wikipedia), but two brief comments may
 clarify the essentials:
 
 First, the one-to-one relation between energy and probability (in
@@ -136,19 +135,18 @@ particle has particular high energy (e.g.&nbsp;almost all energy), there
 is not much energy left for the other particles, which means that they
 need to populate low energy states. If only discrete energy levels
 exist, one can count the combinatorices of how many full-system states
-exist depending which energy levels are populated &ndash; in the
-previous example the combinatorics is low because many particles are
-confined to low energy states, showing that the probability for this one
-particle to populate such a high energy level is low. In general,
-computing these combinatorics explicitly leads to the so-called
-Boltzmann distribution $p(i) \propto \exp\lbrace-\beta E_i\rbrace$ of a
-particle to be in energy level $i$: Lower energy states have higher
-probability, intuitively because for limited total energy more particles
-can be in these states, leading to higher combinatorics of microstates.
-In other words, in the thermodynamic equilibrium all feasible
-microscopic full-system states are equally likely, but the probability
-of one particle of the ensemble to have energy $i$ goes with the
-Boltzmann distribution.
+exist depending which energy levels are populated -- in the previous
+example the combinatorics is low because many particles are confined to
+low energy states, showing that the probability for this one particle to
+populate such a high energy level is low. In general, computing these
+combinatorics explicitly leads to the so-called Boltzmann distribution
+$p(i) \propto \exp(-\beta E_i)$ of a particle to be in energy level $i$:
+Lower energy states have higher probability, intuitively because for
+limited total energy more particles can be in these states, leading to
+higher combinatorics of microstates. In other words, in the
+thermodynamic equilibrium all feasible microscopic full-system states
+are equally likely, but the probability of one particle of the ensemble
+to have energy $E_i$ goes with the Boltzmann distribution.
 
 The coefficient $\beta$ tells us how exactly energies translate to
 probabilities, and should intuitively depend on the total energy of the

@@ -3,6 +3,7 @@
 
 \title{Lecture Note:\\ Robot Kinematics \& Dynamics}
 \author{Marc Toussaint\\\small Learning \& Intelligent Systems Lab, TU Berlin}
+\date{May 1, 2024}
 
 \makeatletter
 \renewcommand{\@seccntformat}[1]{}
@@ -37,7 +38,7 @@ structure, we can compute the pose $x_i$ of each body simply by
 forward chaining all relative transformations all $Q_j$ from world to
 $i$. Some robotic systems might not really be tree-structured --
 these will first be represented as a tree
-and then additional constraints to describe loops are added.
+plus additional constraints to describe loops.
 
 What is special about robots is that some of the relative
 transformations have degrees of freedom (dofs) that are
@@ -53,15 +54,15 @@ the concepts of generalized and minimal coordinates below.
 We have defined $x_i\in\SE(3)$ as the pose of body $i$, and
 $q\in\RRR^n$ as the dofs of the full multibody system. The mappings $\phi_i: q
 \mapsto x_i$ (for any $i$) is what so-called ``forward kinematics'' is
-concerned about. We already explained that $x_i = \phi_i(q)$ can be
-computed simply by chaining all relative transformations. We call this
-the (full) forward kinematics.\footnote{Very often we are not interested to
-really compute all poses $x_i$ of the multibody system, but only the
-pose of one relevant body $i$ (esp.\ the so-called endeffector or
-manipulator), or only the position $x^\pos_i$ or some rotated vector $x^v_i
-= R_i v$ (with $R_i \in \SO(3)$ its orientation) for body
-$i$. In robotics, the word forward kinematics is used often to refer
-only to compute the endeffector pose, position, or orientation.}
+concerned about -- and we already explained that $x_i = \phi_i(q)$ can
+be computed simply by chaining all relative transformations. (Very
+often we are not interested in really computing all poses $x_i$ of the
+multibody system, but only the pose of one relevant body $i$ (esp.\
+the so-called endeffector or manipulator of a robot), or only the position
+$x^\pos_i$ or some rotated vector $x^v_i = R_i v$ (with
+$R_i \in \SO(3)$ its orientation) for body $i$. In robotics, the word
+forward kinematics is often used to refer only to computing the
+endeffector pose, position, or orientation.)
 
 The derivative $J_i(q)=\del_q \phi_i(q) ~ \in \se(3) \otimes \RRR^n$ is
 of central importance to later solve constraint problems, or also to
@@ -71,9 +72,9 @@ relate joint space velocities $\dot q$ to the velocity $\dot x_i \in
 angular velocity $w\in\RRR^3$ (always in world
 coordinates). Therefore, we can write $J_i(q) \in \RRR^{6 \times n}$
 as a matrix, called \textbf{Jacobian}, and
-
-$$(v_i,w_i) = J_i(q) \dot q$$
-
+\begin{align}
+(v_i,w_i) = J_i(q)~ \dot q
+\end{align}
 gives us the linear and angular velocity of body $i$ when joints have
 velocities $\dot q$. In practice, code typically returns separate positional Jacobian $J_i^\pos \in \RRR^{3\times n}$ and angular
 Jacobian $J_i^\ang \in \RRR^{3\times n}$. In fact, the core job of a
@@ -86,19 +87,20 @@ also compute the derivative $J_i(q)$. However, the columns of the positional and
 angular Jacobians can actually be computed very easily and more efficiently by simple
 insight of how the local translational/angular velocity of each
 joint dof translates to the translational/angular velocity of body
-$i$.\footnote{For instance, if $j$ is a rotational (``hinge'') joint
+$i$. The footnote\footnote{For instance, if $j$ is a rotational (``hinge'') joint
 around axis $e$ in the joint's origin frame $x_{\pa(j)}$, and body
 $i$ is downstream at current pose $x_i$, then the $j$th column of
 $$J^\ang_i$$ is $a = (R_{\pa(j)} e)$ (rotates about the axis of
-$j$ in world coordinates), and the $j$th column of $$J^\pos_i$$ is
-$$a \times (x^\pos_i - x^\pos_{\pa(j)})$$ (translates with a lever around
-the axis). Similar arguments can be made if $j$ is a translational
-(``prismatic'') joint, and a bit more complicated arguments if $j$ is
-a ball joint parameterized by a quaternion $q_j \in\RRR^4$. Thinking
-of other joint types as compositions of these basic joints, this
-covers all cases.
-}
-The Jacobians are typically sparse for large robotic systems (e.g.,
+$j$ in world coordinates), and the $j$th column of $J^\pos_i$ is
+$$a \times (x^\pos_i - x^\pos_{\pa(j)})$$ (translates with a lever
+around the axis). Similar arguments can be made if $j$ is a
+translational (``prismatic'') joint, and a bit more complicated
+arguments if $j$ is a ball joint parameterized by a quaternion
+$q_j \in\RRR^4$ (see the Quaternion Lecture Notes). Thinking of other
+joint types as compositions of these basic joints, this covers all
+cases.} provides details on how to derive the Jacobian for rotational
+(hinge), translational (prismatic), and quaternion (ball) joints.  The
+Jacobians are typically sparse for large robotic systems (e.g.,
 multi-robot systems): Every column of $J_i\in\RRR^{6\times n}$
 describes how dof $j\in\{1,..,n\}$ influences body $i$. This column
 will be zero if dof $j$ is not between the world and body $i$ in the
@@ -106,23 +108,25 @@ tree.
 
 \subsection{Fundamental Kinematics Concepts}
 
-The word ``kinematics'' in general refers to the mathematical
+The word ``kinematics'' more generally refers to the mathematical
 description of the possible motions of a (potentially constrained) multibody
 system or mechanism \emph{without considering the forces}.
 
-For a multibody system, the poses $x_{1:m}$ fully describes the
+For a multibody system, the poses $x_{1:m}$ fully describe the
 \emph{configuration} of the system. When $x$ is some (potentially
 redundant) description of system state, we generally call its
 embedding space the \textbf{configuration space} $\XX$. E.g., for our
 multibody system $\XX=\SE(3)^m$ is a generic embedding space. However, not all
-configurations are possible, e.g.\ because bodies are linked in a multibody
-system, body shapes cannot penetrate, or obstacles block parts of the
-configuration space. We can imagine the \textbf{feasible config.\ space}
-$\XX_\text{fea}$ as a manifold of feasible configurations, potentially
-with disconnected components or holes. (Actually also
-trans-dimensionality, where some parts have different dimensionality is
-possible, but we neglect this here.) When introducing 
-coordinates $q\in\RRR^n$ for the feasible space these are called
+configurations may be feasible, e.g.\ because bodies are linked in a multibody
+system, the relative transformations $Q_i$ have limits, or body shapes cannot penetrate. We can imagine the \textbf{feasible configuration space}
+%
+$$ \XX_{\text{fea}} $$
+%
+as a manifold of feasible configurations,
+potentially with disconnected components or holes. (Actually also
+trans-dimensionality, where some parts have different dimensionality
+is possible, but we neglect this here.) When introducing coordinates
+$q\in\RRR^n$ for $\XX$ or $\XX_\text{fea}$ these are called
 \textbf{generalized coordinates}. (This should not be confused with the word
 \textbf{canonical coordinates}, which is used for coordinates in the phase
 space of a system, and usually denoted $(q,p)$.)
@@ -133,25 +137,25 @@ configurations, however kinematics is about describing feasible
 describes which $\dot q \in T_q \XX$ (in the tangent space of $\XX$)
 are feasible, and therefore which paths of motion on the manifold.
 
-A holonomic constraint is of the form $h(q, t)=0$, with $h$ a $d$-dimensional
-function (where $t$ allows a dependence
-on absolute time, which is hardly ever relevant in our field). In such a system,
-the generalized coordinates were not minimal and provide only an
+A holonomic constraint is of the form $h(q, t)=0$, with $h$ a
+$d$-dimensional function (where $t$ allows a dependence on absolute
+time, which is hardly ever relevant in our field). In such a system,
+the generalized coordinates are not minimal and provide only an
 embedding space for the true, lower-dimensional feasible manifold. The
-true \textbf{degrees of freedom} of the system are $p=n-d$. \textbf{Minimal
-  coordinates} are defined to be generalized coordinates of dimension
-$n=p$ (where no further holonomic constraints
-exist).\footnote{Sometimes it may be convenient to stick with
-non-minimal generalized coordinates: When the feasible manifold is
+true \textbf{degrees of freedom} of the system are
+$p=n-d$. \textbf{Minimal coordinates} are defined to be generalized
+coordinates of dimension $n=p$ (where no further holonomic constraints
+exist). However, sometimes it may be convenient to stick with
+non-minimal generalized coordinates: E.g. when the feasible manifold is
 $S^1$, it might be convenient to use redundant $q=(x,y)$ coordinates
-and add the constraint $x^2+y^2=1$ rather than
-introducing an angle coordinate and running into the annoying modulo issue. Analogous
-for $\SO(3)$ and embedding quaternion coordinates $\RRR^4$ may be more
-convenient than minimal coordinates for $\SO(3)$. Further, when we
+and add the constraint $x^2+y^2=1$ rather than introducing an angle
+coordinate and running into the annoying modulo issue. Analogous for
+$\SO(3)$ and embedding quaternion coordinates $\RRR^4$ may be more
+convenient than minimal coordinates for $\SO(3)$ (see the Quaternion Lecture Notes). Further, when we
 have a closed loop robotic system, it is convenient to use non-minimal
-joint coordinates along a tree and profit from the efficiency of tree-based
-kinematics engines, and handle the closed loop constraint
-otherwise.}
+joint coordinates along a tree and profit from the efficiency of
+tree-based kinematics engines, and handle the closed loop constraint
+otherwise.
 
 A non-holonomic constraint is of the form $h(q,\dot q,t)=0$, which is
 a general description of any constraints on
@@ -167,13 +171,13 @@ which is a non-holonomic constraint.
 
 There are cases where a constraint is naturally expressed as $h(q,\dot
 q,t)=0$ and ``looks'' non-holonomic, but actually it is so-called
-integratable. This means that, by analyzing integrals of trajectories of
+integratable. This mean that, by analyzing integrals of trajectories of
 feasible velocities $\dot q(t)$, we understand that the actually
 reachable $q$ all lie on a sub-manifold which we could more directly
 be described by a holonomic constraint $h(q, t)=0$ (here, the absolute time
 $t$ dependence really is important). So, such ``integratable
 non-holonomic constraints'' can be reformulated to become holonomic
-still describe a holonomic system. The literature describes elaborate
+and still describe a holonomic system. The literature describes elaborate
 maths (Pfaffian form of constraints) to uniquely decide whether a system is truly
 holonomic or non-holonomic. But this is rarely relevant for typical
 robotic systems in our field.
@@ -186,11 +190,11 @@ velocities. Let's do the analogous for forces: Assume we have a wrench
 $(f_i,\tau_i)$ directly acting on body $i$, what ``do we feel'' in the
 joints, i.e., what torques $u\in\RRR^n$ are propagated into the
 joints? The answer is the Jacobian transpose: $u = J^\T
-(f_i,\tau_i)$.\footnote{We can derive this by conserved work, or better,
+(f_i,\tau_i)$. We can derive this by the conservation of work, or better,
 power (=work/time): For joint torques $u$ and velocities $\dot q$ we
 would consume power $u^\T \dot q$, which needs to equal the power
 received at the body, $(f_i,\tau_i)^\T (v_i,w_i) = (f_i,\tau_i)^\T J
-\dot q$. As this holds for any $\dot q$ we have $u^\T = (f_i,\tau_i)^\T J$.}
+\dot q$. As this holds for any $\dot q$ we have $u^\T = (f_i,\tau_i)^\T J$.
 
 
 \subsection{Dynamics}
@@ -202,10 +206,9 @@ one that follows from the laws of physics. For an articulated robotic
 system we can choose to exert torques $u$ in each joint (or some joints), and
 thereby create various $\ddot q$. For standard, fully actuated robotic systems
 we can command torques $u\in\RRR^n$ in all dofs and create arbitrary
-accelerations. However, when our multibody system description includes
+accelerations in them. However, when our multibody system description includes
 passive objects of the environment, or describes a free-floating
-(walking/running) robot, the accelerations that can be generated for
-all dofs (objects, free-floating body) are highly constrained,
+(walking/running) robot, the feasible accelerations are highly constrained,
 depending esp.\ on contacts and possibilities of force transmission
 to objects or the ground through contacts.
 
@@ -216,31 +219,51 @@ q, \ddot q) \mapsto u$. Given the
 Jacobians described above, this is easy to derive:
 For each body, we can compute
 $(v_i,w_i) = J_i \dot q$ and $(\dot v_i, \dot w_i) = J_i \ddot
-q$. I.e., we know how we want each body to accelerate. The
-Newton-Euler equation tells us such an acceleration would raise the
+q + \dot J_i \dot q$. I.e., we know how we want each body to accelerate. The
+Newton-Euler equation tells us that such an acceleration would raise the
 following inertia forces at the body:
-
-\begin{align*}
+\begin{align}
 \mat{c}{f_i \\ \tau_i}
 &= \mat{c}{m_i \dot v_i \\\bar I_i \dot w_i + w_i\times \bar I_i w_i}
  = M_i J_i \ddot q + c_i ~,
-\end{align*}
+\end{align}
+with $M_i = \diag(m \Id_3, \bar I_i)$, $c_i = M_i \dot J_i \dot q + (0_3, w_i\times \bar I_i w_i)$, where $\bar I_i = R_i I_i R_i^\T$ and $I_i$ the inertia tensor in
+body coordinates. Note that for brevity we dropped dependencies $M_i = M_i(q), J_i = J_i(q)$, and $c_i = c_i(q,\dot q)$. (When implementing this, note that 
+$\dot J_i \dot q$ is the frame acceleration for $\ddot q=0$, which can best be computed by forward propagation of accelerations over the full tree and captures  the Coriolis effects.\footnote{Forward propagation of velocities and accelerations: If parent frame has $(p,R,v,w,\dot v,\dot w)$, the relative transform is $(p',R', v',w',0,0)$, then child frame has
+\begin{align}
+\mat{c}{\bar p \\ \bar R \\ \bar v \\  \bar w \\ \bar{\dot v} \\ \bar{\dot w}}
+&=
+\mat{c}{
+p+Rp' \\
+R R' \\
+v + Rv' + w^\times R p' \\
+w + R w'\\
+\dot v + w^\times R v' + w^\times w^\times R p' + \dot w^\times R p'\\
+\dot w + w^\times R w'}
+=
+\mat{c}{
+p+P' \\
+R R' \\
+v + V' + w^\times P' \\
+w + W'\\
+\dot v + w^\times V' + (w^\times w^\times + \dot w^\times ) P'\\
+\dot w + w^\times W'}
+\end{align}
+where capital letters are relative vectors rotated to world coordinates.
+})
 
-with $M_i = \diag(m \Id_3, \bar I_i)$, $c_i = (0_3, w_i\times \bar I_i
-w_i)$, where $\bar I_i = R_i I_i R_i^\T$ and $I_i$ the inertia tensor in
-body coordinates.
+Conversely, to counteract these inertia forces we have to apply joint
+torques $u = J_i^\T \[M_i J_i \ddot q + c_i\]$ -- this is how ``we
+feel'' the inertia in the joints. We can separately consider gravity:
+By the same argument we need joint torques $u = J_i^\T g_i$ to
+counteract gravity, where $g_i = (m g e_z, 0_3)\in\RRR^6$ has only a
+single entry in $z$-direction. As we have many bodies that are
+accelerated and need gravity compensation, we overall have
+\begin{align}
+u = \sum_{i=1}^m J_i^\T \[M_i J_i \ddot q + c_i + g_i\] ~.
+\end{align}
 
-Conversely, to counteract these inertia forces we have to apply joint torques
-$u = J_i^\T \[M_i J_i \ddot q + c_i\]$ -- this is how ``we feel'' the
-inertial in the joints. We can separately consider
-gravity: By the same argument we need joint torques $u = J_i^\T g_i$
-to counteract gravity, where $g_i = (-m g e_z, 0_3)\in\RRR^6$ has only a
-single entry in $-z$ direction. As we have many bodies that are accelerated and need
-gravity compensation, we overall have
-
-$$u = \sum_{i=1}^m J_i^\T \[M_i J_i \ddot q + c_i + g_i\] ~.$$
-
-Other texts provide much more lengthy derivations either via the general
+Other texts provide derivations either via the general
 Euler-Lagrange equations, or recursive Newton-Euler equations. I find
 the above very concise and easy to implement, and efficient with
 sparse $J_i$. The first term $\sum_{i=1}^m J_i^\T M_i J_i \ddot q$ can elegantly
@@ -248,15 +271,17 @@ also be found in the Euler-Lagrange derivation,%
 \footnote{The Euler-Lagrange derivation starts with
 $\frac{d}{dt} \frac{\del L}{\del \dot q} - \frac{\del L}{\del q} = u$,
 where $L(q,\dot q) = T(q,\dot q) - U(q)$ with the system kinetic energy
-$$T(q,\dot q) = \sum_i \half m_i v_i^2 + \half w_i^\T \bar I_i w_i
+\begin{align}
+T(q,\dot q) = \sum_i \half m_i v_i^2 + \half w_i^\T \bar I_i w_i
 = \sum_i \half \dot q^\T J_i^\T M_i J_i \dot q,~
-M_i = \diag(m_i\Id_3, \bar I_i), $$
+M_i = \diag(m_i\Id_3, \bar I_i),
+\end{align}
 and the system potential energy $U(q) = \sum_i g m_i x_i^\text{z}$. When computing the partial derivatives analytically we get something
 of the form
-$$
+\begin{align}
 u = \frac{d}{dt} \frac{\del L}{\del \dot q} - \frac{\del L}{\del q} 
  = M(q) \ddot q + \dot M \dot q - \frac{\del T}{\del q} + \frac{\del U}{\del q},
-$$
+\end{align}
 where total inertial $M(q) = \sum_i J_i^\T M_i J_i$ is simple to
 compute, but the
 Coriolis terms are more complicated.
@@ -268,9 +293,9 @@ numerically faster, but does not provide this nice general and
 invertible form.
 
 In standard notation, general robot dynamics are written in the form
-
-$$u = M(q)~ \ddot q + F(q, \dot q)$$
-
+\begin{align}
+u = M(q)~ \ddot q + F(q, \dot q)
+\end{align}
 where, for multi-rigid-body systems, we derived $M(q) = \sum_i J_i^\T M_i
 J_i$ and $F(q,\dot q) = \sum_i J_i^\T (c_i + g_i)$.
 
@@ -337,9 +362,12 @@ There are a myriad of opinions on how robotic control systems and middleware
 should be structured. Here is just one version, which I consider a baseline.
 
 Consider that we want to have the robot fulfill a kinematic constraint
-$$\phi(q_{t=T}) = y^*$$ at time $t=T$, where $\phi$ is a $d$-dimensional
+\begin{align}
+\phi(q_{t=T}) = y^*
+\end{align}
+at time $t=T$, where $\phi$ is a $d$-dimensional
 constraint function that typically depends on some poses $x_i$ of some bodies,
-and $y^*\in\RRR^d$ is called a setpoint. A standard robotic system
+and $y^*\in\RRR^d$ is called a setpoint. A standard control stack
 could address this problem as follows:
 \begin{enumerate}
   \item First compute a final robot pose $q_T$ that fulfills constraint 
@@ -348,7 +376,7 @@ could address this problem as follows:
   \item Next compute a \emph{reference} motion from current robot pose
     $q_0$ to $q_T$ -- that problem can be addressed with \textbf{path
     finding}, \textbf{trajectory optimization}, or basic interpolation
-    with a motion profile.
+    with a motion profile or spline (see the Spline Lecture Notes).
   \item Finally, determine a control policy $\pi: (x,t) \mapsto u$
     that reactively computes motor commands $u$ to follow the
     reference motion -- that problem can be addressed using \textbf{PD
@@ -366,7 +394,7 @@ the trajectory optimization problem); or one may skip steps (1) and
 (2) and let step (3) handle the full problem (e.g., including the goal
 constraint in the MPC formulation, or a basic task-space PD controller
 (``operational space control''); which typically looses the power of
-path finding and optimization).
+path finding and trajectory optimization).
 
 
 \subsection{Inverse Kinematics}
@@ -374,25 +402,21 @@ path finding and optimization).
 Inverse kinematics (IK) simply means computing $q$ to fulfill $\phi(q) =
 y^*$. A proper approach is to formulate this as an NLP (non-linear
 mathematical program)
-
 \begin{align}
 &\min_{q\in\RRR^n} \norm{q-q_0}^2 \st \phi(q) = y^* \label{eqIK}\\
 \text{or}\quad&\min_{q\in\RRR^n} \norm{q-q_0}^2 + \m \norm{\phi(q) -
-y^*}^2 \quad\text{for large $\m$} 
+y^*}^2 \quad\text{for large $\m$} \label{eqIK2}
 \end{align}
-
 and use an efficient NLP solver (e.g.\ Augmented Lagrangian, or SQP,
 exploiting potential sparseness of $\Del q \phi$). However, typical
 textbooks at length discuss computing IK more low-level. For instance,
 when approximating $\phi(q) \approx \phi(q_0) + J (q-q_0)$ as linear
-with Jacobian $J$, the analytical solution to the above can be written
+with Jacobian $J$, the analytical solution to \eqref{eqIK2} can be written
 as (allowing for $\mu\to\infty$):
-
-\begin{align*}
+\begin{align}
 q^*
 &= q_0 +  J^\T (J J^\T + \textstyle\frac{1}{\mu} \Id)^{-1} (y^*-\phi(q_0)) ~.
-\end{align*}
-
+\end{align}
 In the context of optimization, this is the first Newton step when
 initializing optimization at $q_0$. Students sometimes interpret this
 equation as a tool to directly generate robot motion: They let the
@@ -404,7 +428,6 @@ $q_T$ to
 \eqref{eqIK}, and then think about how the robot can actually move
 to $q_T$ (e.g.\ using proper optimal control, or reactive spline interpolation, or
 a basic but nice motion profile).
-
 
 
 

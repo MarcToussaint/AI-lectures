@@ -1,5 +1,4 @@
-Entropy
--------
+## Entropy
 
 Entropy is *expected neg-log-likelihood*, which can also be desribed as
 expected surprise, expected code length, or expected error. The notes
@@ -39,17 +38,16 @@ specifically say "the average information given by a sample of $p$ is as
 much as the information given by $H(p)$ uniform binary variables".
 
 Sometimes another unit of information is used: The *perplexity* of $p$
-is defined as $P\mkern-1pt{}P(p) = 2^{H(p)}$ (when using $\log_2$),
-which is one-to-one with entropy but uses different units of
-information. Note that a discrete uniform random variable of cardinality
-$P\mkern-1pt{}P$ has entropy $H = \log_2 P\mkern-1pt{}P$, which explains
-the definition of perplexity. Therefore, we can now say "the average
-information given by a sample of $p$ is as much as the information given
-by a uniform discrete random variable of cardinality
-$P\mkern-1pt{}P(p)$".
+is defined as $P\kern-1.5ptP(p) = 2^{H(p)}$ (when using $\log_2$), which
+is one-to-one with entropy but uses different units of information. Note
+that a discrete uniform random variable of cardinality $P\kern-1.5ptP$
+has entropy $H = \log_2 P\kern-1.5ptP$, which explains the definition of
+perplexity. Therefore, we can now say "the average information given by
+a sample of $p$ is as much as the information given by a uniform
+discrete random variable of cardinality $P\kern-1.5ptP(p)$".
 
 Given a gaussian distribution
-$p(x) \propto \exp\{-{\textstyle\frac{1}{2}}(x-\mu)^2/\sigma^2\}$, the
+$p(x) \propto \exp( -{\textstyle\frac{1}{2}}(x-\mu)^2/\sigma^2 )$, the
 neg-log-likelihood of a specific sample $x$ is
 $-\log p(x) = -{\textstyle\frac{1}{2}}(x-\mu)^2/\sigma^2 + \textit{const}$.
 This can be thought of as the *square error* of $x$ from $\mu$, and its
@@ -57,8 +55,7 @@ expectation (entropy) is the mean square error. Generally, the
 neg-log-likelihood $-\log p(x)$ often relates to an error or loss
 function.
 
-Cross-Entropy
--------------
+## Cross-Entropy
 
 The cross-entropy
 
@@ -93,8 +90,7 @@ $f_\theta(x)$, and $p_{\bar y}(y) = \delta_{\bar y}(y)$ the Kronecker
 distribution (the "continuous one-hot-encoding"), then the cross-entropy
 loss $H(p_{\bar y}, q_\theta(\cdot|x))$ is nothing but square error.
 
-Relative Entropy (KL-divergence)
---------------------------------
+## Relative Entropy (KL-divergence)
 
 The Kullback-Leibler divergence, also called relative entropy, is
 defined as
@@ -119,8 +115,8 @@ larger than $H(q)$, as if $q\not= p$ you will not have a perfect model
 to define an encoding.
 
 In general $D\big(p\,\big\Vert\,q\big) \ge 0$. The proof is directly
-given by the Jenson&rsquo;s inequality (the log is concave, and pulling
-a concave function out of an expectation (=linear interpolation) gives
+given by the Jenson's inequality (the log is concave, and pulling a
+concave function out of an expectation (=linear interpolation) gives
 $\le$).
 
 The KL-divergence is a measure of similarity between $q$ and $p$. As it

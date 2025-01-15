@@ -3,6 +3,7 @@
 
 \title{Lecture Note:\\ Singular Value Decomposition}
 \author{Marc Toussaint\\\small Learning \& Intelligent Systems Lab, TU Berlin}
+\date{August 23, 2024}
 
 \makeatletter
 \renewcommand{\@seccntformat}[1]{}
@@ -12,15 +13,15 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-One can view a matrix $A$ as a collection of rows,
-$A=\mat{c}{v_1^\T \\\ v_2^\T \\\ v_2^\T}$. Applying $A$ on $x$ is then
+One can view a matrix $A\in\RRR^{3\times 4}$ as a collection of rows,
+$A=\mat{c}{v_1^\T \\\ v_2^\T \\\ v_3^\T},~ v_i\in\RRR^4$. Applying $A$ on $x$ is then
 scalar-producting all rows with $x$ and outputs $Ax=\mat{c}{v_1^\T
-x \\\ v_2^\T x \\\ v_2^\T x}$. The rows span an input space $I=\Span
+x \\\ v_2^\T x \\\ v_3^\T x}$. The rows span an input space $I=\Span
 v_{1:3}$. All $x$ that are orthogonal to $I$ will be mapped to
 zero. The rows only pick up components of $x$ that lie within $I$.
 
 Or one can view a matrix $A$ as a collection of columns,
-$A=\mat{cccc}{u_1 & u_2 & u_3 & u_4}$. Applying $A$ on $x$ then gives
+$A=\mat{cccc}{u_1 & u_2 & u_3 & u_4},~ u_i\in\RRR^3$. Applying $A$ on $x$ then gives
 the linear combination $Ax = x_1 u_1 + .. + x_4 u_4$ of these columns,
 with $x_i$ being the linear coefficients. All outputs $y = A x$ will
 lie in the output space $O=\Span u_{1:4}$.
@@ -61,7 +62,7 @@ out-projects it to the output direction $u_i$. This is done
 ``independently'' for all $i=1,..,k$, as all $v_i$ and $u_i$ are
 orthogonal. In short, what the matrix does it: it transports each
 input direction $v_i$ to the output direction $v_i$ and scales by
-$\s_i$ in between. The number $k$ tells how many dimensions are
+$\s_i$ in between. The number $k$ tells us how many dimensions are
 actually transported (could be less than $m$ and $n$).
 
 $k$ is called the rank of the matrix (note that we required $\s_i>0$)

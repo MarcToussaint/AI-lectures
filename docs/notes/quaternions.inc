@@ -18,13 +18,12 @@ without need to go deeper into Lie groups. An emphasis is then on
 deriving the *quaternion Jacobian*, which describes the angular velocity
 that is induced when perturbing a quaternion parameter.
 
-Reference
-=========
+# Reference
 
-Let&rsquo;s define a quaternion $q\in{\mathbb{R}}^4$ as a 4-vector.[^1]
-To represent a rotation, a quaternion needs to be normalized, i.e.,
+Let's define a quaternion $q\in{\mathbb{R}}^4$ as a 4-vector.[^1] To
+represent a rotation, a quaternion needs to be normalized, i.e.,
 $q\in S^3$. We denote the first entry by $q_0$ and the last three
-entries by $\bar q\equiv q_{1:3} \in{\mathbb{R}}^3$. Let&rsquo;s first
+entries by $\bar q\equiv q_{1:3} \in{\mathbb{R}}^3$. Let's first
 summarize some basic properties for a normalized quaternion:
 
 $$\begin{align}
@@ -60,23 +59,22 @@ q \circ q'
 
 Eqs.&nbsp;$\eqref{eqLog}$ and $\eqref{eqExp}$ follow from
 $\eqref{eqAngle}$ and $\eqref{eqAxis}$, but why they are defined as
-&rsquo;log&rsquo; and &rsquo;exp&rsquo; will become clear below.
-Concerning the application of a rotation quaternion $q$ on a vector $x$,
-equation $\eqref{eqApp}$ is elegant, but computationally less efficient
-than first converting to matrix using $\eqref{eqMatrix}$ and then
-multiplying to the vector. Note that concatenating quaternions as well
-as applying a quaternion to a vector never requires to compute a $\sin$
-or $\cos$, as opposed, e.g. to the Rodriguez&rsquo; equation (see
-below).
+'log' and 'exp' will become clear below. Concerning the application of a
+rotation quaternion $q$ on a vector $x$, equation $\eqref{eqApp}$ is
+elegant, but computationally less efficient than first converting to
+matrix using $\eqref{eqMatrix}$ and then multiplying to the vector. Note
+that concatenating quaternions as well as applying a quaternion to a
+vector never requires to compute a $\sin$ or $\cos$, as opposed, e.g. to
+the Rodriguez' equation (see below).
 
-Continuously moving from $I$ to $q$ &ndash; exponential and log mappings
-========================================================================
+# Continuously moving from ${\rm\bf I}$ to $q$ -- exponential and log mappings
 
 Given a quaternion $q$, how can we continuously move from the
 ${\rm\bf I}=(1,\bar
 0)$ to $q$? The answer is simply given by continuously increasing the
-rotation angle $\eqref{eqAngle}$ from $0$ to $\theta$. Let
-$t\in[0,\theta]$ be the interpolation coefficient, we have
+rotation angle $\eqref{eqAngle}$ from $0$ to $\theta$ about a fixed
+normalized axis $\widehat w$. Let $t\in[0,\theta]$ be the interpolation
+coefficient, we have
 
 $$\begin{align}
 q(t)
@@ -84,8 +82,7 @@ q(t)
 \end{align}$$
 
 This "motion" from ${\rm\bf I}$ to $q$ is a geodesic (=shortest path) on
-$S^3$ (w.r.t. to the natural embedded Euclidean metric of
-${\mathbb{R}}^4$), and it has constant absolute velocity:
+$S^3$, and it has constant absolute velocity:
 
 $$\begin{align}\label{eqVel}
 \dot q(t)
@@ -101,23 +98,28 @@ on $S^3$. We can show that $\dot q(t)$ can also be written as (using
 that $\widehat w$ and $\bar q(t)$ are colinear):
 
 $$\begin{align}
-\textstyle\frac 12 (0, \widehat w) \circ q(t)
+q(t) \circ \textstyle\frac 12 (0, \widehat w)
 &= \textstyle\frac 12 (0 q_0(t) - \widehat w^{\mkern-1pt \top \mkern-1pt}\bar q(t),~ 0 \bar q(t) + q_0(t) \widehat w + \widehat w \times \bar q(t)) \\
 &= \textstyle\frac 12 (0 - \sin(t/2),~ \cos(t/2)~ \widehat w + 0) ~=~ \dot q(t) ~.  \label{eqDotq}
 \end{align}$$
 
+The relation $\dot q(t) = q(t) \circ \textstyle\frac 12 (0, \widehat w)$
+nicely makes explicit how the tangent vector $Frac12 (0, \widehat w)$ at
+${\rm\bf I}$ is being transported along the arc by multiplying it with
+$q(t)$ from the left.
+
 Eq.&nbsp;$\eqref{eqDotq}$ is a differential equation of the form
 $\dot q(t)
-= \alpha q(t)$, but with the multiplication being the group operation
-$\circ$. The solution $q(t)$ to this differential equation is defined as
-the exponential map.[^2] Namely, for a vector $w=t\widehat w \in
+= q(t) \alpha$, but with the multiplication being the group operation
+$\circ$. The solution $q(t)$ to this differential equation is *defined*
+as the exponential map.[^2] Namely, for a vector $w=t\widehat w \in
 {\mathbb{R}}^3$ we define
 
 $$\begin{align}
 \exp(t \widehat w)
 &= (\cos(t/2),~ \sin(t/2)~ \widehat w) ~,\quad
 \Rightarrow~ \frac{\partial}{\partial t} \exp(t \widehat w)
- = \textstyle\frac 12 (0, \widehat w) \circ \exp(t \widehat w) ~,
+ = \exp(t \widehat w) \circ \textstyle\frac 12 (0, \widehat w) ~,
 \end{align}$$
 
 fully consistent to $\eqref{eqExp0}$ and $\eqref{eqDotq}$. Conversely,
@@ -128,36 +130,41 @@ $$\begin{align}
 &= 2 \mathop{\mathrm{acos}}(q_0)~ \textstyle\frac{\bar q}{|\bar q|} ~.
 \end{align}$$
 
-Continuously moving from $q_A$ to $q_B$ &ndash; interpolation in quaternion space
-=================================================================================
+# Continuously moving from $q_A$ to $q_B$ -- interpolation in quaternion space
 
 Consider two quaternions $q_A, q_B$. When concatenating
-$q_B = q_{BA} \circ q_A$, you should think of $q_{BA}$ as describing an
+$q_B = q_A \circ q_{AB}$, you should think of $q_{AB}$ as describing an
 "additional" rotation in the output coordinates of $q_A$. This is
-exactly as multiplying matrices $R_B = R_{BA} R_A$, where $R_{BA}$
+exactly as multiplying matrices $R_B = R_A R_{AB}$, where $R_{AB}$
 describes a rotation from orientation $R_A$ to orientation $R_B$. The
-relative rotation $q_B / q_A \equiv q_B \circ q_A^{-1} = q_{BA}$
-retrieves exactly this relative rotation from $q_A$ to $q_B$.
+relative rotation $q_{AB} = q_A^{-1} \circ q_B$ retrieves exactly this
+relative rotation from $q_A$ to $q_B$.
 
 There are two ways to interpolate between orientations $q_A$ and $q_B$.
 Let $t\in[0,1]$. The *proper* interpolation uses the exponential map:
 
 $$\begin{align}
-q(t) = \exp(t\log(q_B/q_A)) \circ q_A ~. \label{eqInter}
+q(t) = q_A \circ \exp(t\log(q_A^{-1} \circ q_B)) ~. \label{eqInter}
 \end{align}$$
 
-This first computes the relative transform $q_{BA} = q_B/q_A$, computes
-its tangent vector representation $\log(q_{BA})$, and interpolates from
-${\rm\bf I}$ to $q_{BA}$ as we described above. Finally it multiplies
-$q_A$ from the right, making all this relative to orientation $q_A$. For
+This first computes the relative transform
+$q_{AB} = q_A^{-1} \circ q_B$, computes its tangent vector
+representation $w_{AB} = \log(q_{AB})$, and interpolates from
+${\rm\bf I}$ to $q_{AB}$ as we described above. Finally it multiplies
+$q_A$ from the left, making all this relative to orientation $q_A$. For
 completeness, the velocity is
 
 $$\begin{align}
 \dot q(t)
-&= \Big[\frac{\partial}{\partial t} \exp(t\log(q_B/q_A))\Big] \circ q_A \\
-&= \Big[\textstyle\frac 12 (0, w_{BA}) \circ \exp(t\log(q_B/q_A))\Big] \circ q_A \\
-&= \textstyle\frac 12 (0, w_{BA}) \circ q(t) ~. \label{eqInterVel}
+&= q_A \circ \Big[\frac{\partial}{\partial t} \exp(t\log(q_A^{-1} \circ q_B))\Big] \\
+&= q_A \circ \Big[\exp(t w_{AB}) \circ \textstyle\frac 12 (0, w_{AB}) \Big] \\
+&= q(t) \circ \textstyle\frac 12 (0, w_{AB})
+~,\quad|\dot q(t)| = \textstyle\frac 12 |w_{AB}| ~. \label{eqInterVel}
 \end{align}$$
+
+Again, notice how the tangent vector $\textstyle\frac 12 (0, w_{AB})$ at
+${\rm\bf I}$ is being transported to become the local tangent vector
+(=velocity) by multiplying it with $q(t)$ from the left.
 
 As an alternative, we can define the *embedded* interpolation as
 
@@ -178,8 +185,8 @@ embedded interpolation. But note that, as
 $q_A^{\mkern-1pt \top \mkern-1pt}q_B \ge 0$, the angle between $q_A$ and
 $q_B$ in ${\mathbb{R}}^4$ is at most 90 degrees; and therefore the angle
 between the linear interpolation and the tangent spaces is at most 45
-degrees &ndash; in this worst case, the velocities at start and end are
-by a factor $1/\sqrt{2}$ larger than in the middle.
+degrees -- in this worst case, the velocities at start and end are by a
+factor $1/\sqrt{2}$ larger than in the middle.
 
 The point here is that interpolation of rotations is very intuitive:
 "straight" interpolation on the sphere $S^3$ which can equally described
@@ -187,8 +194,7 @@ using $\eqref{eqLinInter}$ (with the exponential map) or the naive
 embedded interpolation $\eqref{eqLinInter}$. But only the proper
 interpolation with the exponential map has constant absolute velocity.
 
-Angular Jacobian w.r.t. Quaternion Parameters
-=============================================
+# Angular Jacobian w.r.t. Quaternion Parameters
 
 Assume we have a quaternion $q\in{\mathbb{R}}^4$ as a *parameter* of
 some optimization problem and need a Jacobian w.r.t. $q$. More
@@ -199,18 +205,18 @@ orientation, and $\dot q$ as moving from $q_A$ to $q_B$.
 Eq.&nbsp;$\eqref{eqInterVel}$ for $t=0$ becomes
 
 $$\begin{align}
-\dot q &= \textstyle\frac 12 (0, w) \circ q ~.
+\dot q &= q \circ \textstyle\frac 12 (0, w) ~.
 \end{align}$$
 
-This equation holds if $\dot q$ is tangential to $S^3$, and translates
-$\dot q$ to an angular vector $w\in{\mathbb{R}}^3$ *relative* to the
-orientation $q$ (just how $w_{BA}$ was the angular vector relative to
-the base orientation $q_A$). Under these tangential assumptions, we can
-directly read out $w$ by multiplying $q^{-1}$ from the right,
+This equation relates $\dot q$ to an angular vector
+$w\in{\mathbb{R}}^3$, where $\textstyle\frac 12 (0, w)$ is a tangent
+vector at ${\rm\bf I}$ that is transported to become a tangent vector
+$\dot q$ at $q$. Conversely, if $\dot q$ is given and tangential, then
+we can read out $w$ by multiplying $q^{-1}$ from the left,
 
 $$\begin{align}
-\dot q \circ q^{-1}
-&= {\textstyle\frac{1}{2}}(0,w) ~,\quad w = 2~ [\dot q \circ q^{-1}]_{1:3} ~.
+q^{-1} \circ \dot q 
+&= {\textstyle\frac{1}{2}}(0,w) ~,\quad w = 2~ [q^{-1} \circ \dot q]_{1:3} ~.
 \end{align}$$
 
 However, in the case where $\dot q$ is non-tangential, i.e.,
@@ -222,51 +228,50 @@ However, when pluging in the tangentialized $\dot{\widehat q}$ we get
 
 $$\begin{align}
 w
-&= 2~ [(\dot q - (q^{\mkern-1pt \top \mkern-1pt}\dot q) q)  \circ q^{-1}]_{1:3} \\
-&= 2~ [\dot q \circ q^{-1}]_{1:3} - 2~ (q^{\mkern-1pt \top \mkern-1pt}\dot q) [q \circ q^{-1}]_{1:3} ~,
+&= 2~ [q^{-1} \circ (\dot q - q (q^{\mkern-1pt \top \mkern-1pt}\dot q))]_{1:3} \\
+&= 2~ [\dot q \circ q^{-1}]_{1:3} - 2~ [q^{-1} \circ q]_{1:3}~ (q^{\mkern-1pt \top \mkern-1pt}\dot q) ~,
 \end{align}$$
 
 and the latter term is identically zero. So, our "tangentialization
 term" drops out anyway.
 
-To construct the Jacobian, let&rsquo;s assume $\dot q=e_i$ is one of the
-unit vectors $e_0,..,e_3\in{\mathbb{R}}^4$. Then we have
+To construct the Jacobian, let's assume $\dot q=e_i$ is one of the unit
+vectors $e_0,..,e_3\in{\mathbb{R}}^4$. Then we have
 
 $$\begin{align}
 w_i
-&= 2~ [e_i\circ q^{-1}]_{1:3} ~.
+&= 2~ [q^{-1} \circ e_i]_{1:3} ~.
 \end{align}$$
 
 Further, if $q$ itself was not normalized we want the angular Jacobian
-of $\widehat q = \textstyle\frac 1{|q|} q$ w.r.t. $q$. As the above
+of $\tilde q = \textstyle\frac 1{|q|} q$ w.r.t. $q$. As the above
 relation between $q$ and $w$ is linear, we have
 
 $$\begin{align}
 w_i
-&= \textstyle\frac 2{|q|}~ [e_i \circ \widehat q^{-1}]_{1:3} ~.
+&= \textstyle\frac 2{|q|}~ [\tilde q^{-1} \circ e_i]_{1:3} ~.
 \end{align}$$
 
-Based on this we construct the **angular quaternion Jacobian** with 4
-columns
+Based on this we construct the **angular quaternion Jacobian**
+$J(q) \in {\mathbb{R}}^{3\times 4}$ with the 4 columns
 
 $$\begin{align}
-J_{\cdot i}(q) = \textstyle\frac 2{|q|}~ [e_i \circ \widehat q^{-1}]_{1:3} ~,
+J_{\cdot i}(q) = \textstyle\frac 2{|q|}~ [\tilde q^{-1} \circ e_i]_{1:3} ~,
 \end{align}$$
 
-so that we have $w = J(q)~ \dot q$ for any (also non-normalized,
-non-tangential) $q$ and $\dot q$.
+so that we have $w = J(q)~ \dot q$ for any (also non-normalized) $q$ and
+any (also non-tangential) $\dot q$.
 
 Again, note that this angular vector $w$ is to be interpreted *relative*
 to $q$, in the output space of $q$. To translate this to a world
 coordinate angular Jacobian, we need to transform by $q$ again. To give
 a more complete example: if we have a pose
-$q_B = \text{normalize}(q) \circ q_A$ that is parameterized by arbitrary
+$q_B = q_A \circ \text{normalize}(q)$ that is parameterized by arbitrary
 (non-zero) $q\in{\mathbb{R}}^4$, then $\dot
-q$ translates to a world coordinate angular velocity $w = q_B \cdot
-J(q) \dot q$ of the pose of $B$.
+q$ translates to a world coordinate angular velocity $w = R_B 
+J(q) \dot q$, with $R_B$ the rotation matrix of pose $B$.
 
-Random rotations & "Gaussians"
-==============================
+# Random rotations & "Gaussians"
 
 To get a random rotation, we want to uniformly sample from $S^3$. This
 is particularly easy by first sampling $q\sim{\mathbb{N}}(0,1)$ in
@@ -290,8 +295,7 @@ In the limit of small $\sigma^2$ these become the same, as the Gaussian
 projected to the tangent space is the same as the Gaussian in the
 tangent space.
 
-Similarly: Rotation vector and angular velocity
-===============================================
+# Similarly: Rotation vector and angular velocity
 
 To recap, a rotation vector is $w\in{\mathbb{R}}^3$, with rotation axis
 $\widehat w
@@ -299,7 +303,7 @@ $\widehat w
 the right thumb convention).
 
 The application of a rotation described by $w\in{\mathbb{R}}^3$ on a
-vector $x\in{\mathbb{R}}^3$ is given as (Rodrigues&rsquo; formula)
+vector $x\in{\mathbb{R}}^3$ is given as (Rodrigues' formula)
 
 $$\begin{align}
 w \cdot x
@@ -329,31 +333,30 @@ R(w)
 
 The $\exp$ function is called exponential map (generating a group
 element (=rotation matrix) via an element of the Lie algebra (=skew
-matrix)). The other formular is called Rodrigues&rsquo; formular: the
-first term is a diagonal matrix (${\rm\bf I}$ is the 3D identity
-matrix), the second terms the skew symmetric part, the last term the
-symmetric part ($w
+matrix)). The other formular is called Rodrigues' formular: the first
+term is a diagonal matrix (${\rm\bf I}$ is the 3D identity matrix), the
+second terms the skew symmetric part, the last term the symmetric part
+($w
 w^{\mkern-1pt \top \mkern-1pt}$ is also called outper product).
 
 **Angular velocity & derivative of a rotation matrix:** We represent
 angular velocities by a vector $w\in{\mathbb{R}}^3$, with rotation axis
 $\widehat w$, and rotation velocity $|w|$ (in radians per second). When
-a body&rsquo;s orientation at time $t$ is described by a rotation matrix
-$R(t)$ and the body&rsquo;s angular velocity is $w$, then
+a body's orientation at time $t$ is described by a rotation matrix
+$R(t)$ and the body's angular velocity is $w$, then
 
 $$\begin{align}\label{eqDotR}
 \dot R(t) = \text{skew}(w)~ R(t)~.
 \end{align}$$
 
-(That&rsquo;s intuitive to see for a rotation about the $x$-axis with
-velocity 1.) Some insights from this relation: Since $R(t)$ must always
-be a rotation matrix (fulfill orthogonality and determinant 1), its
+(That's intuitive to see for a rotation about the $x$-axis with velocity
+1.) Some insights from this relation: Since $R(t)$ must always be a
+rotation matrix (fulfill orthogonality and determinant 1), its
 derivative $\dot R(t)$ must also fulfill certain constraints; in
 particular it can only live in a 3-dimensional sub-space. It turns out
 that the derivative $\dot R$ of a rotation matrix $R$ must always be a
-skew symmetric matrix $\text{skew}(w)$ times $R$ &ndash; anything else
-would be inconsistent with the contraints of orthogonality and
-determinant 1.
+skew symmetric matrix $\text{skew}(w)$ times $R$ -- anything else would
+be inconsistent with the contraints of orthogonality and determinant 1.
 
 Note also that, assuming $R(0)=I$, the solution to the differential
 equation $\dot R(t) = \text{skew}(w)~ R(t)$ can be written as

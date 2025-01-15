@@ -1,5 +1,4 @@
-Definitions
------------
+## Definitions
 
 A Gaussian over $x\in{\mathbb{R}}^n$ with mean $a\in{\mathbb{R}}^n$ and
 sym.pos.dev.&nbsp;covariance matrix $A\in{\mathbb{R}}^{n\times n}$ is
@@ -26,8 +25,7 @@ $$\begin{align}
  {\cal N}(x  \mkern-1pt \mid \mkern-1pt  a,A) = {\cal N}[x  \mkern-1pt \mid \mkern-1pt  A^\text{-1} a, A^\text{-1}] ~.
 \end{align}$$
 
-Matrix Identities
------------------
+## Matrix Identities
 
 As a background, here are matrix identities (based on the
 [matrix-cookbook](https://www.math.uwaterloo.ca/~hwolkowi/matrixcookbook.pdf))
@@ -49,8 +47,7 @@ $$\begin{align}
 $\eqref{wood}$=Woodbury; $\eqref{wood2}$,$\eqref{null}$ hold for
 pos.def.&nbsp;$A$ and $B$
 
-Derivatives
------------
+## Derivatives
 
 $$\begin{align}
 \partial_x {\cal N}(x|a,A) &= {\cal N}(x|a,A)~ (-h^{\mkern-1pt \top \mkern-1pt})  ~,\quad h:= A^\text{-1}(x-a)\\
@@ -64,8 +61,7 @@ $$\begin{align}
 + x^{\mkern-1pt \top \mkern-1pt}\partial_\theta a - a^{\mkern-1pt \top \mkern-1pt}A^\text{-1} \partial_\theta a + {\textstyle\frac{1}{2}}{\rm tr}(\partial_\theta A A^\text{-1}) \Big]
 \end{align}$$
 
-Product
--------
+## Product
 
 The product of two Gaussians can be expressed as
 
@@ -83,24 +79,21 @@ $$\begin{align}
  B] \label{prodNatCan}
 \end{align}$$
 
-Convolution
------------
+## Convolution
 
 $$\begin{align}
 \textstyle\int_x {\cal N}(x  \mkern-1pt \mid \mkern-1pt a,A)~ {\cal N}(y-x  \mkern-1pt \mid \mkern-1pt  b,B)~ dx
  &= {\cal N}(y  \mkern-1pt \mid \mkern-1pt  a+b, A+B)
 \end{align}$$
 
-Division
---------
+## Division
 
 $$\begin{align}
 {\cal N}(x|&a,A) ~\big/~ {\cal N}(x|b,B) = {\cal N}(x|c,C) ~\big/~ {\cal N}(c| b, C+B) ~,\quad C^\text{-1}c = A^\text{-1}a - B^\text{-1}b,~ C^\text{-1} = A^\text{-1} - B^\text{-1} \\
 {\cal N}[x|&a,A] ~\big/~ {\cal N}[x|b,B] \propto {\cal N}[x|a-b,A-B]
 \end{align}$$
 
-Expectations
-------------
+## Expectations
 
 Let $x\sim{\cal N}(x  \mkern-1pt \mid \mkern-1pt  a,A)$, we have:
 
@@ -113,8 +106,7 @@ $$\begin{align}
 &\mathbb{E}_{x}\!\left\{(x-m)^{\mkern-1pt \top \mkern-1pt}R(x-m)\right\} = (a-m)^{\mkern-1pt \top \mkern-1pt}R(a-m) + {\rm tr}(RA)
 \end{align}$$
 
-Linear Transformation
----------------------
+## Linear Transformation
 
 For any $f\in{\mathbb{R}}^n$ and full-rank
 $F\in{\mathbb{R}}^{n\times n}$, the following identities hold:
@@ -129,8 +121,7 @@ $$\begin{align}
 &= \frac{1}{|F|}~ {\cal N}[x  \mkern-1pt \mid \mkern-1pt  ~ F^{\mkern-1pt \top \mkern-1pt}(a-Af),~ F^{\mkern-1pt \top \mkern-1pt}A F] ~.
 \end{align}$$
 
-"Propagation"
--------------
+## "Propagation"
 
 Propagating a message along a linear coupling (e.g.&nbsp;forward model),
 using eqs $\eqref{prodNat}$ and $\eqref{prodNatCan}$, respectively, we
@@ -146,8 +137,7 @@ $$\begin{align}
 where
 $K=F^{\text{-}\!\top}B(F^{\text{-}\!\top}A^\text{-1} F^\text{-1}\!+\!B)^\text{-1}$.
 
-Marginal & Conditional
-----------------------
+## Marginal & Conditional
 
 $$\begin{align}
 {\cal N}(x  \mkern-1pt \mid \mkern-1pt  a,A)~ {\cal N}(y  \mkern-1pt \mid \mkern-1pt  b+Fx,B)
@@ -177,8 +167,7 @@ $$\begin{align}
  = \left[ \begin{array}{cc}\widehat A^\text{-1}&-\widehat A^\text{-1} C B^\text{-1}\\-B^\text{-1} D \widehat A^\text{-1}&\widehat B^\text{-1}\end{array} \right]
 \end{align}$$
 
-Pair-wise Belief
-----------------
+## Pair-wise Belief
 
 We have a message
 $\alpha(x)={\cal N}[x  \mkern-1pt \mid \mkern-1pt  s,S]$, transition
@@ -201,15 +190,13 @@ b(y,x)
               \begin{array}{cc}S + A^{\mkern-1pt \top \mkern-1pt}Q^\text{-1} A & -A^{\mkern-1pt \top \mkern-1pt}Q^\text{-1} \\ -Q^\text{-1} A & V+Q^\text{-1}\end{array}  \bigg]
 \end{align}$$
 
-Entropy
--------
+## Entropy
 
 $$\begin{align}
 H({\cal N}(a,A)) &= {\textstyle\frac{1}{2}}\log |2\pi e A|
 \end{align}$$
 
-Kullback-Leibler divergence
----------------------------
+## Kullback-Leibler divergence
 
 For $p={\cal N}(x|a,A),~ q={\cal N}(x|b,B), n = \text{dim}(x)$ and
 definition
@@ -232,8 +219,7 @@ $$\begin{align}
 
 For $\lambda=.5$: Jensen-Shannon divergence.
 
-Log-likelihoods
----------------
+## Log-likelihoods
 
 $$\begin{align}
 \log {\cal N}(x|a,A)
@@ -244,8 +230,7 @@ $$\begin{align}
  &= -D\big({\cal N}(b,B)\,\big\Vert\,{\cal N}(a,A)\big) - H({\cal N}(b,B))
 \end{align}$$
 
-Mixture of Gaussians
---------------------
+## Mixture of Gaussians
 
 &nbsp; Collapsing a MoG into a single Gaussian
 

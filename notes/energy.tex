@@ -3,6 +3,7 @@
 
 \title{Lecture Note:\\ Probabilities, Energy, Boltzmann \& Partition Function}
 \author{Marc Toussaint\\\small Learning \& Intelligent Systems Lab, TU Berlin}
+\date{August 19, 2024}
 
 \makeatletter
 \renewcommand{\@seccntformat}[1]{}
@@ -20,7 +21,7 @@ E(x) = -\log p(x) + c ~,
 \end{align}
 (for any choice of offset $c\in\RRR$) an energy function. Conversely, given an energy function $E(x)$, the corresponding density (called Boltzmann distribution) is
 \begin{align}
-p(x) = \Frac 1Z \exp\lbrace-E(x)\rbrace ~,
+p(x) = \Frac 1Z \exp(-E(x)) ~,
 \end{align}
 where $Z$ is the normalization constant to ensure $\int_x p(x) = 1$,
 and $c=-\log Z$. From the perspective of physics, one can motivate why
@@ -60,11 +61,11 @@ P(D_1\cup D_2)
 &= \Frac 1{Z_0} f(E_1+E_2) ~, \label{exp}
 \end{align}
 where we defined $E_i=E(D_i)$. The only function to fulfill
-the last equation for any $E_1,E_2\in\RRR$ is the exponential function $f(E) = \exp\lbrace -\b E \rbrace$ with arbitrary
+the last equation for any $E_1,E_2\in\RRR$ is the exponential function $f(E) = \exp( -\b E )$ with arbitrary
  coefficient $\b$ (and minus sign being a convention, $Z_0 = Z_1
  Z_2$). Boiling this down to an individual element $x\in D$, we have
 \begin{align}
-p(x) = \Frac 1Z \exp\lbrace-\b E(x)\rbrace \comma \b E(x) = -\log p(x) - \log Z ~.
+p(x) = \Frac 1Z \exp(-\b E(x)) \comma \b E(x) = -\log p(x) - \log Z ~.
 \end{align}
 \end{proof}
 
@@ -139,13 +140,13 @@ because many particles are confined to low energy states, showing that
 the probability for this one particle to populate such a high energy
 level is low. In general,
 computing these combinatorics explicitly leads to the so-called
-Boltzmann distribution $p(i) \propto \exp\lbrace-\b E_i\rbrace$ of a particle to
+Boltzmann distribution $p(i) \propto \exp(-\b E_i)$ of a particle to
 be in energy level $i$: Lower energy states have higher probability,
 intuitively because for limited total energy more particles can be in these
 states, leading to higher combinatorics of microstates. In other
 words, in the thermodynamic equilibrium all feasible microscopic
 full-system states are equally likely, but the probability of one
-particle of the ensemble to have energy $i$ goes with the Boltzmann
+particle of the ensemble to have energy $E_i$ goes with the Boltzmann
 distribution.
 
 The coefficient $\b$ tells us how exactly energies
