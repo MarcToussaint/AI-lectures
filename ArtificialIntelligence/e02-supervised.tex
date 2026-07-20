@@ -1,0 +1,162 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Artificial Intelligence}
+\renewcommand{\coursepicture}{course_ai}
+\renewcommand{\coursedate}{Summer 2026}
+
+\renewcommand{\exnum}{Exercise 2}
+\renewcommand{\teacher}{Sayantan Auddy}
+\exercises
+%\excludecomment{solution}
+\exercisestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Linear Regression with Polynomial Features (2 Pts)}
+
+Consider a dataset $\mathcal{D} = \{ (x_i, y_i) \}_{i=1}^n$ with inputs $x_i \in \mathbb{R}^2$ and scalar outputs $y_i \in \mathbb{R}$. We want to train a linear regression model $f(x) = \phi(x)^\T\t$ where $\phi(x) \in \mathbb{R}^h$ is the feature vector and $\theta \in \mathbb{R}^h$ is the parameter vector. 
+
+\begin{enumerate}
+	\item Write down the equation of the regularized loss function $L(\theta)$ to be minimized, assuming L2 regularization is used. What is the effect of L2 regularization on the computed function $\phi(x)^\T \theta$ and on the parameters $\theta$? [1 Pt]
+	\item Consider a single input $x = [a, b]$ where $a,b \in \mathbb{R}$. Compute the feature vector $\phi(x)$ in terms of $a,b$ if we use quadratic features. Compute $\phi(x)$ if we use cubic features. What is the motivation for using $\phi(\cdot)$? [1 Pt]
+\end{enumerate}
+
+\begin{solution}
+\begin{enumerate}
+	\item The regularized loss function is $$L(\t) = \sum_{i=1}^{n} \left( y_i - \p(x_i)^\T\t\right)^2 + \l\vert\vert \t \vert\vert^2$$ where $\l$ is the regularization constant.
+	 L2 regularization penalizes large parameter values and reduces the magnitude of predictions. This helps to reduce model complexity and prevent overfitting.
+
+ \item Quadratic features include all monomials of degree $\leq$ 2: $$\p(x) = [ 1, a, b, a^2, ab, b^2] \in \RRR^6$$ 
+	 Cubic features include all monomials of degree $\leq$ 3: $$\p(x) = [ 1, a, b, a^2, ab, b^2, a^3, b^3, a^2b, ab^2] \in \RRR^{10}$$
+\end{enumerate}
+\end{solution}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Cross entropy loss and its derivatives (7 Pts)}
+
+Consider a multiclass classification problem with data $\mathcal{D}=\{(x_i,y_i)\}_{i=1}^{N}$, with inputs $x_i$ and outputs $y_i$. To make the notation easier, lets omit the index for a single data point, resulting in an input $x \in \RRR^{D}$ and the corresponding output $y \in \{1, \cdots, K\}$ ($K$~classes). We also define a one-hot vector $h \in \RRR^K$ such that $h_k = 1 \ \text{if}\ y=k\ \text{else}\ 0$.
+%
+Given a feature vector $\phi(x) \in \RRR^{M}$ and trainable parameters $\theta \in \RRR^{M\times K}$, 
+we define a function $f_{\t}(x) = \t^\T \phi(x) = z \in \RRR^{K}$. We then apply the \texttt{softmax} function on $z$ to obtain $p(z_k) = \frac{e^{z_k}}{\sum_{j=1}^{K} e^{z_j}} \in \RRR^{K}$, where $z_k$ denotes the $k^\text{th}$ element of $z$.
+
+\begin{enumerate}
+	\item What is the cross-entropy loss for a single data point $x$ in terms of $h_k$ and $p(z_k)$?~\hfill~[1~Pt]
+	\item If $\mathcal{L}(x)$ denotes the cross-entropy loss for a data point $x$, what is $\cfrac{\del \mathcal{L}}{\del z_k}$. Simplify as much as possible.~\hfill~[3~Pts]\\
+	Hints: \emph{$\frac{\del}{\del t}\log(t) = \frac{1}{t}; \frac{\del}{\del t}e^{t} = e^{t}$; $\sum_{k=1}^{K} h_k = 1$} 
+	\item Using the result for $\cfrac{\del \mathcal{L}}{\del z_k}$, derive the expression for $\cfrac{\del \mathcal{L}}{\del \theta_{mk}}$, where $\theta_{mk}$ is the element on the $m^\text{th}$ row and $k^\text{th}$ column of $\t$.~\hfill~[3~Pts]\\
+	Hint: Apply the chain rule and note that $\frac{\del}{\del \t_{mk}}z_j = \phi_m(x)\text{ if }j=k \text{, else }0$.
+\end{enumerate}
+
+
+% Consider a binary classification problem with data
+% $D=\{(x_i,y_i)\}_{i=1}^n$, $x_i \in \RRR^d$ and $y_i \in \{0,1\}$. We
+% define
+% \begin{align}
+% f_\t(x) &= \phi(x)^\T \t \\
+% p_\t(x) &= \s(f_\t(x)) \comma \s(z) = 1/(1+e^{-z}) \\
+% L^\text{NLL}(\t) &= - \sum_{i=1}^n \[ y_i \log p_\t(x_i) + (1-y_i) \log [1-p_\t(x_i)]\]
+% \end{align}
+% where $\t\in\RRR^h$ is a vector. (NOTE: the $p_\t(x)$ we defined here is
+% a short-hand for $p(y=1 | x)$)
+
+% \begin{enumerate}
+% 	\item Compute the derivative $\frac{\del}{\del \t} L(\t)$. Tip: use the fact 
+% $\frac{\del}{\del z}\s(z) = \s(z)(1-\s(z))$. [3 Pts]
+%         \item Compute the 2nd derivative $\frac{\del^2}{\del \t^2} L(\t)$. [1 Pt]
+% \end{enumerate}
+
+\begin{solution}
+% \begin{enumerate}
+%  	\item
+%  	\begin{align*}
+% 		L(\t) &= - \sum_{i=1}^{n} \[y_i \log p_\t(x_i) + (1-y_i)\log\left[1 - p_\t(x_i)\right] \] \\
+% 		      &= - \sum_{i=1}^{n} \[y_i \log \s(f_\t) + (1-y_i)\log\left[1 - \s(f_\t) \right] \] \quad\quad \text{\(writing $p_\t(x_i)=\s(f_\t(x_i))$ as $\s(f_\t)$\)}\\
+% 		\cfrac{\del L(\t)}{\del \t} &= -\sum_{i=1}^{n} \[y_i \cfrac{\del \log \s(f_\t)}{\del \t} + (1-y_i)\cfrac{\del \log [1-\s(f_\t)]}{\del \t} \] \quad\quad \text{\($\t$ is independent of $y_i$\)}\\
+% 		&=  -\sum_{i=1}^{n} \[y_i \cdot \cfrac{1}{\s(f_\t)} \cdot \cfrac{\del \s(f_\t)}{\del \t} + (1-y_i) \cdot \cfrac{1}{1-\s(f_\t)} \cdot \cfrac{\del [1-\s(f_\t)]}{\del \t} \] \quad\quad \text{\(using the chain rule\)}\\ 
+%                 &=  -\sum_{i=1}^{n} \[y_i \cdot \cfrac{1}{\s(f_\t)} \cdot \cfrac{\del \s(f_\t)}{\del \t} + (1-y_i) \cdot \cfrac{1}{1-\s(f_\t)} \cdot -\cfrac{\del [\s(f_\t)]}{\del \t} \] \quad\quad \text{\(simplifying\)}\\ 
+%                 &=  -\sum_{i=1}^{n} \[\cfrac{y_i}{\s(f_\t)} - \cfrac{(1-y_i)}{(1-\s(f_\t))} \] \cfrac{\del \s(f_\t)}{\del \t} \quad\quad \text{\(simplifying\)}\\
+%                 &=  -\sum_{i=1}^{n} \[\cfrac{y_i - \s(f_\t)}{\s(f_\t)\(1-\s(f_\t)\)}\] \cfrac{\del \s(f_\t)}{\del \t} \quad\quad \text{\(simplifying\)}\\                
+%                 &=  -\sum_{i=1}^{n} \[\cfrac{y_i - \s(f_\t)}{\s(f_\t)\(1-\s(f_\t)\)}\] \s(f_\t)\(1-\s(f_\t)\)\cfrac{\del f_\t}{\del \t} \quad\quad \text{\(since $\cfrac{\del \s(z)}{\del z} = \s(z)\(1-\s(z)\)$\)}\\
+%                 &=  -\sum_{i=1}^{n} \[y_i - \s\(\p(x_i)^\T \t\)\] \p(x_i) \quad\quad \text{\(simplifying and noting that $\cfrac{\del f_\t(x_i)}{\del \t} = \cfrac{\del \p(x_i)^\T\t}{\del \t} = \p(x_i)$ \)}\\
+% 	\end{align*}
+% 	%
+% 	\item
+% 	\begin{align*}
+% 	        \cfrac{\del L(\t)}{\del \t} &= -\sum_{i=1}^{n} \[y_i - \s\(\p(x_i)^\T \t\)\] \p(x_i) \\
+% 	        \cfrac{\del^2 L(\t)}{\del \t^2} &= \sum_{i=1}^{n} \[ \cfrac{\del \[ \s\(\p(x_i)^\T \t\) \p(x_i)\]}{\del \t} \] \\
+% 	                                        &= \sum_{i=1}^{n} \[ \cfrac{\del \s\(\p(x_i)^\T \t\)}{\del \t} \cdot  \p(x_i)^\T \]  \quad\quad \text{\(since $\cfrac{\del (f_z v)}{\del z} = \(\cfrac{\del f_z}{\del z}\) \cdot v^\T$\)}\\
+% 	                                        &= \sum_{i=1}^{n} \s\(\p(x_i)^\T \t\)\(1-\s\(\p(x_i)^\T \t\)\) \p(x_i) \p(x_i)^\T \\
+% 	\end{align*}
+% \end{enumerate}
+
+\begin{enumerate}
+\item $\mathcal{L}(x) = - \sum_{k=1}^K h_k \log p(z_k)$
+\item
+\begin{align*}
+		\mathcal{L}(x) &= - \sum_{k=1}^K h_k \log p(z_k) \\
+		&= - \sum_{k=1}^K h_k \log \cfrac{e^{z_k}}{\sum_{j=1}^K e^{z_j}} \quad\quad \text{ (expanding softmax)}\\
+		&= - \sum_{k=1}^K h_k \left(z_k - \log\left(\sum_{j=1}^K e^{z_j}\right)\right)\quad\quad \text{ (simplifying the log)}\\
+	 	&= - \sum_{k=1}^K h_k z_k + \sum_{k=1}^K h_k \log\left(\sum_{j=1}^K e^{z_j}\right)\quad\quad \text{ (simplifying)}\\
+		&= - \sum_{k=1}^K h_k z_k + \left(\sum_{k=1}^K h_k \right)\left( \log\left(\sum_{j=1}^K e^{z_j}\right)\right)\quad\quad \text{ (the summation over $k$ and $j$ are independent)}\\
+	\cfrac{\del \mathcal{L}(x)}{\del z_k} &= -h_k + \cfrac{\del}{\del z_k} \log \sum_{j=1}^K e^{z_j}\quad\quad \text{ (using the hints)}\\
+	&= -h_k + \cfrac{\del \log (\sum_{j=1}^K e^{z_j})}{\del (\sum_{j=1}^K e^{z_j})}  \cfrac{\del (\sum_{j=1}^K e^{z_j})}{\del z_k} \quad\quad \text{ (applying the chain rule)}\\
+	&= -h_k + \cfrac{e^{z_k}}{\sum_{j=1}^K e^{z_j}}\quad\quad \text{ (simplifying)}\\
+	&= -h_k + p(z_k)
+\end{align*}
+
+Marc's version:
+\begin{align*}
+\LL(x) &= - \sum_i h_i \log p(z_i)  \\
+\del_{z_k} \LL(x) &= - \sum_i h_i \frac{1}{p(z_i)}~ \del_{z_k} p(z_i) \\
+\del_{z_k} p(z_i) &= \del_{z_k} \frac{e^{z_i}}{\sum_j e^{z_j}} = \d_{ik} \frac{e^{z_k}}{\sum_j e^{z_j}} - \frac{e^{z_i}~ e^{z_k}}{[\sum_j e^{z_j}]^2} = p(z_k)~ [\d_{ik}  - p(z_i)] \\
+\del_{z_k} \LL(x) &= - \sum_i h_i \frac{p(z_k)}{p(z_i)}~ [\d_{ik}  - p(z_i)] \\
+&= - \sum_i h_i \frac{p(z_k)}{p(z_i)}~  [\d_{ik}] ~-~ \sum_i h_i \frac{p(z_k)}{p(z_i)}~ [- p(z_i)] = h_k - \sum_i h_i p(z_k) = h_k p(z_i)
+\end{align*}
+
+\item
+\begin{align*}
+		\cfrac{\del \mathcal{L}(x)}{\del \theta_{mk}} &= \sum_{j=1}^{K} \cfrac{\del \mathcal{L}}{\del z_j} \cfrac{\del z_j}{\del \theta_{mk}} \quad\quad \text{ (applying the chain rule and noting that $z_1,\cdots,z_j,\cdots,z_K$ all contribute to the loss)}\\
+		&=\sum_{j=1}^{K}  \cfrac{\del \mathcal{L}}{\del z_j} \cdot \begin{cases}
+			\phi_m(x) \quad \text{when j=k}\\
+			0 \quad\quad\quad \text{otherwise}\\
+		\end{cases} \text{(using the hint)}\\
+		&= \cfrac{\del \mathcal{L}}{\del z_1}.0 + \cfrac{\del \mathcal{L}}{\del z_2}.0 + \cdots \cfrac{\del \mathcal{L}}{\del z_k}.\phi_m(x) + \cdots + \cfrac{\del \mathcal{L}}{\del z_K}.0 \\
+		&= \left(-h_k + p\left(z_k\right)\right)\phi_m(x)
+\end{align*}
+
+\end{enumerate}
+
+\end{solution}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Neural Network basics (3 Pts)}
+
+Again consider a dataset $\mathcal{D} = \{ (x_i, y_i) \}_{i=1}^n$ with 2D inputs $x_i \in \mathbb{R}^2$ and scalar outputs $y_i \in \mathbb{R}$. This time, we want to train a fully connected neural network with parameters $\theta \in \mathbb{R}^h$ (here, $\theta$ denotes the different weight matrices and bias vectors of individual layers taken together). 
+
+\begin{enumerate}
+	\item If our network has 2 hidden layers, each with 64 neurons, write the dimensions of the weight matrix and bias vectors of each layer. How many parameters does this network have (i.e. what is the value of $h$)? [2 Pts]
+	\item Assuming that the non-linear activation function is $\sigma(\cdot)$, write down the expression of the output $\hat{y}$ of the network in terms the input $x$, the weight matrices and bias vectors of the individual layers, and $\sigma$.
+	Assuming that $n$ is a small number, how many forward passes do we need to make through the network to compute the outputs for all the input points in $\mathcal{D}$? [1 Pt]
+\end{enumerate}
+
+\begin{solution}
+\begin{enumerate}
+	\item A hidden layer is one whose outputs are not directly observed. Thus, this network has 3 layers in total (2 hidden layers and 1 output layer). 
+	\begin{itemize}
+	        \item The first hidden layer $H_1$ takes as input $x_i \in \mathbb{R}^2$ and contains 64 units. Thus, the output of this layer is a vector $f_{H_1} = \s\(x W_{H_1}^\T + b_{H_1}\) \in \mathbb{R}^{64}$ (here we assume a single data point). The weight matrix and bias vector of the first hidden layer are $W_{H_1} \in \mathbb{R}^{64\times 2}$ and $b_{H_1} \in \mathbb{R}^{64}$. Check \href{https://docs.pytorch.org/docs/stable/generated/torch.nn.Linear.html}{this reference} to see how the a linear layer works in PyTorch.
+	        \item Following the same reasoning, the weight matrix and bias vector of the second hidden layer are $W_{H_2} \in \mathbb{R}^{64\times 64}$ and $b_{H_2} \in \mathbb{R}^{64}$.
+	        \item The weight matrix and bias vector of the output layer are $W_\text{out} \in \mathbb{R}^{1\times 64}$ and $b_\text{out} \in \mathbb{R}$.
+	        \item Thus, the total number of trainable parameters is $h = 64\times 2 + 64 + 64\times 64 + 64 + 1\times 64 + 1 = 4417$.
+	\end{itemize}
+	\item Assuming that no activation function is applied to the output layer, $\hat{y} = \s\( \s\( x W_{H_1}^\T + b_{H_1} \) W_{H_2}^\T + b_{H_2} \)W_\text{out}^\T + b_\text{out}$.
+	      We can pass the dataset as a batch of size $(n,2)$ and compute the output of size $(n,1)$ in 1 forward pass.
+\end{enumerate}
+\end{solution}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exerfoot

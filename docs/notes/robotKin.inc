@@ -141,8 +141,8 @@ As there is no better alternative, we choose generalized coordinates
 equally as $q =
 x$. However, at any $q$, the positional velocity is constraint to
 aligned with the heading direction,
-$\dot p^{\mkern-1pt \top \mkern-1pt}(\sin\phi, \cos\phi) = 0$, which is
-a non-holonomic constraint.
+$\dot p^{ {\mkern-1pt} \top {\mkern-1pt} }(\sin\phi, \cos\phi) = 0$,
+which is a non-holonomic constraint.
 
 There are cases where a constraint is naturally expressed as $h(q,\dot
 q,t)=0$ and "looks" non-holonomic, but actually it is so-called
@@ -164,14 +164,15 @@ velocities to body velocities. Let's do the analogous for forces: Assume
 we have a wrench $(f_i,\tau_i)$ directly acting on body $i$, what "do we
 feel" in the joints, i.e., what torques $u\in{\mathbb{R}}^n$ are
 propagated into the joints? The answer is the Jacobian transpose:
-$u = J^{\mkern-1pt \top \mkern-1pt}
+$u = J^{ {\mkern-1pt} \top {\mkern-1pt} }
 (f_i,\tau_i)$. We can derive this by the conservation of work, or
 better, power (=work/time): For joint torques $u$ and velocities
-$\dot q$ we would consume power $u^{\mkern-1pt \top \mkern-1pt}\dot q$,
-which needs to equal the power received at the body,
-$(f_i,\tau_i)^{\mkern-1pt \top \mkern-1pt}(v_i,w_i) = (f_i,\tau_i)^{\mkern-1pt \top \mkern-1pt}J
+$\dot q$ we would consume power
+$u^{ {\mkern-1pt} \top {\mkern-1pt} }\dot q$, which needs to equal the
+power received at the body,
+$(f_i,\tau_i)^{ {\mkern-1pt} \top {\mkern-1pt} }(v_i,w_i) = (f_i,\tau_i)^{ {\mkern-1pt} \top {\mkern-1pt} }J
 \dot q$. As this holds for any $\dot q$ we have
-$u^{\mkern-1pt \top \mkern-1pt}= (f_i,\tau_i)^{\mkern-1pt \top \mkern-1pt}J$.
+$u^{ {\mkern-1pt} \top {\mkern-1pt} }= (f_i,\tau_i)^{ {\mkern-1pt} \top {\mkern-1pt} }J$.
 
 ## Dynamics
 
@@ -207,8 +208,8 @@ $$\begin{align}
 
 with $M_i = {\rm diag}(m {\rm\bf I}_3, \bar I_i)$,
 $c_i = M_i \dot J_i \dot q + (0_3, w_i\times \bar I_i w_i)$, where
-$\bar I_i = R_i I_i R_i^{\mkern-1pt \top \mkern-1pt}$ and $I_i$ the
-inertia tensor in body coordinates. Note that for brevity we dropped
+$\bar I_i = R_i I_i R_i^{ {\mkern-1pt} \top {\mkern-1pt} }$ and $I_i$
+the inertia tensor in body coordinates. Note that for brevity we dropped
 dependencies $M_i = M_i(q), J_i = J_i(q)$, and $c_i = c_i(q,\dot q)$.
 (When implementing this, note that $\dot J_i \dot q$ is the frame
 acceleration for $\ddot q=0$, which can best be computed by forward
@@ -217,23 +218,23 @@ Coriolis effects.[^2])
 
 Conversely, to counteract these inertia forces we have to apply joint
 torques
-$u = J_i^{\mkern-1pt \top \mkern-1pt}\Big[M_i J_i \ddot q + c_i\Big]$ --
-this is how "we feel" the inertia in the joints. We can separately
+$u = J_i^{ {\mkern-1pt} \top {\mkern-1pt} }\Big[M_i J_i \ddot q + c_i\Big]$
+-- this is how "we feel" the inertia in the joints. We can separately
 consider gravity: By the same argument we need joint torques
-$u = J_i^{\mkern-1pt \top \mkern-1pt}g_i$ to counteract gravity, where
-$g_i = (m g e_z, 0_3)\in{\mathbb{R}}^6$ has only a single entry in
+$u = J_i^{ {\mkern-1pt} \top {\mkern-1pt} }g_i$ to counteract gravity,
+where $g_i = (m g e_z, 0_3)\in{\mathbb{R}}^6$ has only a single entry in
 $z$-direction. As we have many bodies that are accelerated and need
 gravity compensation, we overall have
 
 $$\begin{align}
-u = \sum_{i=1}^m J_i^{\mkern-1pt \top \mkern-1pt}\Big[M_i J_i \ddot q + c_i + g_i\Big] ~.
+u = \sum_{i=1}^m J_i^{ {\mkern-1pt} \top {\mkern-1pt} }\Big[M_i J_i \ddot q + c_i + g_i\Big] ~.
 \end{align}$$
 
 Other texts provide derivations either via the general Euler-Lagrange
 equations, or recursive Newton-Euler equations. I find the above very
 concise and easy to implement, and efficient with sparse $J_i$. The
 first term
-$\sum_{i=1}^m J_i^{\mkern-1pt \top \mkern-1pt}M_i J_i \ddot q$ can
+$\sum_{i=1}^m J_i^{ {\mkern-1pt} \top {\mkern-1pt} }M_i J_i \ddot q$ can
 elegantly also be found in the Euler-Lagrange derivation, [^3] but the
 Coriolis terms $c_i$ are less obvious. Recursive Newton-Euler can be
 tuned to be numerically faster, but does not provide this nice general
@@ -246,9 +247,9 @@ u = M(q)~ \ddot q + F(q, \dot q)
 \end{align}$$
 
 where, for multi-rigid-body systems, we derived
-$M(q) = \sum_i J_i^{\mkern-1pt \top \mkern-1pt}M_i
+$M(q) = \sum_i J_i^{ {\mkern-1pt} \top {\mkern-1pt} }M_i
 J_i$ and
-$F(q,\dot q) = \sum_i J_i^{\mkern-1pt \top \mkern-1pt}(c_i + g_i)$.
+$F(q,\dot q) = \sum_i J_i^{ {\mkern-1pt} \top {\mkern-1pt} }(c_i + g_i)$.
 
 Keep in mind that only when $M(q)$ is invertible we have a one-to-one
 relation between our controls and the system acceleration, and we have
@@ -256,7 +257,7 @@ the guarantee that our system accelerates with $\ddot q = M(q)^{-1} u -
 F(q,\dot q)$ as desired. $M(q)$ is not invertible if $J_i$ do not have
 full rank, e.g., if some body $i$ is not articulated at all and $J_i$ is
 zero. In this case the equation
-$u = J_i^{\mkern-1pt \top \mkern-1pt}\Big[M_i J_i \ddot q +
+$u = J_i^{ {\mkern-1pt} \top {\mkern-1pt} }\Big[M_i J_i \ddot q +
 c_i\Big]$ says that we feel none of the accelerations of $i$ in our
 joints -- and conversely cannot induce any accelerations of $i$. That's
 the case when the robot is not in contact with body $i$.
@@ -319,9 +320,9 @@ y^*$. A proper approach is to formulate this as an NLP (non-linear
 mathematical program)
 
 $$\begin{align}
-&\min_{q\in{\mathbb{R}}^n} |\!|q-q_0|\!|^2 ~~\text{s.t.}~~\phi(q) = y^* \label{eqIK}\\
-\text{or}\quad&\min_{q\in{\mathbb{R}}^n} |\!|q-q_0|\!|^2 + \mu|\!|\phi(q) -
-y^*|\!|^2 \quad\text{for large $\mu$} \label{eqIK2}
+&\min_{q\in{\mathbb{R}}^n} | {\mkern-1pt} |q-q_0| {\mkern-1pt} |^2 ~~\text{s.t.}~~\phi(q) = y^* \label{eqIK}\\
+\text{or}\quad&\min_{q\in{\mathbb{R}}^n} | {\mkern-1pt} |q-q_0| {\mkern-1pt} |^2 + \mu| {\mkern-1pt} |\phi(q) -
+y^*| {\mkern-1pt} |^2 \quad\text{for large $\mu$} \label{eqIK2}
 \end{align}$$
 
 and use an efficient NLP solver (e.g.&nbsp;Augmented Lagrangian, or SQP,
@@ -334,7 +335,7 @@ $\mu\to\infty$):
 
 $$\begin{align}
 q^*
-&= q_0 +  J^{\mkern-1pt \top \mkern-1pt}(J J^{\mkern-1pt \top \mkern-1pt}+ \textstyle\frac{1}{\mu} {\rm\bf I})^{-1} (y^*-\phi(q_0)) ~.
+&= q_0 +  J^{ {\mkern-1pt} \top {\mkern-1pt} }(J J^{ {\mkern-1pt} \top {\mkern-1pt} }+ \textstyle\frac{1}{\mu} {\rm\bf I})^{-1} (y^*-\phi(q_0)) ~.
 \end{align}$$
 
 In the context of optimization, this is the first Newton step when
@@ -395,8 +396,8 @@ spline interpolation, or a basic but nice motion profile).
     energy
 
     $$\begin{align}
-    T(q,\dot q) = \sum_i {\textstyle\frac{1}{2}}m_i v_i^2 + {\textstyle\frac{1}{2}}w_i^{\mkern-1pt \top \mkern-1pt}\bar I_i w_i
-    = \sum_i {\textstyle\frac{1}{2}}\dot q^{\mkern-1pt \top \mkern-1pt}J_i^{\mkern-1pt \top \mkern-1pt}M_i J_i \dot q,~
+    T(q,\dot q) = \sum_i {\textstyle\frac{1}{2}}m_i v_i^2 + {\textstyle\frac{1}{2}}w_i^{ {\mkern-1pt} \top {\mkern-1pt} }\bar I_i w_i
+    = \sum_i {\textstyle\frac{1}{2}}\dot q^{ {\mkern-1pt} \top {\mkern-1pt} }J_i^{ {\mkern-1pt} \top {\mkern-1pt} }M_i J_i \dot q,~
     M_i = {\rm diag}(m_i{\rm\bf I}_3, \bar I_i),
     \end{align}$$
 
@@ -410,5 +411,5 @@ spline interpolation, or a basic but nice motion profile).
     \end{align}$$
 
     where total inertial
-    $M(q) = \sum_i J_i^{\mkern-1pt \top \mkern-1pt}M_i J_i$ is simple to
-    compute, but the Coriolis terms are more complicated.
+    $M(q) = \sum_i J_i^{ {\mkern-1pt} \top {\mkern-1pt} }M_i J_i$ is
+    simple to compute, but the Coriolis terms are more complicated.

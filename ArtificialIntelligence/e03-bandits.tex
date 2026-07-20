@@ -1,0 +1,281 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Artificial Intelligence}
+\renewcommand{\coursepicture}{course_ai}
+\renewcommand{\coursedate}{Summer 2026}
+\renewcommand{\teacher}{Sayantan Auddy}
+\renewcommand{\exnum}{Exercise 3}
+
+\exercises
+\excludecomment{solution}
+\exercisestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Bandits (3 Pts)}
+
+Assume you have real-valued 3 bandits (i.e., the returns $y_t\in\RRR$ are real numbers.) You have already tested them a few times
+and received returns
+\begin{itemize}
+\item From bandit 1:~ 8 7 12 13 11 9
+\item From bandit 2:~ 8 12
+\item From bandit 3:~ 5 13
+\end{itemize}
+
+\begin{enumerate}
+	\item For the returns of each bandit separately, compute (with a calculator) the following [1 Pt]:
+  \begin{align}
+    \text{empirical mean estimator: \quad} y_i &= \frac{1}{n_i} \sum_{t:a_t=i} y_t \\
+    \text{std.dev.\ of returns:\quad} \hat \s_i &= \sqrt{\frac{1}{n_i-1} \sum_{t:a_t=i} (y_t - \hat y_i)^2} \\
+      \text{std.dev.\ of the mean estimator:\quad} \sqrt{\Var{\hat y_i}} &= \frac{1}{\sqrt{n_i}} \hat \s_i
+      \end{align}
+
+  \item Which bandit would UCB1 (the method we discussed in the lecture) choose next? (For $\b=1$). [1 Pt]
+
+  \item Which bandit would you choose next, if you know
+	  that this is the very last time you pull a bandit? [1 Pt]
+
+\end{enumerate}
+
+\begin{solution}
+	a) As discussed in the tutorial, note that this question has some discrepency. UCB1 chooses the action that maximizes $\hat{y}_i + \b\sqrt{\frac{2\ln n}{n_i}}$, where $n = \sum\limits_{i} n_i$, but under UCB1, we must assume that the returns are strictly bounded in the interval [0,1] (which is not true for this question). UCB for Gaussian bandits would choose the action that maximizes $\hat{y}_i + \b \sqrt{\text{Var}\{\hat{y_i}\}}$. Therefore, in the table below we show the results for both UCB1 and UCB for Gaussian bandits. 
+	\begin{center}
+		\begin{tabular}{lccc}
+			\hline
+			& Bandit 1 & Bandit 2 & Bandit 3\\
+			\hline
+			$\hat{y}_i$ & 10 & 10 & 9\\
+			$\hat{\sigma}_i$ & $\sqrt{\frac{28}{5}}\approx2.4$ & $\sqrt{8}\approx2.8$ & $\sqrt{32} \approx5.66$ \\
+			$\sqrt{\Var{\hat{y}_i}}$ & $\sqrt{\frac{28}{30}}\approx0.97$ & 2 & 4 \\
+			UCB1 &10.88&11.52&10.52\\
+			UCB-Gaussian & 10.97 & 12 & 13 \\
+			\hline
+		\end{tabular}
+	\end{center}
+	
+	b) As seen in the table, UCB1 would choose bandit 2. UCB-Gaussian would choose bandit 3.
+	
+	c) If this is the last time to pull a bandit, we only look at the mean. So the answer is either 1 or 2. Bandit 1 is the conservative choice.
+\end{solution}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Bandits \& Bayes Rule (4 Pts)}
+
+We consider just a single binary bandit. A binary bandit only has one unkown parameter: the win probability $\t \in [0,1]$ (the parameter of its Bernoulli distribution). Let's make the strong assumptions that $\t \in \{0.4, 0.6\}$, which means that the bandit was either build with win probability $0.4$, or with win probability $0.6$ -- but you don't know in advance.
+
+Your \textbf{prior knowledge} (also called prior belief) over the unknown variable $\t$ is ``nothing'', meaning, $P(\t)$ is uniform over the domain $\{0.4, 0.6\}$ (maximal entropy).
+
+\begin{enumerate}
+	\item Assume that you play a single game, and you win. I.e., the data we have is $D = \{ y_1=1 \}$. What is your \textbf{posterior knowledge} $P(\t \| D)$ (also called posterior belief) about the unkown variable? [2 Pts]
+
+	\item Assume that you played the bandit 3 times and always won. I.e., the data we have is $D = \{ y_1=1, y_2=1, y_3=1 \}$. What is your \textbf{posterior knowledge} $P(\t \| D)$ (also called posterior belief) about the unkown variable? [2 Pts]
+\end{enumerate}
+
+Tip 1: In Bayes rule $P(X \| Y) = \frac{P(Y \| X)~ P(X)}{P(Y)}$ you often can spare explicitly computing the normalization $P(Y)$ (also called evidence). Instead, just compute $P(Y \| X)~ P(X)$ for all possible $X$, then normalize these to find the posterior $P(X \| Y)$, which needs to be normalized $\sum_X P(X \| Y) = 1$.
+
+Tip 2: For b), think of the three data points as each adding a new factor via Bayes rule. Again, you can neglect normalization until the very end, when you normalize the resulting posterior $P(\t \| D)$.
+
+
+\begin{solution}
+	a) According to Bayes' rule, $\text{posterior} = \cfrac{\text{likelihood}\cdot\text{prior}}{\text{evidence}}$. Writing this with symbols, we get
+	$$P(\t | D) = \cfrac{P(D|\t)~ P(\t)}{P(D)}$$
+It is easier to simply compute $P(\t | D) \propto P(D|\t)~ P(\t)$ and normalize the results at the end. Thus,
+	\begin{align*}
+		P(\theta = 0.4 | y_1 = 1) \propto P(y_1 = 1 | \theta = 0.4)~ P(\theta=0.4) = 0.4 \cdot 0.5 = 0.2\\
+		P(\theta = 0.6 | y_1 = 1) \propto P(y_1 = 1 | \theta = 0.6)~ P(\theta=0.6) = 0.6 \cdot 0.5 = 0.3
+	\end{align*}
+The normalization factor is thus $0.5$, and the posteriors are
+	\begin{align*}
+		P(\theta = 0.4 | y_1 = 1) = 0.4\\
+		P(\theta = 0.6 | y_1 = 1) = 0.6
+	\end{align*}
+	
+	b) This question asks about the posterior $P(\t|D)$ after playing 3 times, where $D = \{ y_1=1, y_2=1, y_3=1 \}$. Therefore, we need to compute $P(\t|y_1=1, y_2=1, y_3=1)$. As before, we can write the posterior as proportional to the product of the likelihood and prior (and perform the normalization in the final step). It is beneficial to work with symbols as long as possible.
+	\begin{align*}
+		P(\t|y_1, y_2, y_3) &\propto P(y_3 | y_2, y_1, \t)~ P(y_2, y_1, \t) \\
+		&\propto P(y_3 | y_2, y_1, \t)~ P(y_2 | y_1, \t)~ P(y_1, \t) \\
+		&\propto P(y_3 | y_2, y_1, \t)~ P(y_2 | y_1, \t)~ P(y_1 | \t)~ P(\t) \\
+		&\propto P(y_3 | \t)~ P(y_2 | \t)~ P(y_1 | \t)~ P(\t) \hspace{50pt} \text{[$y_3, y_2, y_1$ are conditionally independent of each other if $\t$ is known]}
+	\end{align*}
+Now we can start working with numbers.
+$$P(\t=0.4|y_1=1, y_2=1, y_3=1) \propto P(y_3=1 | \t=0.4)~ P(y_2=1 | \t=0.4)~ P(y_1=1 | \t=0.4)~ P(\t=0.4) = 0.4 \cdot 0.4 \cdot 0.4 \cdot 0.5 = 0.032$$
+$$P(\t=0.6|y_1=1, y_2=1, y_3=1) \propto P(y_3=1 | \t=0.6)~ P(y_2=1 | \t=0.6)~ P(y_1=1 | \t=0.6)~ P(\t=0.6) = 0.6 \cdot 0.6 \cdot 0.6 \cdot 0.5 = 0.108$$
+
+The normalizing factor is $0.032 + 0.108 = 0.14$. Therefore,
+	\begin{align*}
+		P(\theta = 0.4| y_3=1, y_2=1, y_1=1) \approx 0.229\\
+		P(\theta = 0.6| y_3=1, y_2=1, y_1=1) \approx 0.771
+	\end{align*}
+\end{solution}
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+\exsection{Parameters of a Transformer (3 Pts)}
+
+Consider the following code snippet that initializes a @TransformerEncoderLayer@ which implements the original transformer architecture described in the Attention Is All You Need paper\footnote{\url{https://proceedings.neurips.cc/paper/2017/file/3f5ee243547dee91fbd053c1c4a845aa-Paper.pdf}}.
+
+\begin{verbatim}
+import torch
+import torch.nn as nn
+
+block = nn.TransformerEncoderLayer(
+    d_model=512,
+    nhead=8,
+    dim_feedforward=2048,
+    batch_first=True,
+)
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+block = block.to(device)
+
+x = torch.randn(2, 16, 512).to(device)
+y = block(x)
+\end{verbatim}
+
+With reference to the above code snippet, answer the questions that follow. Consult the PyTorch documentation\footnote{\url{https://docs.pytorch.org/docs/2.12/generated/torch.nn.modules.transformer.TransformerEncoderLayer.html}} if you need. 
+
+\begin{enumerate}
+    \item Explain the architecture and list down all learnable parameters in this encoder layer, along with their shapes.~[1~Pt]
+    \item Count the total number of trainable parameters and state the total number of parameters for attention, feed forward network and layer norm.~[1~Pt]
+    \item What is the shape of the output @y@? Explain your answer.~[1~Pt]
+\end{enumerate}
+
+\begin{solution}
+
+The encoder layer has model dimension $d_{\text{model}}=512$, number of heads $h=8$, and feed-forward dimension $d_{\text{ff}}=2048$. Therefore, each attention head has dimension
+$
+d_{\text{head}} = \frac{512}{8} = 64.
+$
+
+\begin{enumerate}
+    \item The encoder layer consists of a multi-head self-attention block, a feed-forward network, and two layer normalization modules.
+
+    \begin{center}
+    \begin{tabular}{lll}
+    \hline
+    Component & Parameter & Shape \\
+    \hline
+    Self-attention & \texttt{self\_attn.in\_proj\_weight} & $(1536,512)$ \\
+    Self-attention & \texttt{self\_attn.in\_proj\_bias} & $(1536)$ \\
+    Self-attention & \texttt{self\_attn.out\_proj.weight} & $(512,512)$ \\
+    Self-attention & \texttt{self\_attn.out\_proj.bias} & $(512)$ \\
+    Feed-forward & \texttt{linear1.weight} & $(2048,512)$ \\
+    Feed-forward & \texttt{linear1.bias} & $(2048)$ \\
+    Feed-forward & \texttt{linear2.weight} & $(512,2048)$ \\
+    Feed-forward & \texttt{linear2.bias} & $(512)$ \\
+    LayerNorm 1 & \texttt{norm1.weight} & $(512)$ \\
+    LayerNorm 1 & \texttt{norm1.bias} & $(512)$ \\
+    LayerNorm 2 & \texttt{norm2.weight} & $(512)$ \\
+    LayerNorm 2 & \texttt{norm2.bias} & $(512)$ \\
+    \hline
+    \end{tabular}
+    \end{center}
+
+    The tensor \texttt{self\_attn.in\_proj\_weight} contains the query, key, and value projection matrices stacked together:
+    $
+    W_Q, W_K, W_V \in \mathbb{R}^{512 \times 512}.
+    $
+
+    Hence its shape is
+    $
+    (3 \cdot 512, 512) = (1536,512).
+    $
+
+    \item The number of parameters in the attention block is
+    $
+    (1536 \cdot 512) + 1536 + (512 \cdot 512) + 512
+    $
+
+    $
+    = 786432 + 1536 + 262144 + 512
+    = 1050624.
+    $
+
+    The number of parameters in the feed-forward network is
+    $
+    (2048 \cdot 512) + 2048 + (512 \cdot 2048) + 512
+    $
+
+    $
+    = 1048576 + 2048 + 1048576 + 512
+    = 2099712.
+    $
+
+    The two layer normalization modules have parameters
+    $
+    2 \times (512 + 512) = 2048.
+    $
+
+    Therefore, the total number of trainable parameters is
+    $
+    1050624 + 2099712 + 2048 = 3152384.
+    $
+
+    $
+    \boxed{3152384}
+    $
+
+    \item Since the input is
+    $
+    x \in \mathbb{R}^{2 \times 16 \times 512},
+    $
+    and \texttt{batch\_first=True}, the dimensions correspond to
+    $
+    (\text{batch size}, \text{sequence length}, d_{\text{model}}).
+    $
+
+    A transformer encoder layer preserves the batch size, sequence length, and model dimension. Therefore the output has the same shape as the input:
+    $
+    y \in \mathbb{R}^{2 \times 16 \times 512}.
+    $
+
+    Hence,
+    $
+    \boxed{\texttt{y.shape} = (2,16,512)}.
+    $
+\end{enumerate}
+
+\end{solution}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%% \exsection{Derivatives}
+
+%% When you want to find the optimum of a cost function (e.g.\ loss
+%% function in Machine Learning), you have to take the derivative and set
+%% it equal to zero. If we optimize a vector $x\in\RRR^n$ (e.g., the
+%% parameters of a model), you need to be able to take the 
+%% derivative w.r.t.\ a vector.
+
+
+%% {\footnotesize [To be precise: $x\in\RRR^n,~ y\in\RRR^d,~ A\in\RRR^{d\times n}, B\in\RRR^{n\times n}$ symmetric and positive definite.]}
+
+
+%% \item Find $x$ that minimizes $(Ax -
+%% y)^\T (Ax - y) + x^\T B x$, by setting the derivative $\Del x[...] = 0^\T$ (transposed zero -- it is a row vector).
+
+%% {\footnotesize [This derives the solution to Linear Regression (and more generally, Ridge Regression).]}
+%% \end{enumerate}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Voluntary Reading: Pedro Domingos}
+
+Read at least until section 5 of Pedro Domingos's \emph{A Few Useful
+Things to Know about Machine Learning}
+{\tiny\url{http://homes.cs.washington.edu/~pedrod/papers/cacm12.pdf}}. 
+Be able to explain roughly what generalization and the bias-variance-tradeoff
+(Fig.\ 1) are.
+
+
+
+
+
+
+\exerfoot
+

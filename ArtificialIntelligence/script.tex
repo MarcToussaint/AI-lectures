@@ -2,7 +2,7 @@
 
 \renewcommand{\course}{Introduction to Artificial Intelligence}
 \renewcommand{\coursepicture}{course_ai}
-\renewcommand{\coursedate}{Summer 2023}
+\renewcommand{\coursedate}{Summer 2026}
 
 \script
 
@@ -66,33 +66,35 @@
 %% \input{22-relationalReasoningAndLearning.tex}
 
 \clearpage
-\section{Part 1: Decision Making Basics}
-\input{01-decisionMaking}
+\section{Part 1: ML \& Bandits}
+\input{01-computationGraphs}
 \input{02-probabilities}
-\input{03-bandits}
-\input{04-ML}
+\input{03-supervisedML}
+\input{04-bandits}
 
 \clearpage
-\section{Part 2: Sequential Decision Making}
+\section{Part 2: Sequential Decisions}
 \input{05-MCTS}
-\input{06-MDPs}
-\input{07-RL}
+\input{06-RL}
+\input{07-RL2}
+%\input{08-ModelDataCombined}
+\input{09-decisionTheory}
 
 \clearpage
-\section{Part 3: Further Topics}
-\input{08-neuralNetworks}
-\input{09-explainableAI.tex}
+\section{Part 3: Discussions}
+\input{10-LMreasoning}
+\input{12-explainableAI}
 
 \clearpage
 \section{Part 4: Classical Lectures}
 
-\input{10-search.tex}
-\input{11-CSP.tex}
-\input{12-graphicalModels.tex}
-\input{13-dynamicalModels.tex}
-\input{14-propositionalLogic.tex}
-\input{15-firstOrderLogic.tex}
-\input{16-relationalReasoningAndLearning.tex}
+\input{20-search.tex}
+\input{21-CSP.tex}
+\input{22-graphicalModels.tex}
+\input{23-dynamicalModels.tex}
+\input{24-propositionalLogic.tex}
+\input{25-firstOrderLogic.tex}
+\input{26-relationalReasoningAndLearning.tex}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -105,39 +107,24 @@
 \DefineShortVerb{\@}
 
 \section{Exercises}
-\subsection{Exercises 1}
-\input{e01-probabilities.tex}
-\subsection{Exercises 2}
-\input{e02-bandits.tex}
-\subsection{Exercises 3}
-\input{e03-sequential.tex}
-\subsection{Exercises 4}
-\input{e04-MDPs.tex}
-\subsection{Exercises 5}
-\input{e05-RL.tex}
-\subsection{Exercises 6}
-\input{e06-AutoDiff.tex}
+\input{e01-autodiff-probabilities.tex}
+\input{e02-supervised.tex}
+\input{e03-bandits.tex}
+\input{e04-sequential.tex}
+\input{e05-MDP.tex}
+\input{e06-RL.tex}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{Old Exercises}
-\subsection{Exercises 1}
 \input{e10-treeSearch.tex}
-\subsection{Exercises 2}
 \input{e11-chess.tex}
-\subsection{Exercises 3}
 \input{e12-ValueIteration.tex}
-\subsection{Exercises 4}
 \input{e13-RL.tex}
-\subsection{Exercises 5}
 \input{e14-CSP.tex}
-\subsection{Exercises 6}
 \input{e15-inference.tex}
-\subsection{Exercises 7}
 \input{e16-HMMs.tex}
-\subsection{Exercises 8}
 \input{e17-extraNN.tex}
-\subsection{Exercises 9}
 \input{e18-logic.tex}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -147,8 +134,8 @@
 \renewcommand{\exsubsection}[1]{\subsubsection{#1}}
 \renewcommand{\tableofcontents}{}
 
-\section{Overview of Coding Assignments}
-\input{codingAssignments.tex}
+%% \section{Overview of Coding Assignments}
+%% \input{codingAssignments.tex}
 
 \section{Literature Pointers}
 \input{literature.tex}

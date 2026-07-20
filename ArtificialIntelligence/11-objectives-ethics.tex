@@ -1,0 +1,290 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Artificial Intelligence}
+\renewcommand{\coursepicture}{course_ai}
+\renewcommand{\coursedate}{Summer 2026}
+
+\renewcommand{\topic}{Objectives \& Value Alignment}
+\renewcommand{\keywords}{}
+
+\slides
+
+%% \usepackage{bibentry}
+%% \nobibliography*
+
+%% \ifthenelse{\isundefined{\setbeamertemplate}}{}{
+%%   \setbeamertemplate{bibliography item}{\insertbiblabel}
+%% }
+\providecommand{\bibentry}[1]{}
+
+\providecommand{\citehere}[1]{{\fontsize{5}{1}\selectfont\bibentry{#1}\par}}
+
+\slidestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Outline}{
+
+\item Probabilities: Entropy, Information, Cross-Entropy, etc
+
+\item Objectives: Information Gain, ``Curiosity'', Exploration, Intrinsic Motivation, Etc
+
+\item Value Alignment
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\sublecture{Objectives}{
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Information Gain Maximization}{
+
+\pause\small
+
+\item In a \textbf{Bandits} setting: $a\in\{1,..,K\}$, return $r\sim P(r | a)$, with $P(r | a)$ is unknown
+\begin{items}
+\item We collected data $D$, and mean estimates $\hat \mu_a$ and mean uncertainties $\hat \s_a$, for each $a$
+\item More generally, we only have a \emph{distribution} $p(\mu_a|D)$ over what the mean is, for each $a$
+\end{items}
+
+\pause
+
+\item Information gain:
+\begin{items}
+\item Choose $a = \argmax IG(\mu_a, a) = H(p(\mu_a|D)) - \Exp[r|a]{H(p(\mu_a \| r, a, D))}$
+\item I.e., for each $a$, consider what you might observe ($p(r|a)$) and how that would reduce the entropy of your model
+\end{items}
+
+~\pause
+
+\item In \textbf{Active Learning}, decisions $x$ are observing a new labelled data point $(x,y)$
+\begin{items}
+\item Information gain: $IG(f,x) = H(p(f|D)) - \Exp[y|a]{H(p(f \| D \cup \{(x,y)\}))}$
+\item Pick label $x$ if observation of $y$ would reduce entropy of your model most
+\end{items}
+
+~\pause
+
+\item In \textbf{Next Best View} planning, decisions $x$ are about a camera pose to observe a shape
+\begin{items}
+\item Choose the camera pose so that, in expectation, the image would reduce your entropy over shape estimate most
+\cit{van Hoof, Kroemer, Amor, Peters}{Maximally Informative Interaction Learning for Scene Exploration}{IROS 2012}
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Information Gain Maximization}{
+
+~
+
+\item In AI it is common that the utility is defined in terms of gaining information
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Curiosity \& Instrinsic Rewards}{
+
+\item Classical ideas about curiosity and \emph{intrinsic rewards/motivation}:
+
+%\cit{Oudeyer, Gottlieb, Lopes}{Intrinsic motivation, curiosity, and learning: Theory and applications in educational technologies}{Progress in brain research, 2016}
+\cit{Oudeyer, Kaplan, Hafner}{Intrinsic motivation systems for autonomous mental development}{Evolutionary Computation, 2007}
+%\cit{Schmidhuber}{A possibility for implementing curiosity and boredom in model-building neural controllers}{SAB, 1991}
+\cit{Schmidhuber}{Curious model-building control systems}{IJCNN 1991}
+\cit{Schmidhuber}{Self-motivated development through rewards for predictor errors/improvements}{AAAI 2005}
+
+\begin{items}
+\item ``curiosity rewards'' should relate to ``prediction errors'' ~ (what we called NNL or \emph{surprise})
+\item You reward observing $x$ when you have high prediction errors (observations surprise you)
+\pause
+\item[] $\to$ leads to permanently watching a white noise TV
+\pause
+\item Instead ``curiosity rewards'' for ``predictor improvements''
+\cit{Lopes, Lang, Toussaint, Oudeyer}{Exploration in model-based reinforcement learning by empirically estimating learning progress}{NeurIPS 2012}
+\end{items}
+
+\medskip\pause
+
+\item \emph{Intrinsic} rewards could mean two things (meaning sometimes debated):
+\begin{items}
+\item Agents are trained with rewards $R = R_{ext} + R_{int}$ with $R_{ext}$ being extrinsic and ultimate evaluation objective; but $R_{int}$ is added by the algorithm design, e.g.\ to help with exploration (but is not part of the ultimate evaluation objective)
+\item $R_{int}$ is a reward term that is not a function of state and action (like $R(s,a)$) but a function of internal states of the agent (like it's current state of knowledge, entropy, etc)
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{In the context of RL and Skill Aquisition}{
+
+\item Early work:
+\cit{Simsek, Barto}{An intrinsic reward mechanism for efficient exploration}{ICML 2006}
+\begin{items}
+\item Formulates the \emph{derived} MDP describing the change of internal variables ($V$, $\pi$)
+\end{items}
+
+~\pause
+
+\item Unsupervised Skill Acquisition in RL
+\begin{items}
+%\cit{Eysenbach et al}{Diversity is All You Need: Learning Skills without a Reward Function}{arXiv:1802.06070}
+\item Skill: discrete $z$; policy $\pi(a | s,z)$
+\item Maximize the mutual information $I(\tau; z) = H(\tau) - H(\tau | z)$, where $\tau$ is some ``feature'' (e.g.\ state transitions)
+\cit{Laskin et al}{CIC: Contrastive Intrinsic Control for Unsupervised Skill Discovery}{arXiv:2202.00161}
+\item Or directly the entropy of visited states \cit{Liu, Abbeel}{Behavior from the void: Unsupervised active pre-training}{NeurIPS 2021}
+\end{items}
+
+\tiny~
+
+\item In other words, these methods aim to generate state transitions (or other behavior features) that are overall diverse $H(\tau)$, but predictable when a skill is executed $- H(\tau | z)$
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Conclusion}{
+
+~
+
+\item Task-/Reward-Free AI is super interesting
+\begin{items}
+\item Intrinsic objectives, about information gain, exploration, skill discovery
+\item Independent from any particular tasks or external objectives
+\end{items}
+
+~
+
+\item In robotics:
+\begin{items}
+\item Learn to discover and control all degrees of freedom of the environment that
+are controllable
+\item All mechanical/kinematics DOFs, objects, light/temperature, mood of humans
+\cit{Otte, Kulick, Toussaint, Brock}{Entropy-based strategies for physical exploration of the environment's degrees of freedom}{IROS 2014}
+{\urlfont\url{https://ieeexplore.ieee.org/abstract/document/6942623}}
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\sublecture{Value Alignment}{
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\twocol[.05]{.45}{.45}{
+
+\show[.6]{20-russell}
+
+
+}{
+
+
+\item Stuart Russell
+\begin{items}
+\item Russell \& Norvig: \emph{Artificial Intelligence: A Modern
+Approach} (1995)
+\item Decision \& Game Theory
+\end{items}
+
+~
+
+\citehere{2019-russell-HumanCompatibleAI}
+
+}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Value Alignment}
+\slide{Russell: Value Alignment}{
+
+\item ``Standard model of AI''
+\begin{items}
+\item Define some objective; maximize
+\item Russell's view: \emph{Eventually} (not yet) AI systems will be able to optimize anything we define $\to$ we should think about what we define
+\end{items}
+
+~\pause
+
+\item Difficulty in defining objectives
+\begin{items}
+\item Consequences (aspects of optimal behavior) unclear
+\item Humans are bad at defining objectives
+\end{items}
+
+~\pause
+
+\item Russell's proposal:
+\begin{items}
+\item Systems should infer human preferences from behavior
+\item Avoid overfitting
+\item Large apriori uncertainty (incl.\ noise assumption in human behavior) to avoid overfitting
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\twocol[.05]{.45}{.45}{
+
+%\show{10-abbeel}
+\show[.9]{16-hadfield-menell}
+
+~
+
+\citehere{2016-hadfield-menell-CooperativeInverseReinforcement}
+
+}{
+
+\item Game-theoretic formalization of \emph{Value Alignment}
+\begin{items}
+\item ..is just one possible formulation
+\item example for efforts to make ``Value Alignment'' more rigorous
+\end{items}
+
+}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Conclusion}{\label{lastpage}
+
+\item Entropy \& Information are fundamentally important concepts in AI
+\begin{items}
+\item ML as Minimal Description length
+\end{items}
+
+\medskip
+
+\item There exist interesting formalizations of ``task-free AI''
+\begin{items}
+\item Information Gain, Active Learning, Unsupervised RL, Skill Discovery
+\end{items}
+
+\medskip
+
+\item Value Alignment is all about how to define a ``good'' objective for AI
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\ttiny
+\ifthenelse{\isundefined{\scripthead}}{
+\bibliographystyle{plainurl-lis}
+\bibliography{b3-ReinforcementLearning,b4-InverseRL}
+}{}
+
+\slidesfoot

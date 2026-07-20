@@ -1,0 +1,299 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Artificial Intelligence}
+\renewcommand{\coursepicture}{course_ai}
+\renewcommand{\coursedate}{Summer 2026}
+
+\renewcommand{\exnum}{Exercise 1}
+\renewcommand{\teacher}{Sayantan Auddy}
+\exercises
+%\excludecomment{solution}
+\exercisestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Computation Graphs and Chain Rule (2 Pts)}
+
+\begin{enumerate}
+\item Consider the computation graph that has $x$ as input and then computes
+the quantities
+$$ a(x), b(x,a), c(a,b), f(x,c) $$
+
+Write down $\frac{df}{dx}$ using the General Chain rule in \textbf{both}, the forward and the backward version.
+
+\item We now concretely assume
+% Previous:
+%\begin{align*}
+%a(x) &= 2x \\
+%b(x,a) &= \sin(x+a) \\
+%c(a,b) &= ab \\
+%f(x,c) &= 3x - c ~.
+%\end{align*}
+%
+\begin{align*}
+a(x) &= x^2 \\
+b(x,a) &= \cos(x+a) \\
+c(a,b) &= 2ab \\
+f(x,c) &= 3x + c ~.
+\end{align*}
+
+What are $\frac{df}{dc}, \frac{df}{db}, \frac{df}{da}$, and $\frac{df}{dx}$? 
+
+What are $\frac{da}{dx}, \frac{db}{dx}$, and $\frac{dc}{dx}$?
+\end{enumerate}
+
+\begin{solution}
+\begin{enumerate}
+\item forward
+$$\frac{df}{dx} = \frac{\del f}{\del x} + \frac{\del f}{\del c} \frac{d c}{d x} $$
+
+backward
+$$\frac{df}{dx} = \frac{\del f}{\del x} + \frac{d f}{d a} \frac{\del a}{\del x} + \frac{d f}{d b} \frac{\del b}{\del x} $$
+
+\item
+% Previous:
+%$$\frac{df}{dc} = -1\comma \frac{df}{db} = -a\comma  \frac{df}{da} = -a \cos(x+a) - b \comma \frac{df}{dx} = 3 + [-a \cos(x+a) - b] 2 + (-a)\cos(x+a) = 3 - 2b - 3a\cos(x+a) $$
+%$$\frac{da}{dx} = 2\comma \frac{db}{dx} = 3\cos(x+a)\comma \frac{dc}{dx} = 0 + a[3\cos(x+a)] + 2b \comma \frac{df}{dx} = 3 - 3a\cos(x+a) - 2b$$
+
+$$\frac{df}{dc} = 1\comma \frac{df}{db} = 2a\comma  \frac{df}{da} = -2a \sin(x+a) + 2b \comma \frac{df}{dx} = 3 + [-2a \sin(x+a) + 2b] 2x - 2a\sin(x+a)$$
+$$\frac{da}{dx} = 2x\comma \frac{db}{dx} = -\sin(x+a)-2x\sin(x+a)\comma \frac{dc}{dx} = 4xb + 2a(-\sin(x+a)-2x\sin(x+a))$$
+\end{enumerate}
+\end{solution}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{PyTorch Autograd (2 Pts)}
+
+Consider the following equation
+$$
+f(a, b, c) = a^2 + \sin(b^2) + \cos^2(c), \quad \text{ where } a,b,c\in\mathbb{R}^d
+$$
+
+\begin{enumerate}
+    \item Compute the partial derivatives $\cfrac{\partial f}{\partial a}, \cfrac{\partial f}{\partial b}, \cfrac{\partial f}{\partial c}$, first by hand and then verify your results using @torch.autograd.grad@ (see hints below).    
+    \item Compute the second derivatives $\cfrac{\partial^2 f}{\partial a^2}, \cfrac{\partial^2 f}{\partial b^2}, \cfrac{\partial^2 f}{\partial c^2}$, first by hand and then verify your results using @torch.autograd.grad@ (see hints below).
+\end{enumerate}
+
+\textbf{Hints}:
+\begin{itemize}
+\item Check the 60-minute-PyTorch-blitz\footnote{\url{https://pytorch.org/tutorials/beginner/deep_learning_60min_blitz.html}} for a quick introduction to PyTorch.  
+\item Check this tutorial\footnote{\url{https://pytorch.org/tutorials/beginner/blitz/autograd_tutorial.html\#differentiation-in-autograd}} for an overview of automatic differentiation in PyTorch. 
+\item For this question, we provide you with a sketch of the solution. Use the @torch.autograd.grad@ function, instead of calling the @backward()@ function that populates the @grad@ attribute of the tensors. For example, the code we provide can be used to compute the first and second partial derivatives with @torch.autograd.grad@ and then verify that the results are the same as the analytical solutions.
+\item The snippet we provide considers scalar variables. You need to modify it slightly for vectors.
+\item Check the API of @torch.autograd.grad@\footnote{\url{https://pytorch.org/docs/stable/generated/torch.autograd.grad.html\#torch.autograd.grad}} to learn more about this function and its arguments.
+\begin{code}
+    \begin{Verbatim}
+### Solution sketch ####
+import torch
+
+# requires_grad=True tells torch that gradients should be computed for a
+a = torch.tensor([10.0], requires_grad=True)  
+Y = torch.sin(a)
+
+# First partial derivative
+# Set create_graph=True so that torch creates a graph that can be used for
+# computing the second partial derivate
+grad_a = torch.autograd.grad(Y, a, create_graph=True)
+
+# Compute the second partial derivative by calling torch.autograd.grad on grad_a
+grad2_a = torch.autograd.grad(grad_a[0], a)
+
+with torch.no_grad():
+    # Verify that the results are same as the analytical solutions
+    assert torch.equal(grad_a[0], torch.cos(a))
+    assert torch.equal(grad2_a[0], -torch.sin(a))
+
+    \end{Verbatim}
+\end{code}
+
+
+\end{itemize}
+
+\begin{solution}
+
+\begin{code}
+	\begin{Verbatim}
+	import torch
+
+	def func(a, b, c):
+	    return a**2 + torch.sin(b**2) + torch.cos(c)**2
+
+	# Inputs
+	a = torch.tensor([1.0, 10.0], requires_grad=True)
+	b = torch.tensor([5.0, 2.0], requires_grad=True)
+	c = torch.tensor([-3.0, -1.0], requires_grad=True)
+
+	# Output
+	Y = func(a, b, c)
+
+	# Compute first derivatives
+	grads = torch.autograd.grad(Y.sum(), [x for x in [a,b,c]], create_graph=True)
+
+	# Compute second derivatives
+	grads_2 = torch.autograd.grad(sum(g.sum() for g in grads), [x for x in [a,b,c]], create_graph=True)
+
+	with torch.no_grad():
+
+	    # Verify first derivatives
+	    assert torch.equal(grads[0], 2*a)
+	    assert torch.equal(grads[1], 2*b*torch.cos(b**2))
+	    assert torch.equal(grads[2], -2*torch.cos(c)*torch.sin(c))
+	    
+	    # Verify second derivatives
+	    assert torch.equal(grads_2[0], 2*torch.ones_like(a))
+	    assert torch.equal(grads_2[1], 2*torch.cos(b**2) - 4*(b**2)*torch.sin(b**2))
+	    assert torch.equal(grads_2[2], 2*torch.sin(c)**2 - 2*torch.cos(c)**2)
+    \end{Verbatim}
+\end{code}
+\end{solution}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\exsection{Regression using PyTorch AutoGrad (1 Pt)}
+%
+%This is a coding exercise, but you do not have to hand it in. You will discuss it in the tutorials as usual. The exercise is to implement linear regression and neural networks using PyTorch and AutoGrad.
+%
+%Please read (roughly) through the following tutorial:
+%
+%\url{https://pytorch.org/tutorials/beginner/basics/autogradqs_tutorial.html}
+%
+%
+%\begin{enumerate}
+%\item Please download the data
+%  \url{https://www.user.tu-berlin.de/mtoussai/teaching/data/dataQuadReg1D.txt}
+%
+%You can plot it from cmd line using\newline @gnuplot -e "plot 'dataQuadReg1D.txt'; pause(-1)"@  (if the @gnuplot@ dep package is installed).
+%
+%\item Install PyTorch. For this, follow the instructions on \url{https://pytorch.org/}. You don't need CUDA for this exercise, i.e.\ a CPU only version of PyTorch is sufficient. If you are %using pip, you can install it with \\ @pip3 install torch --extra-index-url https://download.pytorch.org/whl/cpu@
+%
+%\item Load the data into a $n\times 2$ numpy array $D$ and plot the data with matplotlib
+%
+%\item Implement linear regression with PyTorch, roughly like this:
+%  \begin{items}
+%  \item Load the data into torch tensors @X@ (first column of $D$) and @Y@ (second column of $D$).\\
+%  Tip: @X = torch.from_numpy(D[:,0]).float().unsqueeze(1)@ if @D@ is the numpy array. @X@ will have dimension $n\times 1$
+%  \item Define a linear model exactly as in beginning of the torch-autograd tutorial, except: Replace '5' by '1' (only 1D input); replace '3' by '1' (only 1D output); replace %@binary_cross_entropy@ with a mean squared error loss
+%  \item For $i=1..1000$
+%    \begin{items}
+%      \item forward pass through your model, i.e.\ where you compute the predictions @YPred = ...@
+%      \item compute the loss. Tip: @loss = (YPred - Y).square()...@ (not finished)
+%      \item call @loss.backward()@
+%      \item Perform a gradient descent step $W \gets W - \a\cdot$@W.grad@ with $\a=0.01$, and similarly for $b$. Tip: You have to wrap this in a @with torch.no_grad():@ context manager, %otherwise it does not work (find out the reason yourself or ask in the tutorials).
+%      \item zero accumulated gradients of the parameters. Tip: @W.grad.zero_()@
+%    \end{items}
+%    
+%  \end{items}
+%
+%\item After training, evaluate the trained model over a grid of 100 points over the interval $[-3,4]$, and plot the function. You are also welcome to do this evaluation/plotting during the %training procedure
+%
+%\item Torch has the @torch.nn.functional.relu@ function to implement a non-linear computation step. How can you add this to the code above, together with a second linear computation step %($W_2, b_2$), to define a minimalistic 2-layer neural network? Assume the hidden dimension to be 16 and also plot the function after training.
+%
+%\item Play around with $\a$, and the hidden size of the network in f). What do you observe?
+%\end{enumerate}
+%
+%Tips: PyTorch uses floats instead of doubles as standard, therefore, when interacting with numpy, ensure to convert properly, e.g. with @.float()@. The PyTorch API is very similar to numpy (but not identical!).
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Marginals \& Conditionals (1 Pt)}
+
+We have a joint probability $P(X,Y)$ over 2 binary random variables
+$X,Y$ as described by the matrix
+$$
+P(X,Y)
+= \mat{cc}{ .06 & .24 \\ .14 & .56} ~.
+$$
+(Recall our convention of writing a probability distribution as matrix, with row index corresponding to the first random variable.)
+
+\begin{enumerate}
+\item What are $P(X)$, $P(Y)$, and $P(X|Y)$?
+%% \item Are $X$ and $Y$ independent?
+\end{enumerate}
+
+\begin{solution}
+$P(X) = \sum_Y P(X, Y) = \mat{c}{ 0.06 \\ 0.14} + \mat{c}{ 0.24 \\ 0.56} = \mat{c}{ 0.3 \\ 0.7}$ \\
+$P(Y) = \sum_X P(X, Y)  = \mat{cc}{ 0.06 & 0.24} + \mat{cc}{ 0.14 & 0.56} =  \mat{cc}{ 0.2 & 0.8}$ \\
+$P(X|Y) = \frac{P(X,Y)}{P(Y)} = \mat{cc}{ .06 & .24 \\ .14 & .56} \mat{cc}{ \frac{1}{0.2} & 0 \\ 0 & \frac{1}{0.8}} = \mat{cc}{ 0.3 & 0.3 \\ 0.7 & 0.7}  $
+
+\end{solution}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Bayes' Theorem (2 Pts)}
+
+\begin{enumerate}
+\item Box 1 contains 8 apples and 4 oranges. Box 2 contains 10 apples and 2
+oranges. First, a box is chosen with equal probability; then a fruit drawn uniformly from that box. What is the
+probability of choosing an apple? If an apple is chosen, what is the
+probability that it came from box 1?
+
+{\small (Help: The first thing to think about in such exercises is: \emph{What are the random variables?} That helps to match the text description with the learnt equations. E.g., here we can identify two random variables: $B$ (=which box is chosen), and $F$ (=which type of fruit is chosen).)
+
+}
+
+~
+
+\item The blue M\&M was introduced in 1995.
+Before then, the color mix in a bag of plain M\&Ms was:
+30\% Brown, 20\% Yellow, 20\% Red, 10\% Green, 10\% Orange, 10\% Tan.
+Afterward it was: 24\% Blue , 20\% Green, 16\% Orange, 14\% Yellow, 13\% Red,
+13\% Brown.
+
+A friend of mine has two bags of M\&Ms, and he tells me that one is from
+1994 and one from 1996.  He won't tell me which is which, but he gives me
+one M\&M from each bag.  One is yellow and one is green.  What is the
+probability that the yellow M\&M came from the 1994 bag?
+\end{enumerate}
+
+\begin{solution}
+\begin{enumerate}
+\item $P(F=apple) = P(F=apple|B=1) P(B=1) + P(F=apple|B=2)P(B=2) = \frac{8}{12} \frac{1}{2} + \frac{10}{12} \frac{1}{2} = \frac{3}{4} $ \\
+$P(B=1|F=apple) =  \frac{P(F=apple|B=1)P(B=1)}{P(F=apple)} =  \frac{\frac{8}{12} \frac{1}{2}}{\frac{3}{4}} = \frac{4}{9} $
+
+\item
+Variables: Bag1 is the year of the first bag we picked from and from which we got the yellow M\&M. We assume $P(Bag1=1994) = P(Bag1=1996)=0.5$.\\
+$P(Bag1=1994 | yellow, green ) = \frac{P(yellow, green | Bag1=1994) P(Bag1=1994) }{P(yellow, green | Bag1=1994) P(Bag1=1994) + P(yellow, green | Bag1=1996) P(Bag1=1996) } $\\
+$P(yellow, green | Bag1=1994) = 0.2 * 0.2 = 0.04$\\
+$P(yellow, green | Bag1=1996) = 0.14 * 0.1 = 0.014$\\
+$P(Bag1=1994 | yellow, green ) =  \frac{0.04 * 0.5}{0.04 * 0.5 + 0.014 * 0.5} \approxeq 0.74$
+\end{enumerate}
+\end{solution}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%\exsection{Mean and Variance Estimators (2 Pts)} % Move to Bandits
+
+%You are given data $D= \{ y_i \}_{i=1}^n$ of real numbers $y_i\in\RRR$. You may assume that the data is sampled from an underlying Gaussian distribution $p(y) = \NN(y | \mu, \s^2)$, but $\mu,\s$ are not known to you. You estimate the mean as $\hat\mu = \frac{1}{n} \sum_i y_i$. (Note that this is the Monte Carlo estimate of $\Exp[p(y)]{y}$.)
+
+%\begin{enumerate}
+%\item Show that $\frac{1}{n} \sum_i (y_i - \hat\mu)^2 = \[\frac{1}{n}\sum_i y_i^2\] - \hat \mu^2$.
+
+%{\small (This $\hat\s^2 = \frac{1}{n} \sum_i (y_i - \hat\mu)^2$ is one way to estimate the true variance $\s^2$. In textbooks you also find $\hat\s^2 = \frac{1}{n-1} \sum_i (y_i
+%- \hat\mu)^2$. Discuss the difference with the tutor.)
+%
+%}
+
+%\item Since the data $D$ is a random variable, also your estimated mean $\hat\mu$ is random. You have to expect that it deviates somewhat from the unknown true $\mu$. The expected squared error $\Exp[p(D)]{(\hat\mu(D) - \mu)^2}$ is also the \emph{variance of the mean estimator $\hat\mu$}.
+
+%How can you estimate the variance of your mean estimator? In other words, how precise is the mean estimator depending on $n$ and $\s^2$? If you cannot derive this analytically (which is fine), what would you guess roughly?
+%\end{enumerate}
+
+%\begin{solution}
+%\begin{enumerate}
+    %\item \begin{align*}
+%        \frac{1}{n} \sum_i (y_i - \hat\mu)^2 &= \frac{1}{n} \sum_i (y_i^2 - 2y_i\hat\mu + {\hat\mu}^2) \\
+%        &= \frac{1}{n} \left[\sum_i y_i^2 - \sum_i 2y_i\hat\mu + \sum_i{\hat\mu}^2 \right]\\
+%        &= \frac{1}{n} \left[\sum_i y_i^2 - 2\hat\mu\sum_i y_i + n{\hat\mu}^2 \right]\\
+%        &= \frac{1}{n} \sum_i y_i^2 - \frac{1}{n} 2\hat\mu\sum_i y_i + {\hat\mu}^2\\
+%        &= \frac{1}{n} \sum_i y_i^2 - 2\hat\mu\hat\mu + {\hat\mu}^2\\
+%        &= \left[\frac{1}{n} \sum_i y_i^2\right] - {\hat\mu}^2
+%    \end{align*}
+%    \item $\Var{\hat{\mu}} = \Var{\frac{1}{n} \sum_i y_i} = \frac{1}{n^2}\Var{ \sum_i y_i} = \frac{1}{n^2}\sum_i\Var{ y_i} = \frac{1}{n^2}\sum_i \sigma^2 = \frac{\sigma^2}{n}$. \\
+%    In the first step, we inserted the definition of our estimator, in the second step we used a property of the variance, in the thirst step, we used the fact that all the $y_i$ are independent of each other to take the sum out of the variance.
+%\end{enumerate}
+%\end{solution}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exerfoot

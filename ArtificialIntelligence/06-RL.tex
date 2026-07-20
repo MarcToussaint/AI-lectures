@@ -1,0 +1,1301 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Artificial Intelligence}
+\renewcommand{\coursepicture}{course_ai}
+\renewcommand{\coursedate}{Summer 2026}
+
+\renewcommand{\topic}{Value Iteration \& Reinforcement Learning}
+\renewcommand{\keywords}{}
+
+\slides
+
+\definecolor{greencol}{rgb}{0,.7,0}
+
+\slidestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\story{
+Markov Decision Processes are a standard formalization of sequential decision making in AI. We already introduced them in the last lectures, but only discussed MCTS to estimate values, which is a forward simulation method.
+
+A fundamental alternative approach is to exploit the Bellman equation, that is, the understanding that the value function fulfills a recursive property. In contrast to tree search, this principle in some sense iterates backward, it propagates values from goals (high reward states) to all states.
+
+The Bellman equation is the foundation to derive algorithms to compute optimal value functions, namely value iteration (a form of dynamic programming), and thereby also optimal policies. The Bellman equation is also the foundation of Reinforcement Learning, which essentially are methods that try to approximate value functions only on the basis of collected data, without knowing the underlying MDP.
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\sublecture{Recap}{
+
+\item We want to estimate the \textbf{expected return (=Value)} for each possible first decision $a$, called \textbf{Q-function}
+$$Q(s_0,a) = \Exp{R \| s_0, a}$$
+
+~\pause
+
+\begin{items}
+\item MCTS estimated $Q(s_0,a)$ using the statistics of many simulated rollouts starting at $s_0$
+
+\pause
+
+\item We now want to estimate $Q(s,a)$ for every possible state $s$
+
+\item Once Q-values $Q(s,a)$ are estimated, one may choose the decision
+ with highest Q-value, $\argmax_a Q(s,a)$
+  %% \begin{items}
+  %% \item with highest Q-value, $\argmax_a Q(s,a)$
+  %% \item with highest (optimistic) UCB, $\argmax_a Q(s,a) + \b \s_Q(s,a)$
+  %% \item with highest pessimistic bound, $\argmax_a Q(s,a) - \b \s_Q(s,a)$
+  %% \end{items}
+\end{items}
+
+%% \item Objectives typically concern expectations of return:
+%%   \begin{items}
+%%   \item Expected utility depending on decision, $\Exp[P(y|a)]{U(y)}$ (slide 01:8)
+%%   \item Expected total return in bandits, $\Exp{\sum_{t=1}^n y_t}$ (slide 03:3)
+%% %  \item Expected (predicted) outcome for a given continuous decisions, $f(a)$ (slide 04:6)
+%%   \item Expected return for given the first decision in a Decision Tree, $Q(s_0,a)$ (slide 05:22)
+%%   \end{items}
+
+%% \begin{items}
+%% Q-values are at the core of everything we talked about so far,
+%% and will talk about in the next lectures. They are at the core of
+%% decision making.
+%% \item They are not systematically called Q-values across disciplines: In
+%%   Bandits: also 'Gittins Index'; in Decision Theory: just 'expected
+%%   utility'; in Active Learning (=continuous decisions): 'acquisition
+%%   function'.
+%% \end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{How estimate Q-values in sequential domains?}{
+
+\item Two paradigms:
+
+~
+  
+\twocol[.05]{.45}{.45}{ 
+\cen{\textbf{Decision Trees}}
+
+~
+
+\only<2->{
+\ttiny
+  
+\item originated in classical AI
+
+\item explicitly represents reachable situations in the future
+
+  Tree is grown to represent likely/possible future situations only; not
+  to cover the full space
+
+\item very 'flexible': deterministic worlds, MDPs,
+  games, POMDPs
+
+\item Methods typically \textbf{``search forward''}
+
+%% \item methods search the tree, or generate rollouts
+
+%% \item[] [I'm including \textbf{Monte Carlo} methods here]
+
+%%  In Decision
+%% Trees we can flexibly represent all kinds of processes, introduce
+%% branchings e.g. for stochastic transitions, observations, opponent
+%% choices, etc. Maybe also multi-agent DEC-POMDPs possible, or whatever
+%% one might want to come up as a formalism.
+}
+
+}{
+
+\cen{\textbf{Bellman}}
+
+~
+
+\ttiny
+
+\only<2->{
+
+\item originated more in control theory, basis of RL
+\item typically represents Q-function $Q(s,a)$, e.g. using function approximation (Machine Learning)
+
+  value functions are often meant to cover `whole' state/action
+  
+\item methods are derived from that Q-values need to fulfill the Bellman equation
+
+\item Methods typically \textbf{``propagate backward''}
+
+}
+
+}
+
+~
+
+~\pause\pause\tiny
+
+  
+%% minimizing the Bellman error (TD error)
+%% Value Iteration
+%% Q-learning
+
+
+\item Perhaps a 3rd paradigm: \textbf{Probabilistic Inference}
+
+\cit{Botvinick, Toussaint}{Planning as Inference}{Trends in Cog.\ Sci.\ 2012}
+
+\cit{Rawlik, Toussaint, Vijayakumar}{On Stochastic Optimal Control and Reinforcement Learning by Approximate Inference}{RSS'12}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\sublecture{Bellman Optimality \& Value Iteration}{
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Markov Decision Process [Recap]}{
+
+~
+
+\twocol{.6}{.4}{
+
+\item A \textbf{Markov Decision Process} (MDP) is defined by
+\begin{items}
+\item world's initial state distribution $P(s_0)$
+\item world's transition probabilities $P(s' \| s,a)$
+\item world's expected reward $R(s,a) = \Exp{r|s,a}$
+\end{items}
+
+}{
+
+%\show[.7]{mdp1}
+\show[.7]{decisionNet-MDP}
+
+}
+{\tiny
+\item Here we assume a \textbf{stationary} MDP, where $P(s' \| s,a)$ and $R(s,a)$ are independent of absolut time $t$
+
+}
+
+\medskip
+
+\item The objective is to find
+\begin{items}
+\item a deterministic \textbf{policy} $a = \pi(s)$, or stochastic policy $\pi(a \| s) = P(a|s;\pi)$
+\item that maximizes the \defn{expected return} $J^\pi = \Exp{\sum_t \g^t r_t \mid \pi}$
+\quad (with discounting factor $\g\in[0,1]$)
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Value Function}
+\slide{Expected Return \& Value Functions}{
+
+\item The \textbf{expected return} when following policy $\pi$ is
+$$J^\pi = \Exp{\tsum_t \g^t r_t \| \pi} = \Exp{ r_0 + \g r_1 + \g^2 r_2 + \cdots \| \pi }\comma\text{(where $s_0\sim P(s_0)$)}~,$$
+with \emph{discounting factor $\g\in[0,1]$}
+
+\medskip\pause
+
+\item The \defn{value function} of policy $\pi$ is the expected return when started in state $s$:
+\begin{align*}
+V^\pi(s) = \Exp{ \tsum_t \g^t r_t \| s_0\=s; \pi } ~.
+\end{align*}
+
+\medskip\pause
+
+\item The \defn{Q-function} (state-action value function) is the expected return when starting in state $s$, taking first action $a$, and after that executing $\pi$:
+\begin{align*}
+Q^\pi(s,a)
+ &= \Exp{ \tsum_t \g^t r_t \| s_0\=s, a_0\=a; \pi } ~.
+\end{align*}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Optimal Value Function and Policy}{
+
+~
+
+\item The optimal value of a state $s$ is $V^*(s) = \max_\pi V^\pi(s)$
+
+~
+
+\item A policy $\pi^*$ is \defn{optimal} iff
+\begin{align*}
+\forall s:~ V^{\pi^*}(s) = V^*(s) ~,
+\end{align*}
+\small
+i.e., simultaneously achieves the optimal value in all states
+
+~
+
+{\tiny (In MDPs there always exists (at least one) optimal deterministic
+policy.)}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{}{
+
+%% \twocol{.3}{.3}{
+%% An example for a \\
+%% value function...
+%% }{\center
+
+%% \showhs[5]{15x20holes}
+
+%% }
+
+%% ~
+
+%% {\hfill\tiny\texttt{demo: test/mdp runVI}}
+
+%% ~
+
+%% ~
+
+%% \cen{\textbf{Values provide a gradient towards desirable states}}
+
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Value Functions}{
+
+~
+
+\item The value functions $V$ and $Q$ are central to all of RL!
+\begin{items}
+\item Many algorithms can directly be derived from properties of the value
+function.
+\end{items}
+
+~
+
+\item In other areas (stochastic optimal control) value is also
+called \emph{cost-to-go} ~ ($\text{cost}=-\text{reward}$)
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Recursive property of the value function}{
+
+\begin{align*}
+\hspace*{-10mm}{\color{red}V^\pi(s)}
+ &= \Exp{ r_0 + \g r_1 + \g^2 r_2 + \cdots \| s_0\=s ;\pi} \\
+ &= \Exp{ r_0 \| s_0\=s ;\pi} + \g \Exp{ r_1 + \g r_2 + \cdots \| s_0\=s ;\pi} \\
+ &= R(s,\pi(s))  +  \g \tsum_{s'} P(s'\|s,\pi(s))~ \Exp{ r_1 + \g r_2 + \cdots \| s_1\=s' ;\pi} \\
+ &= R(s,\pi(s)) + \g \tsum_{s'} P(s'\|s,\pi(s))~ {\color{red}V^\pi(s')}
+\end{align*}
+
+~\mypause
+
+\tiny
+\item Note, for discrete $s$ we can write this in vector notation \quad $\vec
+V^\pi = \vec R^\pi + \g \vec P^\pi \vec V^\pi$ \\ with vectors $\vec
+V^\pi_s = V^\pi(s)$, $\vec R^\pi_s =R(s,\pi(s))$ and matrix $\vec
+P^\pi_{ss'} = P(s'\|s,\pi(s))$
+
+~
+
+\item For stochastic  $\pi(a|s)$:
+
+\cen{$V^\pi(s)= \sum_a \pi(a|s)R(s,a) + \g \tsum_{s',a}  \pi(a|s)P(s'\|s,a)~ V^\pi(s')$}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Bellman optimality equation}
+\slide{Bellman optimality equation}{
+
+\item The value function $V^\pi$ for a given policy fulfills
+$${\color{red}V^\pi(s)}
+ = R(s,\pi(s)) + \g \tsum_{s'} P(s'\|s,\pi(s))~ {\color{red}V^\pi(s')} $$
+
+~\pause
+
+\item \textbf{Theorem (Bellman optimality principle):} The optimal value function $V^*$ fulfills
+\begin{align*}
+V^*(s)
+&= \max_a \[R(s,a) + \g \tsum_{s'} P(s'\|s,a)~ V^*(s') \] ~,
+\end{align*}
+and $\pi^*(s) = \argmax_a [ \cdots ]$ is an optimal policy.
+
+~
+
+{\tiny (Sketch of proof: If $\pi^*$ would select another action than
+$\argmax_a[\cdot]$, then $\pi'$ which $=\pi$
+everywhere except $\pi'(s)=\argmax_a[\cdot]$ would be better.)
+
+}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\hspace*{-5mm}\twocol{.4}{.65}{\center
+\small Richard E. Bellman (1920–-1984)
+\show{bellman}
+
+}{\center
+
+~
+
+\textbf{Bellman's principle of optimality}
+
+\medskip
+
+\showh[.4]{bellmanOpt}
+
+}
+
+~
+
+\begin{align*}
+V^*(s)
+ &= \max_a \[R(s,a) + \g \tsum_{s'} P(s'\|s,a)~ V^*(s') \] 
+\end{align*}
+
+~
+
+\tiny Intuition: If we already know how to behave optimally from the next state $s'$ (knowing $V^*(s')$), then deriving how to behave optimally ``now'' in $s$ is only a single \textbf{Dynamic Programming} step (also called \emph{backup} step).
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\item How can we compute or estimate $V^*$ or $\pi^*$?
+
+~
+
+\item Model-based: ~ (if we know or estimated the models $P(s'|s,a), R(s,a), P(s_0)$)
+\begin{items}
+\item Value Iteration, Q-Iteration (also Policy Iteration, not detailed in the course)
+\end{items}
+
+~
+
+\item Data-based: ~ (if we only use data $D=\{ (s_t,a_t,r_t,s_{t\po}) \}_{t=0}^T$)
+\begin{items}
+\item ``Reinforcement Learning''
+\item TD-Learning, Q-learning, Actor-Critic
+\item Modern: DDPG, TC3, SAC, etc
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Value Iteration}
+\slide{Model-based: Value Iteration}{
+
+\item We assume knowledge of $P(s'|s,a), R(s,a), P(s_0)$ and $s$ and $a$ are discrete and finite; recall the Bellman optimality equation
+
+$$ V^*(s) = \max_a \[R(s,a) + \g \sum_{s'} P(s'\|s,a)~ V^*(s') \] $$
+
+~
+
+\item \textbf{Value Iteration:} initialize $V_{k=0}(s)=0$, iterate {\tiny (until $\max_s |V_{k+1}(s) - V_k(s)| \le \e$):}
+\begin{align*}
+\forall s:~
+  V_{k+1}(s)
+  = \max_a \[ R(s,a) + \g \sum_{s'} P(s'|s,a) ~V_k(s') \]
+\end{align*}
+
+~\pause\tiny
+
+\item Note that $V^*$ is a \textbf{fixed point} of value iteration!
+
+\item \textbf{Theorem:} Value Iteration converges to the optimal value function $V^*$
+(proof as for $Q^*$, see below)
+
+%{\hfill\tiny\texttt{demo: test/mdp runVI}}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Q-Iteration}
+\slide{Model-based: Q-Iteration}{
+
+\item The Bellman optimality equation for $Q^*(s,a)$ is:
+\begin{align*}
+Q^*(s,a)
+&= R(s,a) + \g \sum_{s'} P(s'\|s,a) \max_{a'} Q^*(s',a')
+\end{align*}
+Importantly, given $Q^*(s,a)$ we have the optimal policy as $\pi^*(s) = \argmax_a Q^*(s,a)$
+
+~\pause
+
+\item \textbf{Q-Iteration:} \quad initialize $Q_{k=0}(s,a)=0$, iterate {\tiny (until $\max_{s,a} |Q_{k+1}(s,a) - Q_k(s,a)| \le \e$):}
+\begin{align*}
+\forall_{s,a}:~ Q_{k+1}(s,a) &= R(s,a) + \g \sum_{s'} P(s'|s,a)~ \max_{a'} Q_k(s',a')
+\end{align*}
+
+~\pause\tiny
+
+\item Note the relations between V- and Q-functions,
+which convert between Bellman equations and V-/Q-Iterations:
+$$
+V^*(s) = \max_a Q^*(s,a) \comma
+V^\pi(s) = Q^\pi(s,\pi(a)) \comma
+\text{(or } V^\pi(s) = \Exp[\pi(a|s)]{Q^\pi(s,a)} \text{ for stochastic $\pi(a|s)$.)}
+$$
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Proof of convergence of Q-Iteration}
+\slide{Proof of convergence}{
+
+\item Let $\D_k = \norm{Q^* - Q_k}_\infty = \max_{s,a} | Q^*(s,a) - Q_k(s,a)|$
+\begin{align*}
+\hspace*{-10mm}Q_{k+1}(s,a)
+ &= R(s,a) + \g \sum_{s'} P(s'|s,a)~ \max_{a'} Q_k(s',a') \\
+ &\le R(s,a) + \g \sum_{s'} P(s'|s,a)~ \max_{a'}\[ Q^*(s',a') + \D_k \]\\
+ &= \[ R(s,a) + \g \sum_{s'} P(s'|s,a)~ \max_{a'} Q^*(s',a')\] + \g \D_k \\
+ &= Q^*(s,a) + \g \D_k
+\end{align*}
+
+similarly: $Q_k \ge Q^*-\D_k ~ \To ~ Q_{k+1} \ge Q^* - \g \D_k$
+
+~
+
+\item The proof translates directly also to value iteration
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\sublecture{Model-Free Reinforcement Learning}{
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Model-Free Reinforcement Learning}{
+
+\item Value Iteration allows to compute optimal $V^*(s)$ and $\pi^*(s)$, \textbf{but}
+\begin{items}
+\item Assumes full knowledge of the MDP: knowing $P(s'\|s,a), R(s,a), P(s_0)$ explicitly
+\item Works only for discrete and finite $s$ and $a$
+\end{items}
+
+~\pause
+
+\item How can we learn optimal behavior $\pi^*$ from data $D=\{
+(s_t,a_t,r_t,s_{t\po}) \}_{t=0}^T$ ?
+\pause
+\begin{items}
+\item Roughly, we can replace all ``looping over all states'' and ``taking expectations over next state'' by looping over the data
+\end{items}
+
+~\pause
+
+\item How can we address continous vector-valued states and actions?
+\pause
+\begin{items}
+\item First, by using function approximators (NNs) for $V^*(s)$, $Q^*(s,a)$, and $\pi^*(s)$
+\item Second, these are updated using small gradient steps instead of full value updates. (We need to understand the respective loss function and gradients.)
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Temporal difference (TD)}
+\slide{TD learning: Temporal difference (TD) learning of $V^\pi$}{
+
+\item Recall the recursive property of $V^\pi(s)$:
+$$
+V^\pi(s)
+ = {\color{red}R(s,\pi(s))} + \g {\color{greencol}\tsum_{s'} P(s'\|s,\pi(s))~ V^\pi(s')}
+$$
+
+\mypause
+
+\item \textbf{TD learning:} Given a single experience $(s,a,r,s')$, update
+\begin{align*}
+V_\new(s)
+ &= (1-\a)~ V_\old(s)
+ + \a~ [{\color{red}r} + \g {\color{greencol}V_\old(s')} ] \\
+ &= V_\old(s) + \a~ [\underbrace{r + \g V_\old(s') - V_\old(s) }_\text{TD error}]
+\end{align*}
+
+~
+
+\item Why this is called \textbf{Reinforcement}:
+\begin{items}
+\item more reward than expected ~ ($r
+> V_\old(s) - \g V_\old(s')$)\\ ~~ $\to$~ increase $V(s)$
+\item less reward than expected ~ ($r
+< V_\old(s) - \g V_\old(s')$)\\ ~~ $\to$~ decrease $V(s)$
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{TD Learning pseudo code}{
+
+%% \item We didn't discuss yet how experiences are collected:
+%% \begin{items}
+%% \item In basic RL: $\e$-greedy action selection
+%% \item Essential to ensure non-zero probability to ``explore'' whole state space
+%% \end{items}
+
+%% \medskip
+
+~
+
+\item \textbf{TD Learning:} ~ (outputs $V^\pi$ for a \emph{given} $\pi$ -- not improving $\pi$!)\\ \small
+\begin{algo}
+\Require Learning rate $\a$, policy $\pi$
+\State Initialize $\forall_s:~ V(s)=0$
+\Repeat \Comment{loop over episodes}
+\State Initialize start state $s \sim P(s_0)$ \Comment{start of episode}
+\Repeat \Comment{loop over steps}
+\State Take action $a=\pi(s)$, observe $r, s'$
+\State $V(s) \gets V(s) + \a~ [r + \g V(s') - V(s)]$
+\State $s\gets s'$
+\Until end of episode
+\Until $V(s)$ converged
+\end{algo}
+
+%% \tiny
+%% $$a\approx_\e \argmax_a Q(s,a)
+%% \quad\iff\quad
+%% a = \begin{cases}
+%% \text{random} & \text{with prob.}~ \e \\
+%% \argmax_a Q(s,a) & \text{else}
+%% \end{cases}$$
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{model-free RL}
+\key{Temporal difference (TD)}
+%% \slide{Sarsa: Temporal difference (TD) learning of \protect$Q^\pi$}{
+
+%% \item Recall the recursive property of $Q(s,a)$:
+%% $$
+%% Q^\pi(s,a)
+%%   = {\color{red}R(s,a)} + \g {\color{green}\tsum_{s'}
+%%   P(s'|s,a)~ Q^*(s',\pi(s'))}
+%% $$
+
+%% \mypause
+
+%% \item \textbf{TD learning:} Given a new experience $(s,a,r,s',a'\=\pi(s'))$
+%% \begin{align*}
+%% Q_\new(s,a)
+%%  &= (1-\a)~ Q_\old(s,a) + \a~ [{\color{red}r} + \g {\color{green} Q_\old(s',a')} ]\\
+%%  &= Q_\old(s,a) + \a~ [r + \g Q_\old(s',a') - Q_\old(s,a)]
+%% \end{align*}
+
+%% ~
+
+%% \item \textbf{Reinforcement:}
+
+%% -- more reward than expected ~ ($r > Q_\old(s,a) - \g Q_\old(s',a')$)\\ ~~ $\to$~ increase $Q(s,a)$
+
+%% -- less reward than expected ~ ($r < Q_\old(s,a) - \g Q_\old(s',a')$)\\ ~~ $\to$~ decrease $Q(s,a)$
+
+
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Q-learning}
+\slide{Q-learning: Temporal-Difference (TD) learning of \protect$Q^*$}{
+
+\item Recall the Bellman optimality equation for the \textbf{optimal} $Q^*$-function:
+$$
+Q^*(s,a)
+  = {\color{red}R(s,a)} + \g {\color{greencol}\tsum_{s'}
+  P(s'|s,a)~ \max_{a'} Q^*(s',a')}
+$$
+
+%\mypause
+
+\item \textbf{Q-learning} (Watkins, 1988): Given a single experience $(s,a,r,s')$, update
+\begin{align*}
+Q_\new(s,a)
+ &= (1-\a)~ Q_\old(s,a) + \a~ [{\color{red}r} + \g {\color{greencol}\max_{a'} Q_\old(s',a')} ]\\
+ &= Q_\old(s,a) + \a~ [\underbrace{r + \g \max_{a'} Q_\old(s',a') - Q_\old(s,a)}_{\text{TD error}}]
+\end{align*}
+
+\item Why this is called \textbf{Reinforcement}:
+\begin{items}
+\item more reward than expected ~ ($r > Q_\old(s,a) - \g \max_{a'} Q_\old(s',a')$)\\ ~~ $\to$~ increase $Q(s,a)$
+
+\item less reward than expected ~ ($r < Q_\old(s,a) - \g \max_{a'} Q_\old(s',a')$)\\ ~~ $\to$~ decrease $Q(s,a)$
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Q-learning pseudo code}{
+
+\item Q-learning learns the \textbf{optimal} $Q^*(s,a)$, not just $Q^\pi$ for some given policy
+\begin{items}
+\item It executes $\e$-greedy action selection, mixing random and optimal actions $\argmax_a Q(s,a)$
+\item Essential to ensure non-zero probability to ``explore'' the whole state space
+\end{items}
+
+\medskip
+
+\item \textbf{Q-learning:} ~ (outputs the optimal Q-function $Q^*(s,a)$; implicitly, optimal policy $\pi^*$)\\ \small
+\begin{algo}
+\Require Learning rate $\a$
+\State Initialize $\forall_{s,a}:~ Q(s,a)=0$ (or slighly random or $Q(s,a)=R_\text{max}$)
+\Repeat \Comment{loop over episodes}
+\State Initialize start state $s \sim P(s_0)$ \Comment{start of episode}
+\Repeat \Comment{loop over steps}
+\State {\color{blue} Choose $a=\argmax_a Q(s,a)$ with probability $1-\e$, and random otherwise}
+\State Take action $a$, observe $r, s'$
+\State $Q(s,a) \gets Q(s,a) + \a~ [r + \g \max_{a'} Q(s',a') - Q(s,a)]$
+\State $s\gets s'$
+\Until end of episode
+\Until a minimum number of iterations, and/or until $Q^*(s,a)$ converged (changes little)
+\end{algo}
+
+%% \tiny
+%% $$a\approx_\e \argmax_a Q(s,a)
+%% \quad\iff\quad
+%% a = \begin{cases}
+%% \text{random} & \text{with prob.}~ \e \\
+%% \argmax_a Q(s,a) & \text{else}
+%% \end{cases}$$
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Proof of convergence of Q-learning}
+\slide{Q-learning convergence with prob 1}{
+
+\item \textbf{Theorem:} Q-learning (in discrete state/action space) converges to optimal policy
+
+~\small
+
+\item Q-learning is a stochastic approximation of Q-Iteration (Watkins, 1988):
+\begin{align*}
+\text{Q-learning:} &&
+Q_\new(s,a)
+&= (1-\a) Q_\old(s,a)
+ + \a [r + \g \max_{a'} Q_\old(s',a') ]\\
+ \text{Q-Iteration:} &&
+\forall_{s,a}:~
+  Q_{k+1}(s,a)
+  &= R(s,a) + \g \sum_{s'} P(s'|s,a)~ \max_{a'} Q_k(s',a')
+\end{align*}
+  
+
+~
+
+\item We've shown convergence of Q-Iteration to $Q^*$
+
+\item Convergence of Q-learning:
+\begin{items}
+\item Q-Iteration is a deterministic update: $Q_{k+1} = T(Q_k)$
+\item Q-learning is a stochastic version: $Q_{k+1} = (1-\a) Q_k + \a [ T(Q_k) + \eta_k ]$
+\item Watkins can show that $\eta_k$ is zero mean!
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Q-learning impact}{
+
+\item Q-Learning was the first provably convergent direct
+  adaptive optimal control algorithm
+
+~
+
+\item Great impact on the field of Reinforcement Learning in 80/90ies
+
+\begin{items}
+\item ``Smaller representation than models'' ~ (Sutton \& Barto book)
+
+\item ``Automatically focuses attention to where it is
+needed,''
+
+~~ i.e., no sweeps through state space
+
+%\item Can be made more efficient with eligibility traces
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{History: TD-Gammon, by Gerald Tesauro (1991-1995)}{
+
+{\tiny (See section 11.1 in Sutton \& Barto's book.)}
+
+\small
+
+\item MLP (=multi-layer perceptron) to represent the value function $V(s)$
+
+~
+
+\show[.35]{TDgammon}
+
+~
+
+\begin{items}
+\item Only reward given at end of game for win.
+
+\item \textbf{Self-play}: use the current policy to sample moves on
+  \emph{both} sides!
+
+\item random policies $\to$ games take up to thousands of
+  steps. Skilled players $\sim 50-60$ steps.
+
+
+\item TD($\l$) learning (gradient-based update of NN weights)
+
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{History: TD-Gammon, by Gerald Tesauro (1991-1995)}{
+
+~
+
+\item Choose features as raw position inputs (number of pieces at each place)
+
+$\to$ as good as previous computer programs
+
+\item Using previous computer program's expert features
+
+$\to$ world-class player
+
+~
+
+\item Kit Woolsey was world-class player back then:
+
+\begin{items}
+\item TD-Gammon particularly good on vague positions
+\item not so good on calculable/special positions
+\item just the opposite to (old) computer programs
+\end{items}
+
+\item See anotated matches: \url{http://www.bkgm.com/matches/woba.html}
+
+%% ~
+
+%% \item Good example for
+
+%% \begin{items}
+%% %\item being creative in applying RL when it's supposed to work!
+%% \item value function approximation
+%% \item game theory, self-play
+%% \end{items}
+
+%~
+
+%\item perhaps backgammon is not too difficult after all?
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \key{on-policy RL}
+%% \key{off-policy RL}
+%% \key{SARSA RL}
+%% \key{Temporal Difference RL}
+%% \slide{Variants of model-free RL: TD, Sarsa, Q-learning}{
+
+%% \small
+
+%% \item Temporal Difference learning (TD):
+
+%% \qquad$~~~ V(\tilde s) \gets V(\tilde s)
+%%  + \a~ [r + \g V_\old(s') - V_\old(s)]
+%% $
+
+%% \item Sarsa
+
+%% \qquad$Q(\tilde s,\tilde a) \gets Q(\tilde s,\tilde a)
+%%  + \a~ [r + \g Q_\old(s',a') - Q_\old(s,a)]$
+
+%% \item Q-learning
+
+%% \qquad$Q(\tilde s,\tilde a) \gets Q(\tilde s,\tilde a)
+%%  + \a~ [r + \g \max_{a'} Q_\old(s',a') - Q_\old(s,a)]$
+
+
+%% ~
+
+%% {\tiny\textit{Meta note: Typical text books introduce TD and Sarsa first, then Q-learning. But TD and Sarsa are practically not as relevant as Q-learning.}
+
+%% }
+
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\sublecture{Improvements \& Deep RL}{
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\item These ``vanilla'' methods are rather limited
+\begin{items}
+\item \textbf{They assume discrete and finite $s$ and $a$}
+\item It takes long for rewards to ``propagate back''
+\item It seems wasteful to not remember data at all
+\end{items}
+
+~
+
+\item In the following:
+\begin{items}
+\item Replay Buffer: Collect and remember data $D$
+\item A Loss function for $Q(s,a)$: Bellman residual error
+\item A Loss function for $\pi(s)$: Policy Gradient
+\item Deep RL
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+Historically, $n$-step updates (remembering the last $n$ experiences)
+and eligibilities traces aimed to improve RL methods (see
+Appendix). But modern methods work with explictly storing and reusing
+all collected data.
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Replay Buffer}{
+
+\item We store all data $D=\{ (s_i,a_i,r_i,s_{i+1}) \}_{i=0}^t$ up to now, called the \textbf{replay buffer}
+
+~\pause
+
+\item Instead of updating a tabular $Q(s,a)$ based on the \emph{TD error} of a single experience, we define an error over the whole dataset, appropriate to train a neural net $Q(s,a)$...
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Loss to Train $Q(s,a)$: Bellman Residual}{
+
+\item Recall Q-learning: Given a single experience $(s,a,r,s')$, update
+\begin{align*}
+Q_\new(s,a)
+ &= Q_\old(s,a) + \a~ [\underbrace{r + \g Q_\old(s',\pi^*(s')) - Q_\old(s,a)}_{\text{TD error}}]
+\end{align*}
+{\tiny Note: this is a gradient step on the loss $\half[r + \g Q_\old(s',\pi^*(s')) - Q_\old(s,a)]^2$.
+
+}
+
+%% \item The TD error of $Q^\pi(s,a)$ for a single experience $(s,a,r,s')$ is:
+
+%% $$r + \g Q(s',\pi^*(s')) - Q(s,a)$$
+
+%% \item This is a ``single sample'' estimate of the Bellman residual error at $(s,a)$:
+
+%% $$R(s,a) + \g \sum_{s'} P(s'\|s,a)~ \max_{a'} Q(s',\pi(s')) - Q(s,a)$$
+
+~\pause
+
+\item We generalize this to the \textbf{Bellman residual loss} for data $D$:
+
+$$\BB_D^\pi = \sum_{(s,a,r,s')\in D} [r + \g \bar Q(s',\pi(s')) - Q(s,a)]^2$$
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Loss to Train $Q(s,a)$: Bellman Residual}{
+
+\item \textbf{Bellman residual loss} for data $D$:
+$$\BB_D^\pi = \sum_{(s,a,r,s')\in D} [r + \g \bar Q(s',\pi(s')) - Q(s,a)]^2$$
+\begin{items}
+\item This is a squared error loss, similar to regression
+\item We have an ML-problem -- We can train NNs to minimize this Bellman loss
+\item $\bar Q$ is a \emph{delayed version} of $Q$ (EMA of parameters) to stabilize training
+\end{items}
+
+~\pause
+
+\item Going over the \emph{whole} data in each training iteration is expensive
+\begin{items}
+\item One typically takes a \textbf{batch} $B\subset D$ (of constant size) and a gradient step w.r.t.\ $\BB^\pi_B$
+\end{items}
+{\tiny (See paper ``A Deeper Look at Experience Replay'' (Zhang, Sutton, 2017))
+
+}
+
+~\pause
+
+\item To mimic Q-learning, we would like the policy to $\pi(s) \approx \argmax_a Q(s,a)$
+\begin{items}
+\item That's straight-forward for discrete $a$
+\item For continuous actions we also need a loss function to train $\pi$
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Policy Gradient}
+\slide{Loss to Train $\pi(s)$: Return Maximization \& Policy Gradient}{
+
+\item We know our overall objective: maximizing expected return (slide 4)
+$$J^\pi = \Exp{\tsum_t \g^t r_t \| \pi} \quad= \Exp[s]{ Q(s,\pi(s)) } $$
+\begin{items}
+\item We take this directly as our (negative) loss function, and do gradient ascent
+\end{items}
+
+\pause
+
+\item Given $Q(s,a)$, the chain rule gives the gradient for a deterministic policy $\pi_\t$:
+\begin{align*}
+\Del \t J(\t)
+&=
+\Exp[s]{ \Del a Q(s,a)\big|_{a=\pi_\t(s)} \Del \t \pi_\t(s) }
+\end{align*}
+
+{\ttiny Derived in ``Deep Deterministic Policy Algorithms'' (ICML 2014), see ``Continuous control with deep reinforcement learning'' (2019)
+
+}
+
+~\pause\tiny
+
+\item For a stochastic policy $\pi_\t(a|s)$: (standard ``Policy Gradient Theorem''):
+{\tiny\begin{align*}
+\hspace*{-5mm}
+&\Del \t J(\t)
+=
+\Del \t
+\int P_\t(\xi)~ R(\xi)~ d\xi
+= \int P_\t(\xi) \Del \t \log P_\t(\xi) R(\xi) d\xi \\
+\hspace*{-5mm}
+&=
+\Exp[\xi\sim P_\t]{\Del \t \log P_\t(\xi) R(\xi)}
+ = \Expno[\xi\sim P_\t] \Big\{ \Sum_{t=0}^H \g^t~ [\Del \t \log\pi_\t(a_t|s_t)]~
+ \underbrace{\Sum_{t'=t}^H \g^{t'-t} r_{t'}}_{Q^{\pi_\t}(s_t,a_t)} \Big\}
+\end{align*}}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Summary}{
+
+\item We introduced two loss functions with gradients:
+\begin{items}
+\item The Bellman residual allows us to train $Q(s,a)$ to fulfill the Bellman equation for $\pi$
+\item The Policy Gradient allows us to train $\pi(s)$ to become optimal $\pi(s) \approx \argmax_a Q(s,a)$
+\end{items}
+
+~\pause
+
+\item We can apply these methods on \textbf{continuous states and actions}!
+
+~\pause
+
+\item Modern Deep RL algorithms interleave training steps for $Q(s,a)$ and $\pi(s)$ (sometimes also $V(s)$) with executing $\pi$ to collect more data
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Example: TD3}{
+
+\twocol{.45}{.45}{
+\showh[.8]{TD3}
+}{
+
+ 
+\begin{items}
+\item $\Del \t \BB(Q_\t, \bar Q)$ provides gradient steps for $Q_\t$
+\item $\Del \t J(\t)$ provides gradient steps for $\pi_\t$
+\item gradually training both is interleaved with collecting more data
+\end{items}
+
+~
+
+\cit{Scott Fujimoto, Herke Hoof, and David Meger}{Addressing function approximation error in actor-critic methods}{ICML 2018}
+
+{\tiny (Notation clash: the paper uses $\BB$ for batch $B$.)}
+
+}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Deep RL ``Tricks''}{
+
+\small
+
+\item Many ideas:
+\begin{items}\tiny
+\item Replay buffers (``experience replay''): Limited buffer of experiences to train on (approximates $P_\t(s,a,r,s')$)
+\item Double Q-Learning: maintain 2 indep. Q-functions $Q_{1,2}(s,a)$ (and use min in policy update)
+\item Delayed targets: low pass filter $\bar Q$ of $Q$ as target
+\item Smoothed policy samples: add (clipped) noise when sampling policy in Bellman loss
+\item Prioritized Replay: (pick replay data where Bellman error is largest)
+\item Dueling Networks: (decompose Q in value and advantage)
+\item Multi-Step Learning: ($n$-step updates)
+\item Distributional RL: (let Q-function predict return \emph{distribution}, not mean)
+\item Noisy Nets: (replace $\e$-greedy exploration by ``learnt noise'')
+\end{items}
+
+\item Survey of some of these ideas:
+\begin{items}\tiny
+\item Hessel et al: \emph{Rainbow: Combining Improvements in Deep Reinforcement Learning} (AAAI 2018)
+\end{items}
+
+\item Pointers to established Deep RL methods:
+\begin{items}\tiny
+\item Stable Baselines: {\ttiny\url{https://stable-baselines3.readthedocs.io/en/master/}}
+\item Soft Actor Critic (SAC) {\ttiny\url{https://arxiv.org/abs/1801.01290}}
+\item Proximal Policy Optimization (PPO) {\ttiny\url{https://arxiv.org/abs/1707.06347}}
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\sublecture{Example RL Applications}{
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\item See ``Mujoco gym RL'' on youtube..
+
+~
+
+\item Typical plots in papers:
+
+\show[.6]{18-SAC}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\twocol[.05]{.45}{.45}{
+
+\show[.9]{22-wurman}
+
+~
+
+\cit{Wurman et al.}{Outracing champion Gran Turismo drivers
+with deep reinforcement learning}{Nature, 2022}
+
+}{
+
+\show[.9]{22-wurman-2}
+
+\hfill{\urlfont\url{https://sonyresearch.github.io/gt_sophy_public/}}
+
+}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\twocol[.05]{.45}{.45}{
+
+%\show{10-abbeel}
+\show[.9]{23-kaufmann}
+
+~
+
+\cit{Kaufmann et al}{Champion-level drone racing using deep reinforcement learning}{
+Nature, 2023}
+
+}{
+
+\show[.9]{23-kaufmann-2}
+
+\hfill{\urlfont\url{https://www.youtube.com/watch?v=fBiataDpGIo}}
+
+}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{\label{lastpage}
+
+~
+
+\twocol[.05]{.45}{.45}{
+
+\show[.9]{20-lee}
+
+~
+
+\cit{Lee et al}{Learning quadrupedal locomotion over challenging terrain}{
+Science Robotics, 2020}
+
+}{
+
+\show[.8]{20-lee-2}
+
+\hfill{\urlfont\url{https://youtu.be/txjqn8h6pjU}}
+
+\hfill{\urlfont\url{https://youtu.be/Xnn4sVSpSh0}}
+
+}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{Summary}{\label{lastpage}
+
+%% \small
+
+%% \item Core principle behind decision tree and MCTS-like approaches:
+%% \begin{items}
+%% \item \emph{Expand a decision tree forward and estimate values from forward rollouts}
+%% \end{items}
+
+%% \item Core principle behind Bellman-based approaches:
+%% \begin{items}
+%% \item \emph{Globally correct values need to fulfill the Bellman principle}
+%% \end{items}
+
+%% \pause
+
+%% \item Value Iteration is a form of \textbf{Dynamic Programming}, which propagates values \emph{backward}
+%% \begin{items}
+%% \item In deterministic worlds, Value Iteration is the same as
+%% \emph{Dijkstra backward}; it labels all nodes with the value
+%% ($\oto$ cost-to-go).
+%% \end{items}
+
+%% ~\pause\tiny
+
+%% \item In \emph{control theory}, the Bellman equation is formulated for
+%% continuous state $x$ and continuous time $t$ and ends-up:
+%% $$
+%% -\frac{\del}{\del t} V(x,t)
+%%  = \min_u \[c(x, u) + \frac{\del V}{\del x} f(x,u) \]
+%% $$
+%% which is called \emph{Hamilton-Jacobi-Bellman} equation. For linear quadratic systems, this becomes the \emph{Riccati equation}
+
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\sublecture{Appendix}{
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{$n$-step updates**}{
+
+\item In vanilla Q-learning, values propagate back very slowly, only 1 step...
+
+\medskip\pause
+
+\item Let us always store a sequence of $n$-steps $(s_t, a_t, r_t, .., s_{t+n})$
+\begin{items}
+\item Then we can retrospect estimate the return in state $s_t$ using
+$$R_t^n = r_t + \g r_{t+1} + \ldots + \g^{n\1} r_{t+n\1} + \g^n V(s_{t+n}) $$
+instead of the 1-step estimate $R_t^1 = r_t + \g V(s_{t+1})$
+\end{items}
+
+\item We can use this as \emph{retrospect} TD learning, updating the value of the state $t=\textit{now}-n$ steps ago:
+$$V(s_t) \gets V(s_t) + \a~ [\underbrace{R_t^n - V(s_t)}_{n\text{-step error}}]$$
+
+\pause
+\item Equally for Q-learning:
+\begin{align*}
+R_t^n &= r_t + \g r_{t+1} + \ldots + \g^{n\1} r_{t+n\1} + \g^n \max_a Q(s_{t+n},a) \\
+Q(s_t,a_t) &\gets Q(s_t,a_t) + \a~ [R_t^n - Q(s,a)]
+\end{align*}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{$n$-step updates**}{
+
+\item The $n$-step return estimate
+$$R_t^n = r_t + \g r_{t+1} + \ldots + \g^{n\1} r_{t+n\1} + \g^n V(s_{t+n})$$
+\begin{items}
+\item uses more data than the 1-step return
+\item is less influenced by incorrect $V(s_{t+n})$ ~ (multiplied with $\g^n$)
+\item updates values $n$ steps ago if now an unexpected reward is received
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Eligibilities**}{
+
+\item Sutton \& Barto's book discussed eligibility traces extensively:
+\begin{items}
+\item They are an alternative to $n$-step updates
+\item They somehow ``remember'' all steps, and are equivalent to $n\to\infty$-step updates (for a parameter $\l=1$)
+\item No need to explicitly store the $n$ steps -- \textbf{but only reasonable for tabular value functions, i.e., discrete state space}
+\end{items}
+
+~
+
+\item As they are impractical in continuous domains and neural value functions, $n$-step methods are preferred
+
+\item We skip explicit discussion of eligibilities here
+
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% However, prior Monte-Carlo planners have been limited to fixed horizon, depth-first search
+%% [7] (also known as sparse sampling),
+
+
+%% Decision theory = probability theory + utility theory .
+
+%% The fundamental idea of decision theory is that an agent is rational
+%% if and only if it chooses the action that yields the highest expected
+%% utility, averaged over all the possible outcomes of the action.
+
+%% Maximization of expected utility
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slidesfoot

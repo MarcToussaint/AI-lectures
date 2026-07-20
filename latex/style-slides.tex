@@ -19,11 +19,14 @@
   \usepackage{multimedia}
   \usepackage[utf8]{inputenc}
 
+  \hypersetup{
+    colorlinks,
+    linkcolor={blue!80!black},
+    citecolor={blue!80!black},
+    urlcolor={blue!80!black}
+  }
+
   %%% geometry/spacing issues
-  %
-  \definecolor{bluecol}{rgb}{0,0,.5}
-  \definecolor{greencol}{rgb}{0,.6,0}
-  \definecolor{citcol}{rgb}{.4,.4,.4}
   %\renewcommand{\baselinestretch}{1.1}
   \renewcommand{\arraystretch}{1.2}
   \columnsep 0mm
@@ -65,16 +68,17 @@
   %\rfoot{\raisebox{5mm}{\tiny\textsf{\slidevenue{} -- \arabic{mypage}/\pageref{lastpage}}}}
   %\rfoot{~\anchor{30,12}{\tiny\textsf{\thepage/\pageref{lastpage}}}}
   %\lfoot{\small\textsf{Marc Toussaint}}
-%  \rfoot{\vspace*{-4.5mm}{\tiny\textsf{\color{gray}\topic\ -- \subtopic\ -- \arabic{mypage}/\pageref{lastpage}}}\hspace*{-4mm}}
-  \rfoot{\vspace*{-4.5mm}{\tiny\textsf{\color{gray}\topic\ -- \arabic{mypage}/\pageref{lastpage}}}\hspace*{-4mm}}
+  \rfoot{\vspace*{-4.5mm}{\tiny\textsf{\color{gray}\topic\ -- \subtopic\ -- \arabic{mypage}/\pageref{lastpage}}}\hspace*{-4mm}}
+%  \rfoot{\vspace*{-4.5mm}{\tiny\textsf{\color{gray}\topic\ -- \arabic{mypage}/\pageref{lastpage}}}\hspace*{-4mm}}
 %  \rfoot{~\anchor{-10,12}{\tiny\textsf{\color{gray}\topic\ --  \arabic{mypage}/\pageref{lastpage}}}}
-  \lfoot{\vspace*{-4.5mm}{\hspace*{-3mm}\includegraphics[height=4mm]{LIS-logo-longText}}}
+  \lfoot{\vspace*{-4.5mm}{\hspace*{-4mm}\includegraphics[height=4mm]{LIS-26-text-long}}}
 
   \definecolor{grey}{rgb}{.8,.8,.8}
   \definecolor{head}{rgb}{.85,.9,.9}
 %  \definecolor{blue}{rgb}{.0,.0,.5}
 %  \definecolor{green}{rgb}{.0,.5,.0}
   \definecolor{red}{rgb}{.8,.0,.0}
+  \definecolor{citcol}{gray}{.6}
   \newcommand{\inverted}{
     \definecolor{main}{rgb}{1,1,1}
     \color{main}

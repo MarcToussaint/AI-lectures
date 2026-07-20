@@ -1,0 +1,726 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Artificial Intelligence}
+\renewcommand{\coursepicture}{course_ai}
+\renewcommand{\coursedate}{Summer 2026}
+
+\renewcommand{\topic}{RL Discussion}
+\renewcommand{\keywords}{}
+
+\slides
+
+%\newcommand{\liter}{\helvetica{8}{1.1}{m}{n}\parskip 1ex}
+\providecommand{\rmax}{{\textsc{R-max}}}
+\providecommand{\ignore}[1]{}
+
+\slidestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\sublectureHide{RL Discussion}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+What might be issues with RL?
+
+~\pause
+
+\item From ``interactive learning'' to ``massive training in sim'':
+\begin{items}
+\item The original idea of RL was: a real system explores a real world and interactively learns
+\item Most dominent today: Training of optimal policies in sim on massive data
+\end{items}
+
+~\pause
+
+\item Exploration
+\begin{items}
+\item We discussed Bandits, UCB, and UCT $\to$ unclear how to do proper exploration in RL
+\end{items}
+
+~\pause
+
+\item Planning \& reasoning?
+\begin{items}
+\item Kahnemann's ``Thinking, Fast \& Slow''
+\item Don't we need some form of reasoning to address fully novel situations?
+\item Learning $Q(s,a)$ and $\pi(s)$ only -- \emph{no prediction of the future}
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\sublecture{Model-based RL}{
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{model-free RL}
+\key{model-based RL}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Model-based RL \& Model-free RL}{
+
+What can be learned from available data $D_t = \{ (s_i,a_i,r_i,s_{i\po}) \}_{i=0}^t$?
+
+~
+
+\shows[1.3]{RLoverview}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Model-based RL \& Model-free RL}{
+
+~
+
+~
+
+\item \textbf{Model-based RL:}
+\begin{items}
+\item given data $D$, learn $P(s'|s,a)$ and $R(s,a)$, then compute $\pi^*$
+\anchor{20,-40}{\showh[.3]{RLoverview}}
+\end{items}
+
+~
+
+\item \textbf{Model-free RL:}
+\begin{items}
+\item given data $D$, learn $V^*(s),Q^*(s,a), V^\pi(s)$, or $Q^\pi(s,a)$, then improve $\pi$
+\end{items}
+
+~
+
+\item \textbf{Policy search:}
+\begin{items}
+\item given data $D$, directly estimate policy gradient or use black box
+(e.g.\ evolutionary) search to improve $\pi$
+\end{items}
+ 
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Model-based RL}{
+
+\item \textbf{Model learning:} Given data $D_t = \{
+(s_i,a_i,r_i,s_{i\po}) \}_{i=0}^t$ estimate $P(s'|s,a)$ and
+$R(s,a)$
+\begin{items}
+\item discrete state-action: ~  $\hat P(s'|s,a) = \frac{\#(s',s,a)}{\#(s,a)}$
+
+\pause
+
+\item continuous state-action: train $\sum_{(s,a,s')\in D} (f_\t(s,a) - s)^2$
+\end{items}
+
+~\pause
+
+\item To train optimal behavior, use the learned $f_\t(s,a)$ as a simulator
+\begin{items}
+\item Generate rollouts using $f_\t(s,a)$ and the current policy (``\textbf{dreaming}'')
+\item Use standard RL to train value function and policy
+\item Collect more real-world data and iterate
+\end{items}
+
+\cit{Hafner et al.}{Dream to control: Learning behaviors by latent imagination}{arXiv:1912.01603 2019}
+
+\urlfont{\url{https://arxiv.org/pdf/1912.01603}}
+
+TODO: integrate DynaQ slides (07-Planning lecture in 16-RL)
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Limitations of the model-free view}{
+
+~\small
+
+\item Given learnt $Q(s,a)$ and $\pi(s)$, behavior is a fixed state$\to$action mapping
+\begin{items}
+\item If the ``goal'' changes: need to re-learn values for every state; all previous values are obsolete
+
+\item No general ``knowledge'', only values
+
+\item No anticipation of general outcomes ($s'$), only of value
+
+\item No reasoning or planning
+  
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{Model-based RL}{
+
+%% \item Given learned models $\hat P(s'|s,a)$ and $\hat R(s,a)$, compute optimal policies with the estimated model:
+
+%% \begin{items}
+%% \item discrete state-action: ~ \textbf{Dynamic Programming} such as Value Iteration or Q-Iteration
+
+%% \item continuous state-action: ~ Least Squares Value Iteration
+
+%% Stochastic Optimal Control (Riccati, Differential Dynamic Prog.)
+%% \end{items}
+
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{}{
+
+%% \mov{\show[.45]{mov-balance}}{05-sethu-movies/DA_PoleLearn.avi}
+
+%% {\hfill\tiny (around 2000, by Schaal, Atkeson, Vijayakumar)}
+
+%% ~
+
+%% \item Use a simple regression method (locally weighted Linear
+%% Regression) to estimate
+
+%% \cen{$P(\dot x|u,x) \stackrel{\text{local}}= \NN(\dot x \| Ax + Bu, \s)$}
+
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\sublecture{Exploration}{}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Epsilon-greedy exploration in Q-learning}
+\slide{\protect$\e$-greedy exploration in Q-learning}{
+
+~
+
+\begin{algo}
+\State Initialize $Q(s,a)=0$
+\Repeat \Comment{for each episode}
+\State Initialize start state $s$
+\Repeat \Comment{for each step of episode}
+\State {\color{blue} Choose action
+$a = \begin{cases}
+{\color{blue} \text{random}} & {\color{blue} \text{with prob.}~ \e}\\
+\argmax_a Q(s,a) & \text{else}
+\end{cases}
+$}
+\State Take action $a$, observe $r, s'$
+\State $Q_\new(s,a) \gets Q_\old(s,a) + \a~ [r + \g \max_{a'} 
+Q_\old(s',a' ) - Q_\old(s,a)]$
+\State $s\gets s'$
+\Until end of episode
+\Until happy
+\end{algo}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Optimistic value initialization \& UCB}{
+
+\item Generally, we need better ways to explore than $\e$-greedy!
+\begin{items}
+\item Our discussion of bandits emphasized the need for a principled approach to exploration-exploitation problems
+\end{items}
+
+~\pause
+
+\item UCB: If you can estimate a confidence bound $\s(s,a)$ for your Q-function (e.g., using bootstrap estimates when using function approximation), choose your action based on $Q(s,a) + \b \s(s,a)$
+\begin{items}
+\item Confidence intervals for $V$-/$Q$-function (Kealbling '93, Dearden et al.\ '99)
+\end{items}
+
+~
+
+\item Initialize the Q function optimistically! E.g., if you know $R_\text{max}$, $Q(s,a) = 1/(1-\g) R_\text{max}$ ~ (in practise, this is often much too large)
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\item Really ``clever'' exploration is hard in a model-free setting
+\begin{items}
+\item Even if we can estimate confidence values for $Q(s,a)$, we need to \emph{visit states $\tilde s$} with high uncertainty
+\item Visiting such states is a \textbf{planning problem}
+\item Need a plan/policy to travel to $\tilde s$ -- how?
+\end{items}
+
+
+~\pause
+
+\item In model-based RL, ``planned exploration'' is much easier
+\begin{items}
+\item In the following, two classical methods that proved \textbf{polynomial sample complexity} to learn near-optimal policies
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{R-Max}
+\slide{\rmax**}{
+
+\small
+(Brafman and Tennenholtz, 2002)
+
+~
+
+\item Assume discrete state-action space
+
+\item Model-based RL: We estimate $R(s,a)$ and $P(s'|s,a)$ on the fly
+
+\item We count $c(s,a)$ how often we visit a $(s,a)$
+
+\item Use a strictly \emph{optimistic} reward function:
+\begin{align}
+\nonumber
+R^{\rmax}(s,a) =
+\left\{
+\begin{array}{ll}
+R(s,a) & \! c(s,a) \!\ge\! m ~ \text{($s,a$ known)} \\
+R_\text{max} & \! c(s,a) \!<\! m ~ \text{($s,a$ unknown)}
+\end{array}
+\right.
+\end{align}
+
+\item Is PAC-MDP (\emph{probably approximately correct-MDP}) efficient
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{KWIK-\rmax**}{
+
+(Li, Littman, Walsh, Strehl, 2011)
+
+~
+
+\item Extension of \rmax\ to \emph{more general
+representations}
+
+\textbf{(KWIK = Knows-what-it-knows framework)}
+
+~
+
+\item Let's say the transition model $P(s' \| s,a)$ is defined by $n$
+parameters
+\begin{items}
+\item Typically, \emph{$n \ll$ number of states}
+\end{items}
+
+\item Efficient KWIK-learner $L$ requires a number of samples which
+is polynomial in $n$ to estimate approximately correct $\hat{P}(s' \|
+s,a)$
+
+
+\item KWIK-\rmax\ using $L$ is \emph{PAC-MDP efficient in $n$}
+\begin{items}
+\item[$\to$] polynomial in number of parameters of transition model
+\item[$\to$] more efficient than plain \rmax\ by several orders of magnitude
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Bayesian RL}
+\slide{Bayesian RL**}{
+
+\item There exists an optimal solution to the exploration-exploitation
+  trade-off: belief planning
+
+{\ttiny Tutorial: ``Bandits, Global
+  Optimization, Active Learning, and Bayesian RL -- understanding the
+  common ground''
+
+}
+
+$$
+V^\pi(b,s)
+ = R(s,\pi(b,s)) 
+ + \int_{b',s'} P(b',s' \|b,s,\pi(b,s))~ V^\pi(b',s')
+$$
+
+\begin{items}
+\item Agent maintains a \emph{distribution (belief) $b(m)$ over
+MDP models $m$}
+
+\item typically, MDP structure is fixed; belief over the parameters
+
+\item belief updated after each observation $(s,a,r,s')$: $b \to b'$
+
+\item only tractable for very simple problems
+\end{items}
+
+~
+
+\item \emph{Bayes-optimal policy} $\pi^*=\argmax_\pi V^\pi(b,s)$
+\begin{items}
+\item no other policy leads to more rewards in expectation w.r.t.~prior
+distribution over MDPs
+
+\item solves the exploration-exploitation tradeoff
+%\item is \emph{not} PAC-MDP efficient!
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Summary}{
+
+\item In model-free RL, orgnizing informed exploration is hard.. still an open issue today
+
+~
+
+\item In model-based RL, exploration can be enforced by intrinsically rewarding to visit novel states -- and planning to go there
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \key{Optimistic heuristics}
+%% \slide{General View: Optimistic heuristics}{
+
+%% \item As with UCB, choose estimators for $R^*$, $P^*$ that are optimistic/over-confident
+%% $$V_t(s)
+%% = \max_a\[ R^* + \Sum_{s'} P^*(s'|s,a)~ V_{t\po}(s') \]$$
+
+%% \item Rmax:
+%% \begin{items}
+%% \item $R^*(s,a)=\begin{cases} R_{\text{max}} & \text{if
+%% $\#_{s,a}<n$} \\ \hat\t_{rsa} & \text{otherwise} \end{cases}$
+%% \comma $P^*(s'|s,a)=\begin{cases} \d_{s's^*} & \text{if
+%% $\#_{s,a}<n$} \\ \hat\t_{s'sa} & \text{otherwise} \end{cases}$
+%% \item Guarantees over-estimation of values, polynomial PAC results!
+%% \item Read about ``KWIK-Rmax''! (Li, Littman, Walsh, Strehl, 2011)
+%% \end{items}
+
+%% \item Bayesian Exploration Bonus (BEB), Kolter \& Ng (ICML 2009)
+%% \begin{items}
+%% \item Choose $P^*(s'|s,a) = P(s'|s,a,b)$ integrating over the current belief
+%% $b(\t)$ (non-over-confident)
+%% \item But choose $R^*(s,a) = \hat\t_{rsa} + \frac{\b}{1+\a_0(s,a)}$
+%% with a hyperparameter $\a_0(s,a)$, over-estimating return
+%% \end{items}
+
+%% \item Confidence intervals for $V$-/$Q$-function
+%% (Kealbling '93, Dearden et al.\ '99)
+
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{More ideas about exploration}{
+
+%% \item \textbf{Intrinsic rewards} for \emph{learning progress}
+
+%% \begin{items}
+%% \item ``fun'', ``curiousity''
+
+%% \item in addition to the external ``standard'' reward of the MDP
+
+%% \item \textit{``Curious agents are interested in learnable but yet
+%% unknown regularities, and get bored by both predictable and inherently
+%% unpredictable things.''} (J.~Schmidhuber)
+
+%% \item Use of a meta-learning system which learns to predict the error that
+%% the
+%% learning machine makes in its predictions; meta-predictions measure the
+%% \emph{potential interestingness of situations} (Oudeyer et al.)
+%% \end{items}
+
+%% \cit{Lopes, Lang, Toussaint, Oudeyer}{Exploration in model-based reinforcement learning by empirically estimating learning progress}{NeurIPS 2012}
+
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{More ideas about exploration}{
+
+%% \item Exploration to reduce uncertainty of a belief $p(x)$
+
+%% \begin{items}
+%% \item In robotics, $p(x)$ might be the belief about the robot position $x$
+
+%% \item \emph{Entropy}: a probabilistic measure of information
+
+%% \hspace{0.5cm} $H(p(x)) = - \int p(x) \log p(x) dx$
+
+%% \hspace{0.5cm} $H_p(x)$ is maximal if $p$ is uniform,
+
+%% \hspace{0.5cm} and minimal if $p$ is a point mass distribution
+
+%% \item \emph{Information gain} of action $a$:
+
+%% \hspace{0.5cm} $I(a) = H(p(x)) - E_z[H(p(x' \| z, a))]$
+
+%% \hspace{0.5cm} ($z$ is the potential observation)
+
+%% \hspace{0.5cm} expected change of entropy when executing an action
+
+%% \item \emph{maximizing information gain = minimizing uncertainty
+%% in belief}
+%% \end{items}
+
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\sublecture{Classical Behavioral Psychology}{
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\item The debate over model-based reasoning vs.\ model-free behavioral conditioning has a long history
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Evidence for model-free RL?}{
+
+\item Dopamine:
+
+~
+
+\show[.5]{dopamine}
+
+\small
+
+Montague, Dayan \& Sejnowski:
+\emph{A Framework for Mesencephalic Dopamine Systems based on Predictive
+Hebbian Learning.}
+Journal of Neuroscience, 16:1936-1947, 1996. 
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\begin{items}
+\item We derived an algorithm from an MDP formalization
+
+\item This algorithm involves a specific quantity: the TD error
+
+\item We find a neural correlate of this quantity
+\end{items}
+
+~\pause
+
+\begin{items}
+\item But that does not proof that TD learning is going on in the brain
+
+Only that an expected reward is compared with a experienced reward
+
+~
+
+\item Actually does not discriminate between model-based and model-free RL
+
+(Both can induce an expected reward)
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Evidence for model-based RL \& \emph{reasoning}?}{
+
+~
+
+\center
+
+\twocol{.4}{.4}{
+\mov{\show[.6]{koehler-monkeys}
+}{10-goalDirectedBehavior/APigeonSolvesTheClassicBox-and-BananaProblem.flv}
+}{
+Wolfgang K\"ohler (1917)
+
+\emph{Intelligenzpr\"ufungen am\\Menschenaffen}
+
+\emph{The Mentality of Apes}
+
+~
+
+~
+
+\small
+Would be hard to explain \\
+with model-free RL only
+
+}
+
+%% ~
+
+
+%% ~%\mypause
+
+%% {\color{red}\it Goal-directed
+%%   Decision Making}\\
+%% What are computational principles for such behavior?
+
+%% %(model-based view)
+
+}
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{}{
+
+%% \center
+
+%% \twocol{.4}{.4}{
+%% \mov{\show[.6]{koehler-monkeys}
+%% }{10-goalDirectedBehavior/APigeonSolvesTheClassicBox-and-BananaProblem.flv}
+%% }{\center
+%% }
+
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Behavioral Psychology}{
+
+\twocol{.45}{.45}{
+{\center
+\showh[.3]{tolman}\\
+Edward Tolman (1886 - 1959)
+
+~
+
+\showh[.3]{koehler}\\
+Wolfgang K\"ohler (1887--1967)
+}
+
+{\helvetica{7}{1}{m}{n} learn facts about the world that they could subsequently
+    use in a flexible manner, rather than simply learning automatic
+    responses\\
+
+}
+
+}{
+
+%% {\center
+%% \showh[.3]{thorndike}\\
+%% Edward Thorndike (1874 – 1949)\\
+
+%% \emph{``Law of Effect''}\\
+
+%% }
+
+%% ~
+
+{\center
+\showh[.3]{hull}\\
+Clark Hull (1884 - 1952)\\
+
+\emph{Principles of Behavior} (1943)\\
+
+}
+
+~
+
+
+{\helvetica{7}{1}{m}{n} learn stimulus-response mappings based on
+  reinforcement\\
+
+}
+
+}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ 
+\slide{Experiments to distinguish Goal-directed vs.\ Habitual?}{
+
+\item Devaluation
+%\mov{[skinner]}{10-goalDirectedBehavior/SkinnerBox-Eddy-BellTraining.mp4}
+
+~
+
+\show[.5]{devaluation}
+
+~
+
+Niv, Joel \& Dayan:
+\emph{A normative perspective on motivation.}
+TICS, 10:375-381, 2006.
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Experiments to distinguish Goal-directed vs.\ Habitual?}{
+
+~
+
+\show[.2]{devaluation2}
+
+~
+
+Niv, Joel \& Dayan:
+\emph{A normative perspective on motivation.}
+TICS, 10:375-381, 2006.
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{\label{lastpage}
+
+{\tiny
+By definition, goal-directed behavior is performed to obtain a desired
+goal. Although all instrumental behavior is \textbf{instrumental} in
+achieving its contingent goals, it is not necessarily purposively
+\textbf{goal-directed}. Dickinson and Balleine [1,11] proposed that
+behavior is goal-directed if: (i) it is sensitive to the contingency
+between action and outcome, and (ii) the outcome is desired. Based on
+the second condition, motivational manipulations have been used to
+distinguish between two systems of action control: if an instrumental
+outcome is no longer a valued goal (for instance, food for a sated
+animal) and the behavior persists, it must not be goaldirected.
+Indeed, after moderate amounts of training, outcome revaluation brings
+about an appropriate change in instrumental actions
+(e.g. leverpressing) [43,44], but this is no longer the case for
+extensively trained responses ([30,31], but see [45]). That extensive
+training can render an instrumental action independent of the value of
+its consequent outcome has been regarded as the experimental parallel
+of the folk psychology maxim that wellperformed actions become
+\textbf{habitual} [9] (see Figure I).
+
+%%   This distinction between two
+%% types of behavior is also paralleled by a distinction between two
+%% different neural pathways to action selection. Habitual behavior is
+%% thought to be dependent on the dorsolateral striatum [8,32] and its
+%% dopaminergic afferents, whereas goal-directed behavior is controlled
+%% more by circuitry involving frontal cortical areas and the dorsomedial
+%% striatum [8,20,21]. These two pathways have been suggested as
+%% subserving two action controllers with different computational
+%% characteristics, which operate in parallel during action selection
+%% [10].
+
+~}
+
+Niv, Joel \& Dayan:
+\emph{A normative perspective on motivation.}
+TICS, 10:375-381, 2006.
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slidesfoot

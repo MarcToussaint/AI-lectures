@@ -1,0 +1,421 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Artificial Intelligence}
+\renewcommand{\coursepicture}{course_ai}
+\renewcommand{\coursedate}{Summer 2026}
+
+\renewcommand{\topic}{Computation Graphs, AutoGrad, \& Models}
+\renewcommand{\keywords}{}
+
+\newcommand{\pa}{\theta}
+
+\slides
+
+\slidestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\story{
+Neural Networks (NNs) are a central technology in ML and AI. However, rather than discribing them directly, we first want to introduce the more basic concept of Computation Graphs and automatic differentiation in such graphs. The technical realization of NNs (e.g.\ in languages such as pyTorch) is based on the general principle of computation graphs, and this formalism gives a more general perspective on what is ``learnable'' in AI: namely anything that can be programmed in a computation graph is auto-differentiable and becomes trainable.
+
+We concretely introduce the abstract framework, the difference between partial and total derivatives in such graphs, as well as the two types of propagating partial derivatives: forward and backward.
+
+%% On this basis we introduce NNs as intances of computation graphs, that are composed of linear and non-linear operators. The linear operators (fully connected, or convolutional) describe a notion of ``connectivity'' (of signals through the layers) and introduce large numbers of parameters to the function. The non-linear operators (e.g. ReLU, max-pooling, etc) are typically parameter-free. Alternating such operators and building large computation graphs of such operators provides an extreme freedom in formulating powerful function models, including for image and text processing.
+
+%% We briefly mention typical architectural patterns in successful models, e.g.\ convolution, residual connections, recurrency, and transformers. We also briefly mention essential things that matter: initialization, regularization data augmentation, and batch SGD training.
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\sublecture{Computation Graphs}{
+
+~
+
+\small
+Reference: Sec.\ 2.2 and 2.3 of the \emph{Maths for Intelligent Systems} script.
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Motivation: Standard Machine Learning}{
+
+\item We want to train parameterized $f_\pa: x\mapsto y$ to minimize a loss $\sum_{i=1}^n \ell(f_\pa(x_i), y_i)$
+
+~
+
+\item Training is typically based on gradients $\na_\pa \ell(f_\pa(x_i),y_i)$
+
+~\pause
+
+\item The success of Neural Networks is based on
+\begin{items}
+\item Flexibility in defining $f(x)$ as computation graph (e.g., in PyTorch)
+\item \textbf{Automatic Differentiation} of such computation graphs
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Partial Derivative}{
+
+\item Given $f:~ \RRR^n \to \RRR$ of $n$ arguments, $f(x_1,..,x_n)$, the \emph{partial} derivative is the derivative w.r.t.\ only one of its arguments:
+\begin{equation*}
+\Del{x_i} f(x_1,..,x_n) = \lim_{h\to
+0} \frac{f(x_1,..,x_i+h,..,x_n)-f(x)}{h} ~.
+\end{equation*}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Derivative of ``chained'' functions?}{
+
+\item Example:
+$$f(x,g) = 3x + 2g \quad\text{and}\quad g(x)=2 x$$
+
+\cen{\emph{Q:~ What is the derivative of $f$ w.r.t.\ $x$?}}
+
+~\pause
+
+\item Right Answer:~ Which one do you mean? $\frac{\del}{\del x} f(x,g)$ or $\frac{d}{dx} f(x,g)$?
+
+~\pause
+
+\begin{equation*}
+\Del{x} f(x,g) = 3 
+\end{equation*}
+
+\pause
+
+\begin{align*}
+\frac{df}{dx}
+ &= \Del{x}\[ 3x+2(2x) \] = 7 \\
+\frac{df}{dx}
+ &= \Del{x} f(x,g) + \Del{g} f(x,g)~ \Del{x} g(x) = 3 + 2\cdot2 = 7
+\end{align*}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Partial \& Total Derivative}{
+
+\item The \emph{partial} derivative only considers a single function $f(a,b,c,..)$ and asks how the output of this single function varies with one of its arguments.  (Not caring that the arguments might be functions of yet something else).
+
+~\pause
+
+\item The \emph{total} derivative considers full networks of dependencies between quantities and asks how one quantity varies with some other.
+
+To define this more rigorously, we need to formalize ``network of dependencies''...
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Computation Graphs}{
+
+\item A \textbf{computation graph} (or \textbf{function network}) is a DAG of $n$ variables $x_i$ where
+each variable is a deterministic function of a set of parent variables, as specified by the parents' indices $[i]\subset\{1,..,n\}$, that is
+$$x_i = f_i( x_{[i]} )$$
+where $x_{[i]} = (x_j)_{j \in [i]}$ is the tuple of parent variables.
+
+~
+
+{\tiny (This could also be called \emph{deterministic Bayes net}.)
+
+}
+
+~\pause
+
+\item Given a computation graph, we can define the \textbf{total derivative}:
+\begin{items}
+\item Given a variation $dx$ of some variable, how would another variable vary, accounting for all dependencies down the DAG, in the linear limit?
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Chain rules}
+\slide{Chain rules}{
+
+\item \textbf{Forward version:}\anchor{210,-50}{\showh[.08]{chainRule-fwd}} ~ (e.g., used for robotics Jacobians)
+\begin{align*}
+\frac{df}{dx} &= \sum_{g\in[f]} \frac{\del f}{\del g}~ \frac{dg}{dx}
+\end{align*}
+
+{\tiny
+
+Why ``forward''? You've computed $\frac{dg}{dx}$ already, now you move forward to $\frac{df}{dx}$.
+
+Note: If $x\in[f]$, the sum includes the term $\frac{\del f}{\del x}~ \frac{dx}{dx} \equiv \frac{\del f}{\del x}$. We could also write
+$\frac{df}{dx} =
+\frac{\del f}{\del x} + \sum_{g\in[f]\atop g \not= x} \frac{\del f}{\del g}~ \frac{dg}{dx}$.
+
+}
+
+~
+
+\item \textbf{Backward version:}\anchor{200,-60}{\showh[.08]{chainRule-bwd}} ~ (used in NNs)
+\begin{align*}
+\frac{df}{dx}
+&= \sum_{g:x\in[g]} \frac{d f}{d g}~ \frac{\del g}{\del x}
+\end{align*}
+
+{\tiny
+
+Why ``backward''? You've computed $\frac{df}{dg}$ already, now you move backward to $\frac{df}{dx}$.
+
+Note: If $x\in[f]$, the sum includes the term $\frac{d f}{d f}~ \frac{\del f}{\del x} \equiv \frac{\del f}{\del x}$. We could also write
+$\frac{df}{dx}
+= \frac{\del f}{\del x} + \sum_{g:x\in[g]\atop
+g\not= f} \frac{d f}{d g}~ \frac{\del g}{\del x}$.
+
+}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\sublecture{Jacobians}{
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\jacf}[2]{\frac{\del}{\del x_#2} f_#1(x)}
+
+\slide{Jacobian}{
+
+\item In ML (and pyTorch), we are particularly interested in vector-to-vector functions
+$$f:~ \RRR^n \to \RRR^d$$
+
+\item We define the Jacobian as
+\begin{align*}
+\Del{x} f(x) =
+ \mat{cccc}{
+\jacf{1}{1} & \jacf{1}{2} & \dots & \jacf{1}{n} \\
+\jacf{2}{1} & \jacf{2}{2} & \dots & \jacf{2}{n} \\
+\vdots & & & \vdots \\
+\jacf{d}{1} & \jacf{d}{2} & \dots & \jacf{d}{n} } 
+\end{align*}
+
+~\pause
+
+\item Note: for scalar-valued $f:~ \RRR^n \to \RRR^1$, $\Del{x} f(x)$ is a \emph{row vector}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Chain Rule}{
+
+\item Reconsidering the (backward) chain rule:
+\begin{align*}
+\frac{df}{dx}
+&= \sum_{g:x\in[g]} \frac{d f}{d g}~ \frac{\del g}{\del x}
+\end{align*}
+
+~
+
+\begin{items}
+\item All variables are vectors
+\item All partial derivatives $\frac{d f}{d g}$ and $\frac{\del g}{\del x}$ are Jacobian matrices
+\item Operations are matrix products and addition
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Complexity of the Chain Rule}{
+
+{\tiny [for simplicity, memory complexity only -- compute complexity is strongly related]}
+
+~
+
+\item Consider a chain of three variables $x,~ y(x), z(y)$ -- should you use fwd or bwd?
+
+~
+
+~\pause
+
+\twocol{.45}{.45}{
+\item Forward:
+\begin{items}
+\item Compute $\frac{dy}{dx} \in \RRR^{d_y \times d_x}$
+\item Compute $\frac{dz}{dx} \in \RRR^{d_z \times d_x}$
+\item All steps have complexity with $d_x$
+\end{items}
+
+}{
+
+\item Backward:
+\begin{items}
+\item Compute $\frac{dz}{dy} \in \RRR^{d_z \times d_y}$
+\item Compute $\frac{dz}{dx} \in \RRR^{d_z \times d_x}$
+\item All steps have complexity with $d_z$
+\end{items}
+
+}
+
+~
+
+~\pause
+
+\item $d_x$ large and $d_z$ small  $\to$ use backward! ~ (as in Neural Networks: $x\equiv\pa$, $z\equiv\ell$)
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\sublecture{Computation Graphs in practice}{
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}[fragile]
+\begin{slidecore}{pyTorch}
+
+\item torch is standard library to define computation graphs (usually NNs) and train them
+
+~
+
+\begin{minipage}[c]{.5\columnwidth}
+
+\item Here two recommended tutorials:
+
+\begin{items} \ttiny
+\item \url{https://pytorch.org/tutorials/beginner/pytorch_with_examples.html}
+
+\item \url{https://pytorch.org/tutorials/beginner/blitz/neural_networks_tutorial.html}
+
+\item \url{https://pytorch.org/tutorials/beginner/nn_tutorial.html}
+\end{items}
+
+~
+
+\item Right: the neural net from the 'blitz tutorial'
+\begin{items}
+\item The \texttt{forward} method defines the computation graph! (I prefer this over nn.Sequential)
+\item Functions $f_i(x;\t)$ that have trainable parameters $\t$ are declared in constructor
+\end{items}
+
+\end{minipage}~~~\begin{minipage}[c]{.4\columnwidth}
+
+\fontsize{7}{5}\selectfont
+
+%\begin{code}
+\begin{verbatim}
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+class Net(nn.Module):
+
+    def __init__(self):
+        super(Net, self).__init__()
+        self.conv1 = nn.Conv2d(1, 6, 5)
+        self.conv2 = nn.Conv2d(6, 16, 5)
+        self.fc1 = nn.Linear(16 * 5 * 5, 120)
+        self.fc2 = nn.Linear(120, 84)
+        self.fc3 = nn.Linear(84, 10)
+
+    def forward(self, input):
+        c1 = F.relu(self.conv1(input))
+        s2 = F.max_pool2d(c1, (2, 2))
+        c3 = F.relu(self.conv2(s2))
+        s4 = F.max_pool2d(c3, 2)
+        s4 = torch.flatten(s4, 1)
+        f5 = F.relu(self.fc1(s4))
+        f6 = F.relu(self.fc2(f5))
+        output = self.fc3(f6)
+        return output
+\end{verbatim}
+%\end{code}
+\end{minipage}
+
+\end{slidecore}
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{NN block diagrams}{
+
+\item From ``Deep Residual Learning for Image Recognition'', CVPR'16:
+
+\show[.7]{ResNet}
+
+~\tiny
+
+[details out of scope for now (you'd need to learn about the functions that are building blocks of typical NN computation graphs)]
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{NN block diagrams}{
+
+
+\footnotesize
+
+\twocol{.3}{.65}{
+
+\tiny
+
+``Attention is All You Need''\\ (NeurIPS'17)
+
+\showh[.8]{transformer1}
+
+}{
+
+\tiny 
+\item J.~Thickstun ('21): The Transformer Model in Equations\\
+\show[.9]{transformer2}
+
+%% \pause
+
+%% \item PaLM-E (Driess, ICML'23)\\
+%% \show{transformer3}
+
+}
+
+~\tiny
+
+[details out of scope for now (you'd need to learn about the functions that are building blocks of typical NN computation graphs)]
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+A core part of being a 'deep learning expert' is in defining models (=computation graphs) and experience in interpreting/debugging/tweaking their training behavior
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Models}{\label{lastpage}
+
+\item In Machine Learning:
+\begin{items}
+\item The word \textbf{model} denotes the computation graph (the overall function from inputs to outputs)
+\item E.g.: language \emph{model}, foundation \emph{model}, NN \emph{model}, models in pyTorch.
+\end{items}
+
+~
+
+\item In AI, decision making, Reinforcement Learning, Robotics:
+\begin{items}
+\item The word \textbf{model} is \emph{also} used to refer to the world model, system dynamics model, or ``explicit model of the problem''
+\item E.g.: Model-based vs.\ model-free RL, model-based reasoning/planning/solving
+\item That model can be known (prior knowledge, e.g.\ physics model) or learnt form data
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slidesfoot

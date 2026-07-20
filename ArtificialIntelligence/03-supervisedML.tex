@@ -1,0 +1,1090 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Artificial Intelligence}
+\renewcommand{\coursepicture}{course_ai}
+\renewcommand{\coursedate}{Summer 2026}
+
+\renewcommand{\topic}{Supervised Machine Learning}
+\renewcommand{\keywords}{(Overview)}
+
+\providecommand{\pa}{\theta}
+
+\slides
+
+\slidestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \story{
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Outline}{
+
+\item What is supervised ML?
+
+\item Loss and Regularization
+\begin{items}
+\item For regression: sqr.\ error, robust loss functions (Huber, etc)
+\item For classification: discriminative function, nnl, cross-entropy, hinge
+\item Regularization: Overfitting, ridge, Lasso, dropout, (advanced: Bayesian view)
+\end{items}
+
+\item Models: Linear \& NNs
+\begin{items}
+\item Linear Models: Analytic solution to regression, example features (linear, polynomial, rbf)
+\item NNs: as ``repeating non-linear features''
+\item NN linear operators: matrix multiplication, fully connected, convolution, introducing many parameters
+\item NN non-linear operators: activation function, ReLU, pooling, layer-wise non-linearities
+\item Standard architectures: CNNs, Transformers, ViT
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Background Material}{
+
+\emph{Many materials on ML world-wide -- it's really a matter of taste..}
+
+~\pause
+
+\item Great books:
+\begin{items}
+\item Hastie et al:\emph{The Elements of Statistical Learning: Data Mining, Inference, and Prediction} Springer, 2009.
+\item Bishop, C. M.: \emph{Pattern Recognition and Machine Learning}. Springer, 2006
+\item Bishop \& Bishop: \emph{Deep Learning: Foundations and Concepts}. Springer, 2023
+\end{items}
+
+\item Script:
+\begin{items}
+\item {\tiny\url{https://www.user.tu-berlin.de/mtoussai/teaching/Lecture-MachineLearning.pdf}}
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Supervised ML}
+\slide{Supervised ML}{
+
+\item Given data $D=\{(x_i,y_i)\}_{i=1}^n$ and a parameterized model $f_\t: x \mapsto y$, find
+
+$$\min_\t \underbrace{\sum_{i=1}^n \ell(y_i, f_\t(x_i))}_\text{data loss} ~ + \underbrace{\l R(\t)}_\text{regularization}$$
+
+~
+
+~\pause
+
+\item Lecture Outline:
+\begin{items}
+\item Loss functions for regression
+\item Loss functions for classification
+\item Notes on regularization
+\item Choosing the parameterized model $f_\t$: ~ linear models \& neural architectures
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\sublecture{Regression}{
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Regression}{
+
+\hspace*{-10mm}
+\cen{\showh[.25]{codepics/linReg}\quad\showh[.25]{codepics/linRegSin}}
+
+\hfill{\tiny\texttt{./x.exe -mode 1 -dataFeatureType 1 -modelFeatureType 1}}
+
+~\pause
+
+\item Data: $D=\{(x_i,y_i)\}_{i=1}^n$ with inputs $x_i\in\RRR^d$ and outputs $y_i\in\RRR$
+\item Fitting a parameteric model by using the squared error loss $\ell(y, \hat y) = (y-\hat y)^2$:
+$$\min_\t \sum_{i=1}^n (y_i - f_\t(x_i))^2$$
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\item[] Alternative, ``outlier robust'' loss functions for regression:
+
+~
+
+\twocol{.5}{.4}{
+
+\footnotesize
+
+\item \emph{Forsyth}: $\ell(r)=\frac{r^2}{a^2+r^2}$, ~ with  $r = y_i - f_\t(x_i)$
+
+\item \emph{Huber}:
+$\ell(r)
+=\begin{cases}
+r^2/2 & \text{if $|r|\le c$} \\
+c|r| - c^2/2 & \text{else}
+\end{cases}$
+
+\item Less used:
+\begin{items}
+\item Cauchy: $\ell(r) = a^2/2 \log (1+r^2/a^2)$
+\item Beaton \& Turkey: const for $|r|>a$, cubic inside
+\end{items}
+
+}{
+
+\show[1]{robustErrorFunctions}
+
+}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\sublecture{Classification}{
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Classification}{
+
+\hspace*{-10mm}
+\cen{\showh[.25]{codepics/quad3Class}\quad
+\showh[.5]{codepics/quad3Class2}}
+
+\item Data: $D=\{(x_i,y_i)\}_{i=1}^n$ with inputs $x_i\in\RRR^d$ and outputs $y_i\in\{1,...,M\}$ ($M$ classes)
+
+\pause
+\begin{items}
+\item Should the model $f_\t$ also map to a discrete output $\in\{1,..,M\}$? ~ (No!)
+\item How should the loss be defined?
+\end{items}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Classification}{
+
+\item Data: $D=\{(x_i,y_i)\}_{i=1}^n$ with inputs $x_i\in\RRR^d$ and outputs $y_i\in\{1,...,M\}$ ($M$ classes)
+
+~
+
+\item \textbf{Discriminative Function} $f_\t$: 
+\begin{items}
+\item We train a model $f: \RRR^d \to \RRR^M$ which outputs a real number $f_y(x)$ for \emph{each} class $y\in\{1,..,M\}$ ~ (for brevity, we write $f_y$ instead of $f_{\t,y}$, omitting the parameter $\t$)
+\item We want that number (the ``discriminative value'') to be high for the correct class, and low for the other classes.
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Classification -- loss functions}{
+
+\item We first transform the $f_y(x)$ to a probability distribution: ~
+$p(y|x) = \frac{e^{f_y(x)}}{\sum_{y'} e^{f_{y'}(x)}}$
+\begin{items}\tiny
+\item For $M=2$ this is called \emph{logistic function}, otherwise also \emph{softmax}
+
+\item This is a standard transformation from \emph{energies to probabilities}: The Boltzmann distribution over $y$ given energies $f_y$ (for fixed $x$). See
+{\tiny\url{https://www.user.tu-berlin.de/mtoussai/notes/energy.html}}.
+
+Conversely, the discriminative values $f_y(x)$ can also be interpreted as energy values over different classes.
+\end{items}
+
+\pause
+
+\item \textbf{Neg-Log-Likelihood}: $\ell(y, f(x)) = -\log p(y|x)$
+
+\pause
+
+\item \textbf{Cross-Entropy}: $\ell(y,f(x)) = -\sum_z h_y(z) \log p(z|x)$ \begin{items}\tiny
+\item When saying ``cross-entropy loss'', we usually assume  $h_y(z) = [y=z]$ is a one-hot-encoding of the target class $\to$ \textbf{cross-entropy becomes equal to neg-log-likelihood.}
+
+\item pyTorch: choosing \texttt{nn.CrossEntropyLoss()} loss is equivalent to chaining a SoftMax with a Neg-Log-Likelihood loss -- no need to SoftMax yourself in the last layer.
+\item see the ``classifier'' part of the ``blitz tutorial'': {\tiny\url{https://pytorch.org/tutorials/beginner/blitz/cifar10_tutorial.html}}
+%% \item So, just define your model to output real numbers (energies, discriminative values) and use  \texttt{nn.CrossEntropyLoss()}
+\end{items}
+
+\pause
+
+\item \textbf{Hinge}: $\ell(y, f(x)) =  \sum_{y'\not=y} [1 - (f_{y^*}(x)-f_{y'}(x))]_+$ ~ \tiny (was standard for ``Support Vector Machines'')
+
+%% \hfill{\tiny\texttt{
+%%  ./x.exe -mode 3 -d 2 -n 200 -modelFeatureType 3 -lambda 1e+1}}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\sublecture{Regularization}{
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+recall:
+
+\item Given data $D=\{(x_i,y_i)\}_{i=1}^n$ and a parameterized model $f_\t: x \mapsto y$, find
+
+$$\min_\t \underbrace{\sum_{i=1}^n \ell(y_i, f_\t(x_i))}_\text{data loss} ~ + \underbrace{\l R(\t)}_\text{regularization}$$
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Regularization}{
+
+~
+
+\item Overfitting:\anchor{150,-10}{\showh[.3]{overfitting}}
+\begin{items}
+\item Low loss on the data does not necesarily mean that the model \textbf{generalizes} well to novel data
+\end{items}
+
+\pause
+
+\item Classically, regularization penalizes large weights/parameters:
+\begin{items}
+\item $L_2$ (Ridge): ~ $R(\t) = \norm{\t}_2^2$
+\item $L_1$ (Lasso): ~ $R(\t) = \norm{\t}_1$
+\item See Hastie or ML script on why this reduces the \emph{estimator variance}... but introduces a \emph{bias}; read on bias-variance-tradeoff
+\end{items}
+
+\item In neural networks:
+\begin{items}
+\item \emph{Dropout} became a standard way (details in appendix slides)
+\item More classically, \emph{weight decay} was used, which relates to $L_2$ regularization
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Bayesian View}{
+
+\item Bayes rule relating the model parameter $\t$ to the data $D$:
+$$P(\t|D) = \frac{P(D|\t)~ P(\t)}{P(D)}$$
+
+\begin{items}
+\item $P(D|\t)$ is called likelihood. For data $D=\{(x_i,y_i)\}_{i=1}^n$ we have
+\begin{align*}
+P(D|\t) &= \Prod_{i=1}^n p(y_i,x_i|\t) = \Prod_{i=1}^n p(y_i|x_i,\t) p(x_i) \\
+\log P(D|\t) &= \Sum_{i=1}^n \log p(y_i|x_i,\t)  + \text{const.\ indep.\ $\t$}
+\end{align*}
+\item For classification this is \emph{exactly} our data loss. (Also for regression with Gaussian noise)
+\end{items}
+\pause
+\item Supervised ML  as finding \emph{the maximum aposteriori parameter $\t$}:
+\begin{align*}
+&\min_\t \sum_{i=1}^n \ell(y_i, f_\t(x_i)) ~ + \l R(\t) \\
+\max_\t \log P(\t|D) = &\max_\t \sum_{i=1}^n \log p(y_i|x_i,\t) ~ + \log P(\t)
+\end{align*}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+recall:
+
+\item Given data $D=\{(x_i,y_i)\}_{i=1}^n$ and a parameterized model $f_\t: x \mapsto y$, find
+
+$$\min_\t \underbrace{\sum_{i=1}^n \ell(y_i, f_\t(x_i))}_\text{data loss} ~ + \underbrace{\l R(\t)}_\text{regularization}$$
+
+~
+
+~
+
+\item So far we discussed $\ell$ and $R$ -- but what is the parameterized model $f_\t$?
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\sublecture{Linear Models}{
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\cen{
+\showh[.35]{codepics/cubicReg-compressed}
+\quad
+\showh[.35]{codepics/kernelRidgeClass}
+}
+
+\small
+
+\item Are these models linear?
+
+\pause
+
+\item Linear in \emph{what?}
+\begin{items}
+\item Input: ~ No.
+\item Parameters: ~ Yes!
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Linear Models}{
+
+\item It is a very powerful approach to define the model $f_\t(x)$ \emph{linear in parameters} $\t$:
+
+$$f_\t(x) = \sum_{j=1}^h \phi_j(x)~ \t_j = \phi(x)^\T \t$$
+
+\begin{items}
+\item This model has $h$ parameters $\t\in\RRR^h$
+\item The arbitrary (also non-linear) functions $\phi_j(x)$ are called \textbf{features} ~ ($\phi: \RRR^d \mapsto \RRR^h$)
+\item So the model is also linear in features
+\end{items}
+
+\pause
+
+\item Analytic solution to regression:
+\begin{align*}
+L(\t) &= \Sum_{i=1}^n (y_i - \phi(x_i)^\T \t)^2 + \l \t^2 = \norm{y - X \t}^2  + \l \t^2\\
+\argmin_\t L(\t) &= (X^\T X + \l \Id)^\1 X^\T y\comma
+\text{with}~ X = \mat{c}{\phi(x_1)^\T \\ \vdots \\ \phi(x_n)^\T}\in\RRR^{n\times h}
+\end{align*}
+\begin{items}
+\item Also highly efficient methods for classification (Newton iterations)
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Polynomial Features}{
+
+\small
+
+\item Linear: $\phi(x) = (1,x_1,..,x_d)~ \in\RRR^{1+d}$
+
+\item Quadratic: $\phi(x) = (1,x_1,..,x_d,x_1^2,x_1x_2,x_1x_3,..,x_d^2)~ \in\RRR^{1 + d + \frac{d(d\po)}{2}}$
+
+\item Cubic: $\phi(x) =
+   (..,x_1^3,x_1^2x_2,x_1^2x_3,..,x_d^3)~ \in\RRR^{1 + d + \frac{d(d\po)}{2} + \frac{d(d\po)(d\pt)}{6}}$
+
+~
+
+\show[.35]{features}
+
+%% ~
+
+%% \hfill\tiny\texttt{./x.exe -mode 1 -dataFeatureType 1 -modelFeatureType 1}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Piece-wise Features (in 1D)}{
+
+\small
+
+\item Piece-wise constant: $\phi_j(x) = [\xi_j < x \le \xi_{j\po}]$
+
+\item Piece-wise linear: $\phi_j(x) = (1, x)^\T~ [\xi_j < x \le \xi_{j\po}]$
+
+\item Continuous piece-wise linear: $\phi_j(x) = [x-\xi_j]_+$ \quad
+(and $\phi_0(x)=x$)
+
+~
+
+\show[.35]{pieceWiseLinear}
+{\tiny\vspace*{-5mm}\hfill [Hastie et al.]}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Radial Basis Functions (RBF) Features}{
+
+\small
+
+\item Given a set of centers $\{c_j\}_{j=1}^h$, define
+$$\phi_j(x) = b(x,c_j) = e^{-\half \norm{x-c_j}^2/l^2} ~\in[0,1]$$
+Each $\phi_j(x)$ measures similarity with the center $c_j$
+
+~
+
+\item Special case:
+
+\centerline{\emph{use all training inputs $\{x_i\}_{i=1}^n$ as
+centers}}
+
+~
+
+\cen{$\phi(x) = \mat{c}{1\\b(x,x_1)\\\vdots\\b(x,x_n)} \quad \in \RRR^{n+1}$}
+
+%% $\To$ \quad $X_{ij} = K(x_i,x_j)$ and $\hat \b^{\text{ls}} = (\vec K^\T \vec K)^\1 \vec K^\T y$
+~
+
+{\small This is related to ``kernel methods'' and Gaussian Processes, but not quite
+        the same.}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\sublecture{Neural Nets}{
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Neural Nets as ``Repeating Non-linear Features''}{
+
+\newcommand{\nlin}{\underset{\rotatebox{-90}{\tiny $\leftarrow$nlin}}}
+\newcommand{\lin}{\underset{\rotatebox{-90}{\tiny $\leftarrow$lin}}}
+
+\item Linear model (i.e., a model linear in parameters $\b$):
+$$f_\t(x) = \underbrace{\b~{}^\T}_{\rotatebox{-90}{\tiny $\leftarrow$lin}}\nlin{\phi}(x)$$
+
+\pause
+
+\item Model that repeats non-linear and linear parts:
+$$f_\b(x) = \lin{W_3}~ \nlin\s\[~ \lin {W_2}~\nlin\s[~ \lin {W_1} ~\nlin\s(x) ~] ~\] $$
+
+{\tiny Where the matrices $W_l$ are the parameter $\t=(W_1,W_2,W_3)$. The model is not linear in $\t$ anymore.}
+
+\pause
+
+\item Neural Nets also have bias parameters, and skip first $\s$. Def. of a \textbf{3-layer NN}:
+$$f_\b(x) = \lin{W_3}~ \nlin\s\[~ \lin {W_2}~\nlin\s[~ \lin {W_1} ~x + b_1 ~] + b_2 ~\] + b_3 $$
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Neural Nets as ``Repeating Non-linear Features''}{
+
+~
+
+\twocol{.45}{.45}{
+\showh[1]{NeuralNet-new-regression}
+}{
+%\only<2>{\show{NeuralNet-new-classification}}
+\showh[1]{NeuralNet-new-NN}
+}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\item The view of Neural Nets as ``Repeating Non-linear Features'' connects to classical linear models
+
+~
+
+\item The view of Neural Nets as \textbf{Computation Graphs} which provide AutoDiff to optimize over parameters $\t$ is more general
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\sublecture{NN architecture essentials}{
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Convolutional NN}
+\slide{Common Linear Operators}{
+
+\small
+
+\item Fully connected $x\in\RRR^h\mapsto z\in\RRR^{h'}$: Matrix multiplication $z_i = \sum_{j=1}^h W_{ij} x_j + b_i$
+\begin{items}
+\item Each $z_i$ depends on each $x_j$; (analogy of the connectivity (dendrites/axon) between neurons)
+\item $z\in\RRR^{h'}$ has arbitrary size $h'$, depending on matrix size $W\in\RRR^{h'\times h}$
+\end{items}
+
+\medskip
+
+\item Single-channel Convolution (1D) $x\in\RRR^h\mapsto z\in\RRR^h$: $z_i = \sum_{d=-s}^{+s} w_d~ x_{i+d}$
+\begin{items}
+\item Each $z_i$ depends on a ``receptive field'' $(x_{i-s},..,x_{i+s})$ of width $2s+1$/
+For this to be well-defined at the borders, \emph{$x$ needs padding with zeros!}
+\item The weights $w_d$, $d=-s,..,s$, are shared between all $z_i$, and are called \emph{kernel}.
+\item Compare to continuous convolution $(f*g)(t) = \int g(\tau) f(t+\tau) d\tau$ with kernel $g$.
+\end{items}
+
+\medskip
+\item Multi-channel Convolution (1D) $x\in\RRR^{h\times c}\mapsto z\in\RRR^{h'\times c'}$:  $z_{ik} = \sum_{d=-s}^{+s} \sum_l W_{kdl}~ x_{i+d,l}$
+\begin{items}
+\item $x$ has $c$ input channels, $z$ had $c'$ output channels
+\item each channel $z_{\cdot k}$ has a different convolution kernel $W_{k\cdot\cdot}$ (encodes a different feature) which covers all input channels
+\end{items}
+
+\cen{\textbf{All linear operators describe ``connectivity'' and introduce parameters (weights $W_{...}$)}}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Convolutions over 2D Images}{
+
+\twocol{.55}{.35}{
+
+~\small
+
+%% \item Standard fully connected layer: full matrix $W_l$ has $h_l h_{l\1}$ parameters, so that $z_l = W_l x_{l\1}$ 
+
+\item Single-channel input and output:
+\begin{items}
+\item Each output value $z_{ij}$ receives input from $k \times k$ input values (a square receptive field)
+\item All outputs \emph{share} these parameters (called convolutional kernel) $\to$ \textbf{translation invariance}. The whole layer only has $k^2$ parameters.
+\end{items}
+
+\item Multi-channel input and output:
+\begin{items}
+\item The input is $\RRR^{H\times W \times C}$, the output $\RRR^{H\times W\times C'}$
+\item $z_{ijc'}$ receives input from $k\times k \times C$ input values (the receptive field is a block over all input channels)
+\item Each output channel has a different kernel (represents a different feature). The whole layer has $C' C k^2$ parameters.
+\end{items}
+
+\item Stride means downsampling. Padding at borders is stardard to keep the $H\times W$ size.
+
+%% ~
+
+%% \item Pooling applies a predefined operation on the receptive field (no parameters): max or average. Typically for downsampling.
+
+}{
+
+\show[.8]{convolutions}
+
+\ttiny\centering
+
+Source \& animations:\\
+\url{https://github.com/vdumoulin/conv_arithmetic}
+
+}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Common Non-Linear Operators}{
+
+\medskip
+
+\item Element-wise non-linearities: (classically: ``activation functions'')
+\begin{items}
+\item rectified linear unit (ReLU): $\s(x) = [x]_+ = \max\{0,x\}$ % = x [x\ge 0]$
+\item leaky ReLU: $\s(x) = \max\{0.01x, x\}$ % =  \begin{cases} 0.01 x & x<0 \\ x & x\ge 0\end{cases}$
+\item sigmoid, logistic: $\s(x) = 1/(1+e^{-x})$ ~ [old'ish:  tanh: $\s(z) = \tanh(z)$]
+\end{items}
+
+\item Pooling non-linearity:
+\begin{items}
+\item max-pooling: map multiple activations to just one: their max (reduces layer size!)
+\item E.g., $s$-max in 1D case: $z_i = \max\{x_{i/s+1},..,x_{i/s+s}\}$  (Similar to convolution, but taking max.)
+\end{items}
+
+\item Layer-wise non-linearities:
+\begin{items}
+\item soft-max: given layer $z\in\RRR^h$, map to $x\in \RRR^h$ with $x_i = \frac{e^{z_i}}{\sum_j e^{z_j}}$
+\item layer-norm: given a layer $z\in\RRR^h$, compute mean $\mu$ and variance $\s^2$ of $z$, and map to $x_i = w \circ \frac{z_i - \m}{\sqrt{\s^2+\e}} + b$, with elem-wise parameters $w, b\in\RRR^h$
+\end{items}
+
+\medskip
+
+\cen{\textbf{Non-linear operators usually do not introduce parameters}}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Example: CNN structures}{
+
+~
+
+\show[1]{AlexNet}
+\hfill AlexNet (NeurIPS'12)
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Example: Deep Residual Networks}{
+
+~
+
+\show[.9]{ResNet}
+\hfill Residual Networks (CVPR'16)
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{Example: Deep ResNet structures}{
+
+%% ~
+
+%% \show{ResNeXt}
+%% \hfill ResNeXt (CVPR'17)
+
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{LSTM}
+\slide{Recurrent Networks: Long Short-Term Memory (LSTM)}{
+
+\small
+\item Given an input time series $x_t$, process (e.g., memory) and predict an output time series $y_t$
+\anchor{-110,-60}{\showh[.3]{recurrentNN}}
+
+~
+
+~
+
+\showh[.65]{LSTM}\\
+\hfill{\tiny (Hochreiter, Schmidthuber, 1997)}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{LSTM \& Gated Recurrrent Units}{
+
+~\small
+
+\item LSTM
+\begin{items}
+\item $c$ is a memory signal, that is multiplied with a sigmoid signal $\G_f$. If that is saturated ($\G_f \approx 1$), the memory is preserved; and backpropagation copies gradients back
+
+\item If $\G_i$ is close to 1, a new signal $\tilde c$ is written into memory
+
+\item If $\G_o$ is close to 1, the memory contributes to the normal neural activations $a$
+\end{items}
+
+~
+
+\item Gated Recurrent Units:
+\begin{items}
+\item Cleaner and more modern: Gated Recurrent Units
+\item but perhaps just similar performance
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Transformer}{
+
+~\small
+
+\item Original work: ``Attention is all you need'' (NeurIPS'17), but I recommend first learning about encoder only, e.g.:
+
+~
+
+\item ``An image is worth 16$\times$16 words'' (ICLR'21)
+\show[.7]{transformer4b}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Transformer -- the internals}{
+
+\twocol[.02]{.5}{.45}{
+
+\showh[.8]{transformer-full}
+
+}{
+
+\tiny 
+\item J.~Thickstun ('21): The Transformer Model in Equations\\
+\show[.9]{transformer2}
+
+%% \pause
+
+%% \item PaLM-E (Driess, ICML'23)\\
+%% \show{transformer3}
+
+}
+
+~
+\begin{items}\tiny
+\item Weights $W, W', w$ as well as encoder weights $E$ are shared among all columns
+\item Therefore, except for the position encoding $p_i$, everything is permutation invariant
+\item Attention matches (=scalar product) queries $q$ with keys $k$ from other columns to get attention $\a$, which multiplies to value $v$ to feed into $u'$
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\slide{Transformer -- Encoder/Decoders}{
+
+~\footnotesize
+
+\twocol[.02]{.45}{.45}{
+
+\show[.9]{transformer}
+
+}{
+
+\item Encoder (e.g.\ ViT):
+\begin{items}
+\item Map $\hat x_{1:T}$ to single output $z^L_*$ or $p(y|\hat x_{1:T})$
+\item The ``0th column'' (BERT) accumulates all info via attention
+\end{items}
+
+\item Decoder (e.g.\ for language generation):
+\begin{items}
+\item Output a sequence of tokens, potentially conditional to external $z$
+\end{items}
+
+\item Encoder+Decoder (e.g.\ language translation):
+\begin{items}
+\item Map sequence-to-sequence: encoding input sequence to latent $z$, decoding conditional to $z$
+\end{items}
+
+}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\small
+
+\item Original work: ``Attention is all you need'' (NeurIPS'17)
+
+\show[.3]{transformer1}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Transformer}{
+
+\item Special about the transformer architecture:
+\begin{items}
+\item Neglecting the position embedding, the architecture is fully \textbf{permutation invariant} -- treating the set of input tokens really as a \emph{set}.
+\item It does not a-priori assume that the tokens are strictly linearly ordered (in contrast to time series models) or grid-wise ordered (in contrast to vision models). Instead \emph{by training the position embeddings it learns such order} (read the ViT paper).
+\item The ``attention'' mechanism provides cross-talk between tokens (the columns above each token); together with the position embedding it can learn the interdependence of tokens -- much more generally than just assuming linear structure (in text) or grid structure (in images).
+\end{items}
+
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Discussion}{
+
+\item All these NN architectures are just parameterized models $f_\t(x)$
+
+\item Training all these NN architectures is typically done in the same manner
+\begin{items}
+\item empirical risk (loss) minimzation $\pa^* = \argmin_\pa \sum_{i=1}^n \ell(f_\pa(x_i), y_i)$
+\item Exploiting \textbf{AutoDiff} through the computation graph, and gradient-based optimization algorithms
+\end{items}
+
+~
+
+\item The \emph{advances} are in the formulation of the computation graphs
+\begin{items}
+\item Novel programming languages like pyTorch enable creativity to conceive of novel $f_\t(x)$
+\end{items}
+\item Sometimes also in the creativity to define novel loss functions
+\begin{items}
+\item e.g. GANs, diffusion models
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Appendix: Things that matter in practice}{
+
+\item Initialization
+
+\item Regularization
+
+\item Data Augmentation
+
+\item Batch Training
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{NN initialization}
+\slide{Initialization}{
+
+\small
+
+\item Choose random weights that don't grow or vanish the gradient:
+\begin{items}
+\item E.g., initialize weight vectors in $W_{l,i\cdot}$ with standard deviation $1$, i.e., each entry with sdv $\frac{1}{\sqrt{h_{l\1}}}$
+\item Roughly: If each element of $z_l$ has standard deviation $\epsilon$, the same should be true for $z_{l\po}$.
+\end{items}
+\hfill{\tiny ``On the importance of initialization..'' (ICML'13)}
+
+\medskip
+
+\item Choose each weight vector $W_{l,i\cdot}$ to point in a uniform random direction $\to$ same as above
+
+\medskip
+
+\item Choose biases $b_{l,i}$ randomly so that the ReLU hinges cover the input well (think of distributing hinge features for continuous piece-wise linear regression)
+
+~
+
+\item Using pre-trained networks:
+\begin{items}
+\item ImageNet5k,  AlexNet, VGG (arxiv'14), ResNet, ResNeXt
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{NN regularization}
+\key{NN Dropout}
+\slide{New types of regularization}{
+
+\item Conventionally: add a $L_2$ or $L_1$ regularization.
+\begin{items}
+\item adds a penalty $\l W_{l,ij}^2$ (Ridge) or $\l|W_{l,ij}|$ (Lasso) for every weight
+\item In practise, compute the unregularized gradient as usual, then add $\l W_{l,ij}$ (for $L_2$),
+or $\l\sign{W_{l,ij}}$ (for $L_1$) to the gradient
+\item Historically, this is called \textbf{weight decay}, as the additional gradient (executed after the unregularized weight update) just decays weights
+\end{items}
+
+\item Core modern approach: Dropout
+\begin{items}
+\item (see next slide)
+\end{items}
+
+\item Others:
+\begin{items}
+\item Data Augmentation
+\item Training ensembles, bagging (averaging bootstrapped models)
+\item Additional embedding objectives (e.g.\ semi-supervised embedding)
+\item Early stopping
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Dropout}{
+
+\item What is dropout?
+
+\begin{items}
+\item During both, forward passing and gradient computation, pretend that randomly selected ``neurons'' would not exist
+\item For each entry $i$ in each layer $x_{l,i}$, decide with probability $p$ ($\approx .5$) whether it drops out: set the respective activation $x_{l,i}$, and gradient $\l_{l,i}$, equal to zero
+\item At prediction time, ``average'' dropouts, i.e., multiply each activation $x_{l,i}$ with $p$
+\end{items}
+
+\item Theoretial foundation?
+\begin{items}
+\item Each dropout pattern defines another network. We have a random ensemble of networks, sharing parameters, each of which is trained on the same task. Eventually, we want to average of this ensemble.
+\item \emph{Srivastava et al: Dropout: a simple way to prevent neural networks from overfitting, JMLR 2014.}
+\item ``a way  of  approximately  combining  exponentially  many  different  neural  network architectures efficiently''
+\item ``$p$ can  simply  be  set  at  0.5,  which  seems  to  be  close  to  optimal  for  a  wide  range  ofnetworks and tasks''
+%\item on test/prediction time, take true averages
+\end{items}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{data augmentation}
+\slide{Data Augmentation}{
+
+\item A very interesting form of regularization is to modify the data!
+
+\item Generate more data by applying invariances to the given data. The model then learns to generalize as described by these invariances.
+
+\item This is a form of regularization that directly incorporates expert knowledge
+
+~
+
+\show[.6]{dataAugmentation}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Optimization with Mini Batches}{
+
+\item For small data size:
+
+We can compute the loss and its gradient $\sum_{i=1}^n \nabla_\pa \ell(f_\pa(x_i), y_i)$.
+\begin{items}
+\item Use classical gradient-based optimization methods
+\item default: L-BFGS, oldish but efficient: Rprop
+\end{items}
+
+~
+
+\item For large data size: \quad The $\sum_{i=1}^n$ is highly inefficient!
+\begin{items}
+\item Adapt weights based on much smaller data subsets, \textbf{mini batches}
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Stochastic Gradient Descent}
+\slide{Stochastic Gradient Descent}{
+
+\item Compute the loss and gradient for a mini batch $\hat D \subset D$ of fixed size $k$.
+\begin{align*}
+\LL(\pa,\hat D)
+&= \sum_{i\in\hat D} \ell(f_\pa(x_i), y_i) \\
+\nabla_\pa \LL(\pa,\hat D)
+&= \sum_{i\in\hat D} \nabla_\pa \ell(f_\pa(x_i), y_i)
+\end{align*}
+
+\item Naive Stochastic Gradient Descent iterates
+\vspace*{-2ex}
+$$\pa \gets \pa - \eta \nabla_\pa \LL(\pa,\hat D)$$
+\vspace*{-4ex}
+\begin{items}
+\item Choice of learning rate $\eta$ is crucial for convergence!
+\item Exponential cooling: $\eta = \eta_0^t$
+\end{items}
+
+{\tiny Yurii Nesterov (1983): \emph{A method for solving the convex programming problm with convergence rate $O(1/k^2)$}
+
+}
+
+\item Modern SGD versions (Adam and Nadam) make this more efficient. See appendix.
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \key{Historical Discussion}
+%% \slide{Historical discussion}{
+
+%% (This is completely subjective.)
+%% \anchor{130,-20}{\href{http://link.springer.com/journal/10994/82/3/page/1}{\showh[.15]{ML-25th.jpg}}}
+
+%% \item Early (from 40ies):
+%% \begin{items}
+%% \item McCulloch Pitts, Hebbian learning, Rosenblatt, Werbos (backpropagation)
+%% \end{items}
+
+%% \item 80ies:
+%% \begin{items}
+%% \item Start of connectionism, NIPS
+%% \item ML wants to distinguish itself from pure statistics (``machines'', ``agents'')
+%% \end{items}
+
+%% \item '90-'10:
+%% \begin{items}
+%% \item More theory, better grounded, Statistical Learning theory
+%% \item Good ML is pure statistics (again) (Frequentists, SVM)
+%% \item ...or pure Bayesian (Graphical Models, Bayesian X)
+%% \item sample-efficiency, great generalization, guarantees, theory
+%% \item Great successes, in applications across disciplines; supervised, unsupervised, structured
+%% \end{items}
+
+%% \item '10-'20:
+%% \begin{items}
+%% \item Big Data. NNs. Size matters. GPUs.
+%% \item Disproportionate focus on images
+%% \item Software engineering becomes central
+%% \end{items}
+
+%% }
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{}{
+
+%% \item NNs did not become ``better'' than they were 20y ago. What changed is the metrics by which they're are evaluated:
+
+%% \pause
+
+%% \item Old:
+%% \begin{items}
+%% \item Sample efficiency \& generalization; get the most from little data
+%% \item Guarantees (both, w.r.t.\ generalization and optimization)
+%% \item \textbf{generalize} much better than nearest neighbor
+%% \end{items}
+
+%% \item New:
+%% \begin{items}
+%% \item Ability to cope with billions of samples
+%% \item[$\to$] no batch processing, but \textbf{stochastic} optimization (Adam) without monotone convergence
+%% \item[$\to$] nearest neighbor methods infeasible, \textbf{compress} data into high-capacity NNs
+%% \end{items}
+
+%% %% Old:
+%% %% \begin{items}
+%% %% \item Sample efficiency \& generalization; get the most from little data
+%% %% \item Guarantees (both, w.r.t.\ generalization and optimization)
+%% %% \item Being only as good as a nearest neighbor methods is embarrasing
+%% %% \end{items}
+
+%% %% New:
+%% %% \begin{items}
+%% %% \item Ability to cope with billions of samples $\to$ no batch processing, but stochastic optimization
+%% %% \item Happy to end up in some local optimum. (Theory on ``every local optimum of a large deep net is good''.)
+%% %% \item Stochastic optimization methods (Adam) without monotone convergence
+%% %% \item Nobody compares to nearest neighbor methods -- nearest neighbor on 1B data points is too expensive anyway. I guess that it'd perform very well (for a descent kernel) and a NN could be glad to perform equally well
+%% %% \end{items}
+
+%% }
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{NNs vs.\ nearest neighbor}{
+
+%% \small
+
+%% \item Imagine an autonomous car. Instead of carrying a neural net, it carries 1 Petabyte of data (500 hard drives, several billion pictures). In every split second it records an image from a camera and wants to query the database to returen the 100 most similar pictures. Perhaps with a non-trivial similarity metric. That's not reasonable!
+
+%% \item In that sense, NNs are much better than nearest neighbor. They store/compress/memorize huge amounts of data. Sample efficiency and the precise generalization behavior beome less relevant.
+
+%% \item That's how the metrics changed from '90-'10 to nowadays
+
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{Images \& Time Series}{
+
+%% \item My guess: 90\% of the recent success of NNs is in the areas of images or time series
+
+%% \item For images, convolutional NNs (CNNs) impose a very sensible prior; the representations that emerge in CNNs are in fact similar to representations in the visual area of our brain.
+
+%% \item For time series, long-short term memory (LSTM) networks represent long-term dependencies in a way that is well trainable -- something that is hard to do with other model structures.
+
+%% \item Both these structural priors, combined with huge data and capacity, make these methods very strong.
+
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{\label{lastpage}
+
+More details on stochastic gradient descent, e.g.\ Adam
+
+$\to$ \emph{Optimization Algorithms} course
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slidesfoot

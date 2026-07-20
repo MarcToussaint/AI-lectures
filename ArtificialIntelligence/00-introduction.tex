@@ -2,12 +2,16 @@
 
 \renewcommand{\course}{Artificial Intelligence}
 \renewcommand{\coursepicture}{course_ai}
-\renewcommand{\coursedate}{Summer 2023}
+\renewcommand{\coursedate}{Summer 2026}
 
 \renewcommand{\topic}{Introductory Slides}
 \renewcommand{\keywords}{}
 
 \slides
+
+\providecommand{\info}[1]{\smallskip{\ttiny [#1]\par}}
+
+\slidestitle
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -29,18 +33,17 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\slide{}{
+\slide{What is AI about?}{
 
-\cen{What is AI about?}
+\pause
 
-~\pause
-
-\item best answer: look at papers from AI conferences:
+\item best answer: look at papers from AI conferences!
 \begin{items}
 \item NeurIPS \url{https://nips.cc/} (Neural Information Processing Systems)
-\item CoRL \url{https://corl2022.org/} (Conference on Robot Learning)
+\item CoRL \url{https://corl.org/} (Conference on Robot Learning)
 \item IJCAI \url{https://www.ijcai.org/} (Int. Joint Conf. on Artificial Intelligence)
-\item AAAI \url{https://aaai-23.aaai.org/} (AAAI Conf. on Artificial Intelligence)
+\item UAI \url{https://www.auai.org/uai2025/} (Conference on Uncertainty in Artificial Intelligence)
+\item AAAI \url{https://aaai.org/conference/} (AAAI Conf. on Artificial Intelligence)
 \item AISTATS \url{http://aistats.org} (Conference on Artificial Intelligence and Statistics)
 \item ICLR \url{https://iclr.cc/} (Int. Conf. on Learning Representations)
 \item ICML \url{https://icml.cc/} (Int. Conf. on Machine Learning)
@@ -50,7 +53,7 @@
 \begin{items}
 \item \url{https://scholar.google.de/citations?view_op=top_venues&vq=eng_artificialintelligence}
 \item \url{https://airankings.org/}
-\item \url{https://airankings.professor-x.de/}
+%% \item \url{https://airankings.professor-x.de/}
 \end{items}
 
 }
@@ -59,45 +62,20 @@
 
 \slide{}{
 
-\item[$\to$] AI is a very broad research field, including a zillion of problem settings, theory \& applications
-
-\item[$\to$] AI research is broadly about understanding and creating all kinds of learning, reasoning, inferring, and deciding systems, as well as understandings the mathematical, statistical, and algorithmic foundations of such systems.
+\item I.e., I think of AI as a very broad \emph{research field}, not ``\emph{a thing/machine}''
 
 ~\pause
 
-\item AI is not about ``creating the one AI machine'' -- it's a broad \emph{science}
-
-\item AI is not about ``recreating human I'', or natural I ~ \emph{(It can be a tool for a science of natural intelligence though.)}
-
-}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\slide{}{
-
-\cen{What is AI about?}
-
-~\pause
-
-\item AI as \emph{Decision Making}
-\pause
 \begin{items}
-\item What's the decision space? (class, colorings, paths, sequences, words)
-\item What's the input? (data, model, or both)
-\item What's the objective? (loss fct., constraints)
-\end{items}
+\item AI research includes many different problem settings, theory, methods \& applications
 
-~\pause
+\item AI research is about understanding and creating \emph{all kinds of} learning, reasoning, inferring, and deciding systems, as well as understanding the mathematical, statistical, and algorithmic foundations of such systems
 
-\item For instance: (oversimplified)
-\begin{items}
-\item ``ML: data $\mapsto$ decision'' \qquad (decision$\equiv$function,  where function: $x$ $\mapsto$ prediction/class/word)
-\pause
-\item ``reasoning: model $\mapsto$ decision''
-\pause
-\item ``planning: model $\mapsto$ sequence of decisions''
-\pause
-\item ``RL:~ \raisebox{-3.5mm}{\showh[.15]{dataDecision}}~''
+\medskip\pause
+
+\item AI is not about ``creating the one AI machine'' -- it's a \emph{science} about \emph{all kinds of} ... [see above]
+
+\item AI is not about ``recreating human I'', or natural I ~ \emph{(It can be a tool for a science of natural intelligence though)}
 \end{items}
 
 }
@@ -106,42 +84,155 @@
 
 \slide{}{
 
-\cen{What is AI about?}
+\emph{Three higher level comments about AI:}
 
-~
+}
 
-\item AI research is about \emph{problem formulation}:
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{(1) Model-based Reasoning \& Data-based Learning}{
+
+\item Model-based Reasoning:
 \begin{items}
-\item e.g.\ novel loss functions, novel archtectures (e.g. GANs, transformers), novel formalizations of problems (e.g.\ LGP)
-\item Transferring ``problem ideas'' to concise mathematical definitions
+\item planning, problem solving, logic inference, ``slow''
+\end{items}
+
+\item Data-based Learning:
+\begin{items}
+\item imitate the data, trained policies, ``fast''
 \end{items}
 
 ~
 
-\item AI research is about \emph{solvers}:
+\item In this course we want to learn about both!
 \begin{items}
-\item optimization algos, search algos, probabilistic inference algos, logic solvers
+\item Both are fundamental
+\item Intelligent systems should \emph{combine} both
 \end{items}
 
 }
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\slide{Take Aways}{
+\slide{(2) Defining the Objective}{
 
-~
+\item Most AI problem formulations are about optimization:
+\begin{items}
+\item Minimize a \emph{loss} (error function) on data; Maximize rewards
+\item Some objectives are ``intrinsic'' or information theoretic:
+\begin{items}
+\item minimize complexity, regularization, entropy, maximize information gain, curiosity, entropy
+\end{items}
+\end{items}
 
-\item[1)] AI is about decision making, both, \emph{model-based} (reasoning/planning) and \emph{data-based} (learning)
+~\pause
 
-~
+\item Formulating loss functions or objectives is a central part of AI research
+\begin{items}
+\item[$\to$] In this course we want to learn about the breadth of possible objectives
+\end{items}
 
-\item[2)] AI research is about both, creative problem formulations and solvers
+~\pause
 
-~
-
-\item[3)] AI research is a broad science, aiming to understand all kinds of intelligent systems and their foundations (not a race to \emph{the} AI)
+\item Assuming we had perfect optimizing/learning method -- The core question becomes: \emph{How to choose the objective/loss function}
+\begin{items}
+\item[$\to$] Russell's AI ethics
+\end{items}
 
 }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{(3) Sequential Decisions}{
+
+\item Only some problem formulations acknowledge that decisions may change the state/world
+\begin{items}
+\item Consider sequential decisions, where each ``action'' changes the state (as in planning)
+\item Default ML formulations do not formalize that decisions change a world state
+\item AI (and other fields) developed many sequential decision formalisms:
+\begin{items}
+\item MDPs, RL, control theory, game theory
+\end{items}
+\item In some formulations, decisions influence your state-of-information: POMDPs, active learning, information gain, curiosity,
+\end{items}
+
+~
+
+\item[$\to$] In this course we want to learn also about sequential decision methods
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{}{
+
+%% \cen{What is AI about?}
+
+%% ~\pause
+
+%% \item AI as \emph{Decision Making}
+%% \pause
+%% \begin{items}
+%% \item What's the decision space? (class, colorings, paths, sequences, words)
+%% \item What's the input? (data, model, or both)
+%% \item What's the objective? (loss fct., constraints)
+%% \end{items}
+
+%% ~\pause
+
+%% \item For instance: (oversimplified)
+%% \begin{items}
+%% \item ``ML: data $\mapsto$ decision'' \qquad (decision$\equiv$function,  where function: $x$ $\mapsto$ prediction/class/word)
+%% \pause
+%% \item ``reasoning: model $\mapsto$ decision''
+%% \pause
+%% \item ``planning: model $\mapsto$ sequence of decisions''
+%% \pause
+%% \item ``RL:~ \raisebox{-3.5mm}{\showh[.15]{dataDecision}}~''
+%% \end{items}
+
+%% }
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{}{
+
+%% \cen{What is AI about?}
+
+%% ~
+
+%% \item AI research is about \emph{problem formulation}:
+%% \begin{items}
+%% \item e.g.\ novel loss functions, novel archtectures (e.g. GANs, transformers), novel formalizations of problems (e.g.\ LGP)
+%% \item Transferring ``problem ideas'' to concise mathematical definitions
+%% \end{items}
+
+%% ~
+
+%% \item AI research is about \emph{solvers}:
+%% \begin{items}
+%% \item optimization algos, search algos, probabilistic inference algos, logic solvers
+%% \end{items}
+
+%% }
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{Take Aways}{
+
+%% ~
+
+%% \item[1)] AI is about decision making, both, \emph{model-based} (reasoning/planning) and \emph{data-based} (learning)
+
+%% ~
+
+%% \item[2)] AI research is about both, creative problem formulations and solvers
+
+%% ~
+
+%% \item[3)] AI research is a broad science, aiming to understand all kinds of intelligent systems and their foundations (not a race to \emph{the} AI)
+
+%% }
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -454,14 +545,35 @@
 
 \slide{Contents}{
 
-\item Part 1: Single-Step Decision Making
+\small
+
+\item Prerequisite lectures:
 \begin{items}
-\item Decision Making Basics (Decision Theory, uncertainty, Monte Carlo)
-\item {} [Background lecture on probabilities]
-\item Model-based \& data-based setting
-\item Bandits \& UCB1
-\item Continuous Decisions \& Machine Learning (regression)
+\item Functions, gradients, computation graphs, pytorch
+\item Probabilities
 \end{items}
+
+\item Part 1:
+\begin{items}
+\item Supervised ML
+\item Bandits \& Contextual Bandits ($\oto$ML)
+\item Decision Theory Essentials
+\end{items}
+
+\item Part 2:
+\begin{items}
+\item Sequential Decision Problems
+\item Monte-Carlo Tree Search
+\item Markov Decision Processes
+\item Reinforcement Learning
+\end{items}
+
+\item Discussion Lectures:
+\begin{items}
+\item ``intrinsic'' objectives (information gain, curiosity), Russell's AI Ethics
+\item Combinations of Model-based and Data-based Methods (PINNs, Dyna)
+\end{items}
+
 
 }
 
@@ -469,62 +581,109 @@
 
 \slide{Contents}{
 
-\item Part 2: Sequential Decision Making
+\small
+
+\item Prerequisite lectures:
 \begin{items}
-\item Monte-Carlo Tree Search (MCTS, UCT)
-\item Markov Decision Processes (Bellman, Value and Q-Iteration)
-\item Reinforcement Learning (model-free RL, TD, Q-Learning, batch \& n-step)
+\item Functions, gradients, computation graphs, pytorch
+\item Probabilities
 \end{items}
 
-~
-
-\item Part 3 (might vary)
+\item Part 1:
 \begin{items}
-\item Neural networks \& Computation Graphs
-\item Explainable AI
+\item Supervised ML
+\item Bandits \& Contextual Bandits ($\oto$ML)
 \end{items}
+
+\item Part 2:
+\begin{items}
+\item Sequential Decision Problems
+\item Monte-Carlo Tree Search
+\item Markov Decision Processes
+\item Reinforcement Learning
+\item Decision Theory, Curiosity, \& Value Alignment
+\end{items}
+
+\item Discussion Lectures:
+\begin{items}
+\item Combining Model-based and Data-based Methods (own research!)
+\item Reasoning in LLMs
+\end{items}
+
 
 }
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\slide{Schedule (last year)}{
+%% Games MCTS (UCT) \& hierarchical Bandits
+%% MDPs
+%% RL
 
-\small\centering
+%% \item Part 1: Single-Step Decision Making
+%% \begin{items}
+%% \item Decision Making Basics (Decision Theory, uncertainty, Monte Carlo)
+%% \item {} [Background lecture on probabilities]
+%% \item Model-based \& data-based setting
+%% \item Bandits \& UCB1
+%% \item Continuous Decisions \& Machine Learning (regression)
+%% \end{items}
 
-\begin{tabular}{|c|p{.35\textwidth}|p{.35\textwidth}|}
-\hline
-week & lecture & coding ass./exercise\\
-\hline
-1 & L1: Intro Decision Making \newline L2: Probabilities & CA0 \\
-2 & L3: Bandits & E1: Probabilities \\
-3 & L4: Continuous, ML & CA1 \\
-4 & -- & E2: Bandits, Derivatives \\
-5 & L5: Sequential, MCTS & CA2 \\
-6 & (cont) & E3: Decision Trees, MDP \\
-7 & L6: MDPs, Value Iteration & CA3 \\
-8 & L7: Reinforcement Learning & E4: MDPs, Value Iteration \\
-9 & (cont) & E5: Reinforcement Learning \\
-10 & L8,L9: ML \& NNs & CA 4 \\
-11 & L10: Explainable AI & E6: Computation Graphs\\
-\hline
-\end{tabular}
+%% }
 
-}
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+%% \slide{Contents}{
+
+%% \item Part 2: Sequential Decision Making
+%% \begin{items}
+%% \item Monte-Carlo Tree Search (MCTS, UCT)
+%% \item Markov Decision Processes (Bellman, Value and Q-Iteration)
+%% \item Reinforcement Learning (model-free RL, TD, Q-Learning, batch \& n-step)
+%% \end{items}
+
+%% ~
+
+%% \item Part 3 (might vary)
+%% \begin{items}
+%% \item Neural networks \& Computation Graphs
+%% \item Explainable AI
+%% \end{items}
+
+%% }
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\sublecture{Resources}{
+%% \slide{Schedule (last year)}{
 
-\item Russell \& Norvig\\
-\url{https://aima.cs.berkeley.edu/}\\
-\url{https://people.engr.tamu.edu/guni/csce421/files/AI_Russell_Norvig.pdf}
+%% \small\centering
+
+%% \begin{tabular}{|c|p{.35\textwidth}|p{.35\textwidth}|}
+%% \hline
+%% week & lecture & coding ass./exercise\\
+%% \hline
+%% 1 & L1: Intro Decision Making \newline L2: Probabilities & CA0 \\
+%% 2 & L3: Bandits & E1: Probabilities \\
+%% 3 & L4: Continuous, ML & CA1 \\
+%% 4 & -- & E2: Bandits, Derivatives \\
+%% 5 & L5: Sequential, MCTS & CA2 \\
+%% 6 & (cont) & E3: Decision Trees, MDP \\
+%% 7 & L6: MDPs, Value Iteration & CA3 \\
+%% 8 & L7: Reinforcement Learning & E4: MDPs, Value Iteration \\
+%% 9 & (cont) & E5: Reinforcement Learning \\
+%% 10 & L8,L9: ML \& NNs & CA 4 \\
+%% 11 & L10: Explainable AI & E6: Computation Graphs\\
+%% \hline
+%% \end{tabular}
+
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Resources/Literature}{
 
 ~
 
-\item General Textbooks:\\
-\url{https://www.user.tu-berlin.de/mtoussai/teaching/\#reference-material}
+\item See the ``Literature Recommendations'' on ISIS
 
 }
 
@@ -535,7 +694,7 @@ week & lecture & coding ass./exercise\\
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\slide{ISIS, contact}{
+\slide{Organization}{
 
 \item ISIS as central webpage
 
@@ -543,15 +702,20 @@ week & lecture & coding ass./exercise\\
 
 \cen{\tiny\url{https://www.user.tu-berlin.de/mtoussai/teaching/}}
 
+\item Maths background:
+
+\cen{\tiny\url{https://www.user.tu-berlin.de/mtoussai/teaching/Lecture-Maths.pdf}}
+
 \item TUB Robotics Interest Group:
 
 \cen{\tiny\url{https://isis.tu-berlin.de/course/view.php?id=33668}}
 
 ~
 
-\item Contact
+\item Contact:
 \begin{items}
 \item Office: Ilaria Cicchetti-Nilsson \url{<office@lis.ut-berlin.de>}
+\item Tutor: Dr.\ Sayantan Auddy \url{<auddy@tu-berlin.de>}
 \end{items}
 
 }
@@ -564,12 +728,12 @@ week & lecture & coding ass./exercise\\
 
 \item Lectures, weekly, in person
 
-\item Tutorials, weekly:
+\item Tutorials, weekly. We alternate:
 \begin{items}
-\item Weekly exercise sheets, mix of analytic/coding\\
-Voting system $\to$ present your solutions in the tutorials
-\item Hand-in coding assignments every 2-3 weeks:\\
-Submit your solutions $\to$ are numerically evaluated/graded
+\item \textbf{Exercise sheets:} mix of analytic/coding\\
+\emph{Voting system} $\to$ present your solutions in the tutorials
+\item \textbf{Coding assignments:}\\
+\emph{Hand-in via git} $\to$ are automatically evaluated/graded
 \end{items}
 
 }
@@ -578,20 +742,25 @@ Submit your solutions $\to$ are numerically evaluated/graded
 
 \slide{Assignments \& Exam}{
 
-\item Tutorial exercises are a mix of analytic and coding problems. Voting System:
+\item Voting System for the exercise sheets:
 \begin{items}
-\item When attending a tutorial, students mark in a sheet which exercises they have worked on
+\item Before attending the tutorial, students mark in an ISIS
+questionnaire which exercises they have worked on
 \item Students are randomly selected to present their solutions (no need for correct solutions -- just something to present and discuss)
-\item When not attending: upload pdf notes/solutions on ISIS
+\item When not attending: upload pdf notes/solutions on ISIS \textbf{and} mark in the ISIS questionnaire which exercises you worked on
 \end{items}
 
 ~
 
-\item \textbf{Exam prerequisite:}
+\item \textbf{Exam prerequisites:}
 \begin{items}
-\item at least 50\% votes in the exercises, and
-\item at least 50\% points in the hand-in coding assignments
+\item at least 50\% votes on exercise questions, and
+\item at least 50\% points in hand-in coding assignments
+
+\info{We first compute your vote-\% for each exercise sheet, and then average over sheets. Same for coding assignments.}
+
 \item[] \emph{(Moses: Bestehen der benoteten Programmier- und Hausaufgaben)}
+\item[] \emph{(Exam qualification is valid for 2 years.)}
 \end{items}
 
 ~
@@ -606,6 +775,19 @@ Submit your solutions $\to$ are numerically evaluated/graded
 %% \item We would prefer 25\% coding assignment points, and 75\% exam points
 %% \item We'll compute both grading schemes, your grade is the max (better).
 %% \end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Registration}{
+
+\item Registration for the exam in Moses will open in June
+
+\item To gain the exam prerequisites you'll have to register for the coding
+exercises (will be organized in the second/third week), and submit your votes on the exercise sheets
+
+\item There is no further registration for this course necessary
 
 }
 

@@ -26,7 +26,7 @@ sample $B$ surprises you more and gives you 2 bits of information.
 The entropy
 
 $$\begin{align}
-H(p) &= - \sum_x p(x) \log p(x) = \mathbb{E}_{p(x)}\!\left\{-\log p(x)\right\}
+H(p) &= - \sum_x p(x) \log p(x) = \mathbb{E}_{p(x)} {\mkern-1pt} \left\{-\log p(x)\right\}
 \end{align}$$
 
 is the expected neg-log-likelihood. It is a measure of the distribution
@@ -60,7 +60,7 @@ function.
 The cross-entropy
 
 $$\begin{align}
-H(p,q) = - \sum_x p(x) \log q(x) = \mathbb{E}_{p(x)}\!\left\{-\log q(x)\right\}
+H(p,q) = - \sum_x p(x) \log q(x) = \mathbb{E}_{p(x)} {\mkern-1pt} \left\{-\log q(x)\right\}
 \end{align}$$
 
 is also an expected neg-log-likelihood, but expectation is
@@ -98,7 +98,7 @@ defined as
 $$\begin{align}
 D\big(p\,\big\Vert\,q\big)
 &= \sum_x p(x) \log\frac{p(x)}{q(x)}
- = \mathbb{E}_{p(x)}\!\left\{\log\frac{p(x)}{q(x)}\right\} ~.
+ = \mathbb{E}_{p(x)} {\mkern-1pt} \left\{\log\frac{p(x)}{q(x)}\right\} ~.
 \end{align}$$
 
 Given our definitions above, we can rewrite it as

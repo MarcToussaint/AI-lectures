@@ -6,11 +6,11 @@ Let's first clearly distinguish the use of words *knot*, *waypoint*, and
     assume $t_i \in [0,T]$. For a spline, we have a non-decreasing
     sequence of knots $t_0,..,t_m$ (we assume $t_0=0$ and $t_m=T$) which
     partition the time interval $[0,T]$ into pieces
-    $[t_i, t_{i{ \textrm{+} \mkern-1pt 1}}]$ so that the path is
+    $[t_i, t_{i{\textrm{+} {\mkern-1pt} 1}}]$ so that the path is
     polynomial in each piece. Note that we may often have double or
     triple knots, meaning that several consecutive knots
-    $t_i = t_{i{ \textrm{+} \mkern-1pt 1}}$ are equal, especially at the
-    beginning and end.
+    $t_i = t_{i{\textrm{+} {\mkern-1pt} 1}}$ are equal, especially at
+    the beginning and end.
 
 -   A **waypoint** $x_i$ is a point on the path, typically at a knot,
     $x_i = x(t_i)$. So a path really passes through a waypoint. At
@@ -54,11 +54,12 @@ Consider a cubic polynomial $x(t) = a t^3 + b t^2 + c t + d$. Given four
 boundary conditions $x(0)=x_0, \dot x(0) = v_0, x(\tau) =
 x_\tau, \dot x(\tau) = v_\tau$, the four coefficients are
 
-$$\begin{align}
+$$\begin{align}\label{eqCoeff1}
 d &= x_0 ~, \\
 c &= \dot x_0 ~, \\
 b &= \frac{1}{\tau^2}\Big[ 3(x_\tau-x_0) - \tau(\dot x_\tau + 2 \dot x_0) \Big] ~, \\
 a &= \frac{1}{\tau^3}\Big[ - 2(x_0-x_\tau) + \tau(\dot x_\tau + \dot x_0) \Big] ~.
+\label{eqCoeff4}
 \end{align}$$
 
 This cubic spline is in fact the solution to an optimization problem,
@@ -81,8 +82,8 @@ $$\begin{align}
 %% &= 4 b^2 [t]_0^T + 24 ab [\half t^2]_0^T + 36 a^2 [\frac{1}{3} t^3]_0^T \\
 &= 4 \tau b^2  + 12 \tau^2 ab + 12 \tau^3 a^2 \\
 &= \frac{12}{\tau^3}~[(x_1 - x_0)-\frac{\tau}{2}(v_0+v_1)]^2+\frac{1}{\tau}(v_1-v_0)^2 \label{eqLeap}\\
-&= \frac{12}{\tau^3} D^{\mkern-1pt \top \mkern-1pt}D + \frac{1}{\tau} V^{\mkern-1pt \top \mkern-1pt}V ~,\quad D := (x_1 - x_0)-\frac{\tau}{2}(v_0+v_1),~ V:=v_1-v_0,~ \\
-&= \tilde D^{\mkern-1pt \top \mkern-1pt}\tilde D + \tilde V^{\mkern-1pt \top \mkern-1pt}\tilde V ~,\quad
+&= \frac{12}{\tau^3} D^{ {\mkern-1pt} \top {\mkern-1pt} }D + \frac{1}{\tau} V^{ {\mkern-1pt} \top {\mkern-1pt} }V ~,\quad D := (x_1 - x_0)-\frac{\tau}{2}(v_0+v_1),~ V:=v_1-v_0,~ \\
+&= \tilde D^{ {\mkern-1pt} \top {\mkern-1pt} }\tilde D + \tilde V^{ {\mkern-1pt} \top {\mkern-1pt} }\tilde V ~,\quad
 \tilde D := \sqrt{12}~ \tau^{-\frac{3}{2}}~ D,~ \tilde V := \tau^{-{\textstyle\frac{1}{2}}}~ V ~,
 \label{eqLeapSOS}
 \end{align}$$
@@ -140,7 +141,7 @@ If the system has a lateral movement, the analytical solution provided
 by computer algebra is overly complex, but a numerical solution to the
 least-squares form $\eqref{eqLeapSOS}$ is very very efficient. However,
 in practise, using $\eqref{eqTimingControl}$ with scalar
-$v \gets (\delta^{\mkern-1pt \top \mkern-1pt}
+$v \gets (\delta^{ {\mkern-1pt} \top {\mkern-1pt} }
 v)/|\delta|$ for easy timing control of convergence to a target is
 highly effective and versatile.
 
@@ -161,35 +162,32 @@ $(x_{i\text{-1}},v_{i\text{-1}}, x_i, v_i)$ and
 $\tau_i = t_i - t_{i\text{-1}}$.
 
 Specifying the timings (i.e., knots) and velocities of all waypoints is
-often not easy in terms of a user interface. Therefore the question is
-whether a series of given weypoints can easily be augmented with optimal
-timings and waypoint velocities.
+often not easy for a user. Therefore the question is whether a series of
+given weypoints can easily be augmented with optimal knots and waypoint
+velocities.
 
-Further, since each piece respects boundary conditions, continuity in
-velocities is ensured. However, note that two pieces might have
-completely different accelerations at their joining knots (from the left
-and the right), and therefore a freely specified Hermite cubic spline is
-discontinuous in acceleration (has infintite jerk). Conversely,
-requiring a path in ${\cal C}^2$ implies continuity constraints in
-acceleration at each knot. Over the full path, these are
-$(m\text{-1}) \cdot n$ constraints (in ${\mathbb{R}}^n$), which "kill"
-the degrees-of-freedom of all but the start and end velocity. Therefore,
-requiring continuous accelleration, the knots, waypoints and start/end
-velocity alone are sufficient to specify the spline -- but in practise
-the resulting waypoint velocities might not be quite desired, as they
-might "go crazy" when chaining forward the continuous acceleration
-constraint.
+Continuity of states, velocities and accelerations at the knots is an
+issue. If we require the path to be ${\cal C}^0$ (continuous in states
+$x(t)$ only), each piece needs to respect one constraint with the
+previous, and for $m$ pieces we have $1+3m$ degrees of freedom (assuming
+$x(t)\in{\mathbb{R}}^1$ for simplicity). If we require ${\cal C}^1$
+(continuity in velocities), $m$ pieces have $2+2m$ parameters; for
+${\cal C}^2$ (continuity in accelerations) we only have $3+m$
+parameters; and for ${\cal C}^3$ (continuity in jerk) we have $4$
+parameters no matter how many pieces -- which shows that using a single
+piece is the only option to get continuous jerk.
 
-However, optimizing both, timing and waypoint velocities under our
-optimal control objective is rather efficient and effective. Note that
-the optimal control cost over the full spline is just the sum of single
-piece costs $\eqref{eqLeapSOS}$. This represents costs as a
-least-squares of differentiable features, where $D$ can be interpreted
-as distance to be covered by accelerations, and $V$ as necessary total
-acceleration, and the Jacobians of $\tilde D$ and $\tilde V$
-w.r.t.&nbsp;all boundary conditions and $\tau_i$ are trivial. Exploiting
-this least-squares formulation we can use the Gauss-Newton approximate
-Hessian.
+One typically assumes ${\cal C}^2$ (continuous accelerations), and
+optimizing both, the knots and waypoint velocities, under our optimal
+control objective is rather efficient and effective under these
+constraints. Note that the optimal control cost over the full spline is
+just the sum of single piece costs $\eqref{eqLeapSOS}$. This represents
+costs as a least-squares of differentiable features, where $D$ can be
+interpreted as distance to be covered by accelerations, and $V$ as
+necessary total acceleration, and the Jacobians of $\tilde D$ and
+$\tilde V$ w.r.t.&nbsp;all boundary conditions and $\tau_i$ are trivial.
+Exploiting this least-squares formulation we can use the Gauss-Newton
+approximate Hessian.
 
 As a concequence, it is fairly efficient to solve for $\tau_{1:m}$,
 $v_{1:m\text{-1}}$ given $v_0, v_m, x_{0:m}$ under continuous
@@ -197,8 +195,7 @@ acceleration constraints subject to total time and control costs.
 
 As a final note, in Hermite quintic splines we need positions $x_i$,
 velocities $v_i$ and accelerations $a_i$ at each knot, which describe
-the quintic polynomial pieces between knots. The issues discussed above
-apply here analogously.
+the quintic polynomial pieces between knots.
 
 ## B-Splines
 
@@ -226,15 +223,15 @@ The B-spline functions $B_{i,p}(t)$ are fully specified by a
 non-decreasing series of time knots $t_0,..,t_m \in [0,T]$ and the
 integer degree $p\in\{0,1,..\}$. Namely, the recursive definition is
 
-$$\begin{align}
-B_{i,0}(t) &= [t_i \le t < t_{i{ \textrm{+} \mkern-1pt 1}}] ~,\quad\text{for $0\le i \le m-1$} ~,\\
+$$\begin{align}\label{eqBsplines}
+B_{i,0}(t) &= [t_i \le t < t_{i{\textrm{+} {\mkern-1pt} 1}}] ~,\quad\text{for $0\le i \le m-1$} ~,\\
 B_{i,p}(t)
 &= \frac{t-t_i}{t_{i+p}-t_i}~ B_{i,p-1}(t)
  +  \frac{t_{i+p+1}-t}{t_{i+p+1}-t_{i+1}}~ B_{i+1,p-1}(t)  ~,\quad\text{for $0\le i \le m-p-1$} ~.
 \end{align}$$
 
 The zero-degree B-spline functions $B_{i,0}$ are binary indicators of
-$t_i \le t < t_{i{ \textrm{+} \mkern-1pt 1}}$, and $i$ ranges from
+$t_i \le t < t_{i{\textrm{+} {\mkern-1pt} 1}}$, and $i$ ranges from
 $i=0,..,m-1$. The 1st-degree B-spline functions $B_{i,1}$ have support
 in $t_i \le t <
 t_{i+2}$ and $i$ only ranges from $i=0,..,m-2$, because one can show
@@ -249,11 +246,23 @@ $$\begin{align}
 \end{align}$$
 
 which ensures the normalization property $\sum_{i=0}^K B_{i,p}(t) = 1$
-for every degree.
+for every degree. The time derivative
+
+$$\begin{align}
+\dot B_{i,p}(t)
+ &= \frac{1}{t_{i\textrm{+} {\mkern-1pt} {}p}-t_i} \Big[ B_{i,p\text{-1}}(t) + (t-t_i)~ \dot B_{i,p\text{-1}}(t) \Big]
+ + \frac{1}{t_{i\textrm{+} {\mkern-1pt} {}p{\textrm{+} {\mkern-1pt} 1}}-t_{i{\textrm{+} {\mkern-1pt} 1}}} \Big[ - B_{i{\textrm{+} {\mkern-1pt} 1},p\text{-1}}(t) + (t_{i+p+1}-t)~ \dot B_{i{\textrm{+} {\mkern-1pt} 1},p\text{-1}}(t) \Big]
+\end{align}$$
+
+shows that the derivative of a degree-$p$ B-spline is a linear
+combination of degree-$p-1$ splines. Therefore, a degree-$p$ spline is
+always $p-1$-order differentiable. For instance, a quadratic B-spline
+has continuous velocities; a cubic B-spline has continuous
+accelerations.
 
 ### Illustration {#secIll}
 
-<span style="display:block; margin-left:auto; margin-right:auto; width:70%"> ![image](Bsplines.pdf) </span>
+<span style="display:block; margin-left:auto; margin-right:auto; width:70%"> ![image](Bsplines.svg) </span>
 
 <span style="display: block; font-size:0.8em;"> **Figure:** []{#figBsplines label="figBsplines"} See section
 [0.3.1](#secIll){reference-type="ref" reference="secIll"} for
@@ -262,7 +271,7 @@ explanations. </span>
 Fig.&nbsp;[\[figBsplines\]](#figBsplines){reference-type="ref"
 reference="figBsplines"} provides an illustration of B-spline functions
 for degrees $p=0,..,4$. Above each plot of functions, a rough
-illustration of a resulting spline is provided, where bullets indicate
+illustration of a resulting path is provided, where bullets indicate
 control points. Note that this illustration implies a localization of
 control points in time, namely roughly where the coresponding weighting
 function (B-spline function) is highest. But control points are formally
@@ -272,14 +281,50 @@ However, intuitively we can see that for odd degrees, the "localization
 in time" of control points roughly aligns with knots, while for even
 degrees the localization is between knots. Further, the illustrations
 assume multi-knots at the start and end (namely
-$p{ \textrm{+} \mkern-1pt 1}$-fold knots), which ensures that the spline
-starts with $z_0$ and ends with $z_K$. Multiple equal control points
-$z_{0:p/\!\!/2}$ and $z_{K-p/\!\!/2:K}$ (illustrated with gray bars) are
-needed to ensure also zero vel/acc/jerk at start and end (where
-$p/\!\!/2$ means integer division). However, by choosing the
-initial/final $p/\!\!/2+1$ control points non-equal we can impose
-arbitrary initial/final velocity (and acceleration for $p\ge 4$), as
-detailed below.
+$p{\textrm{+} {\mkern-1pt} 1}$-fold knots), which ensures that the
+spline starts with $z_0$ and ends with $z_K$. Duplicated control points
+$z_{0:p/ {\mkern-1pt}  {\mkern-1pt} /2}$ and
+$z_{K-p/ {\mkern-1pt}  {\mkern-1pt} /2:K}$ (illustrated with gray bars)
+are needed to ensure also zero vel/acc/jerk at start and end (where
+$p/ {\mkern-1pt}  {\mkern-1pt} /2$ means integer division). However, by
+choosing the initial/final $p/ {\mkern-1pt}  {\mkern-1pt} /2+1$ control
+points non-equal we can impose arbitrary initial/final velocity (and
+acceleration for $p\ge 4$), as detailed below.
+
+### Retrieving the piece-wise polynomials: Convertion to Hermite spline
+
+B-splines might seem rather different from Hermite splines. However, it
+still holds that the resulting path $x(t)$ as well as all the B-spline
+functions $B_{i,p}$ are piece-wise polynomials, with pieces of degree
+$p$ between knots. So the semantics of the knot times $t_0,..,t_m$ is
+the separation of polynomial pieces -- as is generally the case for
+splines -- and not the temporal localization of control points.
+Inspecting the definition $\eqref{eqBsplines}$ of the B-spline functions
+one may tell that they are polynomial between knots, but one cannot
+easily read of the polynomial coefficients.
+
+A simple and efficient way to convert a B-spline to Hermite cubic spline
+is to evaluate $(x(t),\dot x(t))$ at each knot and use equations
+$\eqref{eqCoeff1}$-$\eqref{eqCoeff4}$ to get the four polynomial
+coefficient for each piece. Is the B-spline of degree less than cubic,
+the respective coefficient will be zero. This clarifies that each cubic
+B-spline can directly be converted to cubic Hermite.
+
+The conversion from Hermite to B-spline is equally possible *iff* the
+Hermite spline is smooth (i.e., $p-1$-order continuous) at all knots.
+Focussing on cubic splines, $p-1$-order continuous means that
+accelerations are continuous; each cubic piece has 4 parameters, but 3
+are bound by continuity with the next piece. If we have $m$ pieces we
+have $3+m$ parameters in total. For a cubic B-spline with multi-knots we
+need $m' = m+6$ knots (3 duplicates at start and end), which also gives
+$m'-p = m+3$ parameters. Below we discuss concretely how to retrieve a
+B-spline that explicitly goes through given waypoints, which can be used
+to do this convertion from a smooth cubic Hermite to cubic B-spline.[^1]
+
+In conclusion, we can convert back-and-forth between Hermite and
+B-spline *iff* we talk about $p-1$-order continuous splines. In this
+view, neither of them is better than the other -- they are just
+alternative parameterizations of smooth splines.
 
 ### B-spline Matrix for Time Discretized Paths
 
@@ -290,11 +335,11 @@ $S=100$ time slices over which we want to optimize using KOMO, and for
 which we have to compute collision features. Let
 $x \in {\mathbb{R}}^{S \times
 n}$ be the time discretized path, and
-$z \in{\mathbb{R}}^{(K{ \textrm{+} \mkern-1pt 1})\times n}$ be the stack
-of control points. Then the B-spline representation becomes
+$z \in{\mathbb{R}}^{(K{\textrm{+} {\mkern-1pt} 1})\times n}$ be the
+stack of control points. Then the B-spline representation becomes
 
 $$\begin{align}
-x = B_p z ~,\quad\text{with } B_p\in{\mathbb{R}}^{S\times (K{ \textrm{+} \mkern-1pt 1})},~ B_{p,si} = B_{i,p}(\widehat t_s) ~,
+x = B_p z ~,\quad\text{with } B_p\in{\mathbb{R}}^{S\times (K{\textrm{+} {\mkern-1pt} 1})},~ B_{p,si} = B_{i,p}(\widehat t_s) ~,
 \end{align}$$
 
 where $B_p$ is the B-spline matrix of degree $p$ for this particular
@@ -365,11 +410,6 @@ B_{i,p}(t)
   &= \frac{t-t_i}{t_{i+p}-t_i} B_{i,p-1}(t)
  +  \frac{t_{i+p+1}-t}{t_{i+p+1}-t_{i+1}} B_{i+1,p-1}(t) \\
 &=: v~ B_{i,p-1} + w~ B_{i+1,p-1} \\
-\dot B_{i,p}(t)
- &= \frac{1}{t_{i \textrm{+} \mkern-1pt {}p}-t_i}~ B_{i,p\text{-1}}(t)
- + v~ \dot B_{i,p\text{-1}}(t)
- - \frac{1}{t_{i \textrm{+} \mkern-1pt {}p{ \textrm{+} \mkern-1pt 1}}-t_{i{ \textrm{+} \mkern-1pt 1}}}~ B_{i{ \textrm{+} \mkern-1pt 1},p\text{-1}}(t)
- + w~ \dot B_{i{ \textrm{+} \mkern-1pt 1},p\text{-1}}(t) \\
 \partial_{t_i} B_{i,p}
   &= \Big[\frac{-1}{t_{i+p}-t_i} + \frac{t-t_i}{(t_{i+p}-t_i)^2}\Big]~ B_{i,p-1}
    + v~ \partial_{t_i} B_{i,p-1} + w~ \partial_{t_i} B_{i+1,p-1} \\
@@ -384,3 +424,7 @@ B_{i,p}(t)
   &= \Big[\frac{1}{t_{i+p+1}-t} - \frac{1}{t_{i+p+1}-t_{i+1}}\Big]~ w~ B_{i+1,p-1}
       + v~ \partial_{t_{i+p+1}}~ B_{i,p-1} + w~ \partial_{t_{i+p+1}}~ B_{i+1,p-1}
 \end{align}$$
+
+[^1]: The method uses a matrix inversion. But the matrix is
+    band-diagonal and the complexity of the inversion is linear in $m$.
+    I'm not aware of a simpler way to do the conversion.

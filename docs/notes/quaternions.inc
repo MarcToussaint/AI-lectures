@@ -51,7 +51,7 @@ $$\begin{align}
 & q^{-1} = (q_0,-\bar q) \quad \text{or} \quad  q^{-1} = (-q_0, \bar q) \\
 \text{quaternion concatenation:} \quad &
 q \circ q'
- = (q_0 q'_0 - \bar q^{\mkern-1pt \top \mkern-1pt}\bar q',~
+ = (q_0 q'_0 - \bar q^{ {\mkern-1pt} \top {\mkern-1pt} }\bar q',~
     q_0 \bar q' + q'_0 \bar q + \bar q \times \bar q') \\
 \text{vector application, $x\in{\mathbb{R}}^3$:} \quad \label{eqApp}
 & q \cdot x = (q \circ (0,x) \circ q^{-1})_{1:3} \quad\text{(or via matrix)}
@@ -99,7 +99,7 @@ that $\widehat w$ and $\bar q(t)$ are colinear):
 
 $$\begin{align}
 q(t) \circ \textstyle\frac 12 (0, \widehat w)
-&= \textstyle\frac 12 (0 q_0(t) - \widehat w^{\mkern-1pt \top \mkern-1pt}\bar q(t),~ 0 \bar q(t) + q_0(t) \widehat w + \widehat w \times \bar q(t)) \\
+&= \textstyle\frac 12 (0 q_0(t) - \widehat w^{ {\mkern-1pt} \top {\mkern-1pt} }\bar q(t),~ 0 \bar q(t) + q_0(t) \widehat w + \widehat w \times \bar q(t)) \\
 &= \textstyle\frac 12 (0 - \sin(t/2),~ \cos(t/2)~ \widehat w + 0) ~=~ \dot q(t) ~.  \label{eqDotq}
 \end{align}$$
 
@@ -174,19 +174,19 @@ q(t) = \text{normalize}((1-t)~ q_A + t~ q_B) ~, \label{eqLinInter}
 
 where $\text{normalize}(q) = q / |q|$. This assumes that the two
 quaternions are *sign aligned*, i.e.
-$q_A^{\mkern-1pt \top \mkern-1pt}q_B \ge 0$. This interpolation seems
-native. However, it describes the exact same *path* as the proper
+$q_A^{ {\mkern-1pt} \top {\mkern-1pt} }q_B \ge 0$. This interpolation
+seems native. However, it describes the exact same *path* as the proper
 interpolation: along the geodesic arc on $S^3$ from $q_A$ to $q_B$. The
 only difference is that it does not have constant absolute velocity on
 $S^3$. The non-normalized interpolation $(1-t) q_A + t q_B$ in
 ${\mathbb{R}}^4$ has constant velocity, but the projection to $S^3$
 modulates velocities depending on the angle of the tangent space to the
 embedded interpolation. But note that, as
-$q_A^{\mkern-1pt \top \mkern-1pt}q_B \ge 0$, the angle between $q_A$ and
-$q_B$ in ${\mathbb{R}}^4$ is at most 90 degrees; and therefore the angle
-between the linear interpolation and the tangent spaces is at most 45
-degrees -- in this worst case, the velocities at start and end are by a
-factor $1/\sqrt{2}$ larger than in the middle.
+$q_A^{ {\mkern-1pt} \top {\mkern-1pt} }q_B \ge 0$, the angle between
+$q_A$ and $q_B$ in ${\mathbb{R}}^4$ is at most 90 degrees; and therefore
+the angle between the linear interpolation and the tangent spaces is at
+most 45 degrees -- in this worst case, the velocities at start and end
+are by a factor $1/\sqrt{2}$ larger than in the middle.
 
 The point here is that interpolation of rotations is very intuitive:
 "straight" interpolation on the sphere $S^3$ which can equally described
@@ -220,16 +220,16 @@ q^{-1} \circ \dot q
 \end{align}$$
 
 However, in the case where $\dot q$ is non-tangential, i.e.,
-$\dot q^{\mkern-1pt \top \mkern-1pt}q \not=0$, the change in length of
-the quaternion does not represent any angular velocity. One approach is
-to first tangentialize
-$\dot {\widehat q} = \dot q - q q^{\mkern-1pt \top \mkern-1pt}\dot q$.
+$\dot q^{ {\mkern-1pt} \top {\mkern-1pt} }q \not=0$, the change in
+length of the quaternion does not represent any angular velocity. One
+approach is to first tangentialize
+$\dot {\widehat q} = \dot q - q q^{ {\mkern-1pt} \top {\mkern-1pt} }\dot q$.
 However, when pluging in the tangentialized $\dot{\widehat q}$ we get
 
 $$\begin{align}
 w
-&= 2~ [q^{-1} \circ (\dot q - q (q^{\mkern-1pt \top \mkern-1pt}\dot q))]_{1:3} \\
-&= 2~ [\dot q \circ q^{-1}]_{1:3} - 2~ [q^{-1} \circ q]_{1:3}~ (q^{\mkern-1pt \top \mkern-1pt}\dot q) ~,
+&= 2~ [q^{-1} \circ (\dot q - q (q^{ {\mkern-1pt} \top {\mkern-1pt} }\dot q))]_{1:3} \\
+&= 2~ [\dot q \circ q^{-1}]_{1:3} - 2~ [q^{-1} \circ q]_{1:3}~ (q^{ {\mkern-1pt} \top {\mkern-1pt} }\dot q) ~,
 \end{align}$$
 
 and the latter term is identically zero. So, our "tangentialization
@@ -309,7 +309,7 @@ $$\begin{align}
 w \cdot x
  &= \cos(\theta)~ x
   + \sin(\theta)~ (\widehat w\times x)
-  + (1-\cos(\theta))~ \widehat w(\widehat w^{\mkern-1pt \top \mkern-1pt}x) ~.
+  + (1-\cos(\theta))~ \widehat w(\widehat w^{ {\mkern-1pt} \top {\mkern-1pt} }x) ~.
 \end{align}$$
 
 This directly also implies convertion to a rotation matrix, as the rows
@@ -328,7 +328,7 @@ corresponding to a given rotation vector $w$ then is:
 $$\begin{align}\label{eqRodriguez}
 R(w)
  &= \exp(\text{skew}(w)) \\
- &= \cos(\theta)~ {\rm\bf I}+ \sin(\theta)/\theta~ \text{skew}(w) + (1-\cos(\theta))/\theta^2~ w w^{\mkern-1pt \top \mkern-1pt}
+ &= \cos(\theta)~ {\rm\bf I}+ \sin(\theta)/\theta~ \text{skew}(w) + (1-\cos(\theta))/\theta^2~ w w^{ {\mkern-1pt} \top {\mkern-1pt} }
 \end{align}$$
 
 The $\exp$ function is called exponential map (generating a group
@@ -337,7 +337,7 @@ matrix)). The other formular is called Rodrigues' formular: the first
 term is a diagonal matrix (${\rm\bf I}$ is the 3D identity matrix), the
 second terms the skew symmetric part, the last term the symmetric part
 ($w
-w^{\mkern-1pt \top \mkern-1pt}$ is also called outper product).
+w^{ {\mkern-1pt} \top {\mkern-1pt} }$ is also called outper product).
 
 **Angular velocity & derivative of a rotation matrix:** We represent
 angular velocities by a vector $w\in{\mathbb{R}}^3$, with rotation axis

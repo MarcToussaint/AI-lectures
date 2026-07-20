@@ -1,0 +1,387 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Artificial Intelligence}
+\renewcommand{\coursepicture}{course_ai}
+\renewcommand{\coursedate}{Summer 2026}
+
+\renewcommand{\topic}{Reasoning in/with LMs \& RL Finetuning}
+\renewcommand{\keywords}{}
+
+\slides
+
+\slidestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\sublectureHide{Transformer Recap}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Transformer Recap}{
+
+\item Recall Classification:
+\begin{items}
+\item We train a \textbf{Discriminative Function} $f: \RRR^d \to \RRR^M$ which outputs a real number $f_y(x)$ for \emph{each} class $y\in\{1,..,M\}$ $\quad\to\quad$ the predicted class probabilities is
+$p(y|x) = \frac{e^{f_y(x)}}{\sum_{y'} e^{f_{y'}(x)}}$
+\end{items}
+
+~\pause\small
+
+\twocol[.05]{.52}{.45}{
+
+\item Transformer:
+\begin{items}
+\item Layers map inputs $x_{1:n}$ to outputs $z_{1:n}$
+\item A ``decoder'' uses $z_n$ to predict/generate next token (classification)
+\item An BERT ``encoder'' uses output $z_*$ to predict some class (e.g.\ ViT)
+\end{items}
+
+~
+
+\item A LM defines a \emph{probability} $\pi(x_{n+1}|x_{1:n})$ over the next token -- like a Markov Process, but without the Markov property
+
+}{
+
+\show{transformer}
+
+}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{LLMs span a Decision Space!}{
+
+\item Deciding for a particular next token $x_{n+1}\sim \pi(x_{n+1}|x_{1:n})$ spans a decision tree
+\item Deciding for the most likely next token $x_{n+1} = \argmax  \pi(x_{n+1}|x_{1:n})$ is a default
+\item But we can also apply \textbf{MCTS} and \textbf{RL} methods to make decisions!
+
+~\pause
+
+...let's first discuss basic post-training methods
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Pre- and Post-Training LLMs}{
+
+\item Pre-training:
+\begin{items}
+\item Minimize NLL $-\log \pi(x_{n+1}|x_{1:n})$ on internet-scale data
+\end{items}
+
+~\pause
+
+\item Post-Training:
+\begin{items}
+\item Refine model to specific domain or preferences
+\item Using supervised finetuning, or RL
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\sublecture{Supervised Instruction Finetuning (SFT)}{
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Supervised Instruction Finetuning (SFT)}{
+
+\item Create a smaller dataset with 'gold standard tokens'
+
+\item Notation:
+\begin{items}
+\item Prompt $x = (x_1,x_2,..)$, continuation $y=(y_1,y_2,..)$
+\item Next token prediction $\pi(y_t \| x, y_{<t})$,~ with $y_{<t}$ the tokens predicted so-far
+\item Finetuning dataset $D=\{(x^i, y^i)\}$
+\end{items}
+
+$$- \Sum_i \Sum_{t=1}^T \log \pi_\t(y^i_t \| x^i, y^i_{<t}) $$
+
+~
+
+\cit{Zhang et al.}{Instruction tuning for large language models: A survey}{ACM Computing Surveys, 2026}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Supervised Instruction Finetuning}{
+
+\item Core question: where is the data coming from?
+
+~\pause
+
+\show{math-data}
+
+\cit{Li et al}{Numinamath: The largest public dataset in ai4maths with 860k pairs of competition math problems and solutions}{2024}
+
+~\pause
+
+\item Or from synthetic solvers (model-based solvers)
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\sublecture{RL-based Finetuning}{
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Fine-Tuning Language Models from Human Preferences}{
+
+\cit{Ziegler, Daniel M., et al.}{Fine-tuning language models from human preferences}{arXiv:1909.08593, 2019}
+
+\medskip
+
+\twocol{.5}{.45}{
+
+\showh[.9]{19-fineTuneLLM}
+
+}{
+
+\small
+
+\item A LM defines a \emph{policy} $\pi(x_k | x_{0:k\1})$
+
+\item From such a policy we can sample several rollouts (``continuations''), and let a human label them with preferences
+
+\item From this, \textbf{learn a reward model}
+
+\item Use the reward model to train the policy using RL
+
+}
+
+~\pause
+
+\item The reward model is the key opener to new concepts:
+\begin{items}
+\item So far, LMs were just supervised ML, optimizing for data likelihood
+\item Now there is an additional objective (a \emph{return}) over the full sequence
+\item That makes it a sequential decision making problem
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\item Example follow-up papers:
+
+\cit{Bai, Yuntao, et al.}{Training a helpful and harmless assistant with reinforcement learning from human feedback}{arXiv:2204.05862, 2022}
+
+\cit{Ouyang, Long, et al.}{Training language models to follow instructions with human feedback}{NeurIPS 2022}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Reinforcement Learning with Verifiable Rewards (RLVR)}{
+
+\item New version of the same concept:
+
+\twocol{.6}{.35}{
+
+\show[.6]{RLVR}
+
+\cit{Lambert et al.}{Tulu 3: Pushing frontiers in open language model post-training}{2024}
+
+}{
+
+\item Notation:
+\begin{items}
+\item prompt $x^i \equiv s_i$, continuation $y^i \equiv a_i$
+reward $r$: indicator of correctness
+\end{items}
+
+}
+
+~
+
+\item RLVR:
+$$- \Sum_i r(x^i, y) \Sum_{t=1}^T \log \pi_\t(y_t \| x^i, y_{<t})$$
+
+\item Compare to Supervised Finetuning for data $D=\{(x^i, y^i)\}$
+$$- \Sum_i \Sum_{t=1}^T \log \pi_\t(y^i_t \| x^i, y^i_{<t}) $$
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Group Relative Policy Optimization (GRPO)}{
+
+\show[.6]{DeepSeek-R1a}
+\show[.6]{DeepSeek-R1b}
+
+\cit{Shao et al.}{Deepseekmath: Pushing the limits of mathematical reasoning in open language models}{2024}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Group Relative Policy Optimization (GRPO)}{
+
+\item Previous work applied standard RL methods, in particular PPO
+\begin{items}
+\item But training a value addition to the actor is costly
+\item Instead, GRPO estimates \emph{advantage} relative to mean of MC rollouts
+\end{items}
+
+\show[.6]{DeepSeek-R1c}
+
+
+\cit{Shao et al.}{Deepseekmath: Pushing the limits of mathematical reasoning in open language models}{2024}
+\cit{Shao et al.}{Deepseekmath-v2: Towards self-verifiable mathematical reasoning}{2025}
+
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\item These approaches are \emph{fine-tuning} methods:
+\begin{items}
+\item They fine-tune the continuation probability (policy) $\pi(x_{n+1}|x_{1:n})$ of the LM
+\item But after fine-tuning is done, at inference time, the model is used to generate output following the greedy policy (argmax of $\pi(x_{n+1}|x_{1:n})$)
+\item There is no reasoning or searching through possible sequences at inference time
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\sublecture{Chain of Thought}{
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Chain of Thought}{
+
+\cit{Wei, Jason, et al.}{Chain-of-thought prompting elicits reasoning in large language models}{NeurIPS 2022}
+
+\medskip\small
+
+\twocol{.4}{.55}{
+
+\item Chain of Thought Prompting simply prompts LMs differently
+
+\item The prompt exemplifies to provide a full line of reasoning before given the final answer
+
+}{
+
+\show[.9]{22-chainOfThought}
+
+}
+
+~
+
+~\pause
+
+\item Ok, still no reasoning or search at inference time
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Self-Consistency in Chains of Thought}{
+
+\cit{Wang, Xuezhi, et al}{Self-consistency improves chain of thought reasoning in language models}{ICLR 2023}
+
+\show[.6]{23-ConsistentChainOfThought}
+
+\small
+
+\item In particular: ``(2) replace the "greedy decode" in CoT prompting by
+  sampling from the language model's decoder to generate a diverse set
+  of reasoning paths''
+
+$\to$ \emph{These are Monte Carlo Rollouts (what we called ``Flat Monte Carlo'')}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\begin{items}
+\item The method then picks the most consistent final answer (which is different to MCTS)
+\item But by rolling out alternative sequences and deciding based on this, we have a form of search and reasoning
+
+~\pause
+
+\item  very similar to RLVR: use self-consistency as reward would enable finetuning
+\end{items}
+
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Tree of Thoughts}{
+
+\cit{Yao, Shunyu, et al.}{Tree of thoughts: Deliberate problem solving with large language models}{NeurIPS 2023}
+
+\medskip
+
+\show[.6]{23-TreeOfThoughts}
+
+\small
+
+\item Ensures that each Chain of Thought can be decomposed in steps
+\begin{items}
+\item Defines a decision tree
+\item Can leverage explicit tree search to find good/consistent answers (see paper for details)
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{More on Chain of Thought}{
+
+\cit{Zhang, Zhuosheng, et al.}{Multimodal chain-of-thought reasoning in language models}{TMLR 2024}
+
+\medskip
+
+\show[.6]{24-multimodalReasoning}
+
+~
+
+~
+
+\cit{Zhang, Jiaxin, et al.}{Geoeval: benchmark for evaluating llms and multi-modal models on geometry problem-solving}{arXiv:2402.10104 2024}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Conclusion}{\label{lastpage}
+
+\item A trained LM provides a probability $\pi(x_{n+1}|x_{1:n})$, which can be
+\begin{items}
+\item fine-tuned (e.g., using human feedback)
+\item or sampled to generate alternative answers and select self-consistent ones
+\item or combined with explicit reasoning (tree search)
+\end{items}
+
+~\pause
+
+\item The basis for this is some \emph{additional objective} for the full rollout
+\begin{items}
+\item Beyond the ML objective of maximizing likelihood on the original data
+\item E.g.,\ human feedback
+\item Self-consistency
+\item Correctness of full rollout in \textbf{verifiable domains} (e.g.\ programs, maths)
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slidesfoot

@@ -1,4 +1,5 @@
 %auto-ignore
+\renewcommand{\!}{ {\mkern-1pt} }
   \renewcommand{\a}{\alpha}
   \renewcommand{\b}{\beta}
   \renewcommand{\d}{\delta}
@@ -257,10 +258,10 @@
 \newcommand{\THi}{T^\sharp_H}
 \newcommand{\Jci}{J^\natural_C}
 \newcommand{\hJi}{{\bar J}^\sharp}
-\renewcommand{\|}{ \mkern-1pt \mid \mkern-1pt }
+\renewcommand{\|}{\!\mid\!}
 \renewcommand{\=}{\!=\!}
 \newcommand{\myminus}{ - }
-\newcommand{\myplus}{ \textrm{+} \mkern-1pt }
+\newcommand{\myplus}{\textrm{+}\!}
 \newcommand{\1}{\text{-1}}
 \newcommand{\2}{{\myminus2}}
 \newcommand{\3}{{\myminus3}}
@@ -269,7 +270,7 @@
 \newcommand{\pt}{{\myplus2}}
 %\renewcommand{\-}{\myminus}
 %\newcommand{\+}{\myplus}
-\newcommand{\T}{{\mkern-1pt \top \mkern-1pt}}
+\newcommand{\T}{{\!\top\!}}
 %\newcommand{\T}{{\!\textsf{\scriptsize T}\!}}
 \newcommand{\xT}{{\underline x}}
 \newcommand{\uT}{{\underline u}}
@@ -509,7 +510,7 @@
 \renewenvironment{figure}{}{}
 
 \renewcommand{\show}[2][.7]{
-SPAN-CENTER \includegraphics{#2} SPAN-END }
+SPAN-CENTER \includegraphics{#2.svg} SPAN-END }
 
 \renewcommand{\caption}[1]{
 SPAN-SMALL \textbf{Figure:} #1 SPAN-END }

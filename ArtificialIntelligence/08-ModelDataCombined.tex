@@ -1,0 +1,1428 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Artificial Intelligence}
+\renewcommand{\coursepicture}{course_ai}
+\renewcommand{\coursedate}{Summer 2026}
+
+\renewcommand{\topic}{Discussion \& own work: Combining Model- and Data-Based Methods}
+\renewcommand{\keywords}{}
+
+\slides
+
+%\newcommand{\liter}{\helvetica{8}{1.1}{m}{n}\parskip 1ex}
+\providecommand{\rmax}{{\textsc{R-max}}}
+\providecommand{\ignore}[1]{}
+
+\newcommand{\dist}{\text{dist}}
+\newcommand{\ind}[1]{\mathbb{I}_{#1}}
+\renewcommand{\up}{\text{up}}
+\newcommand{\lo}{\text{lo}}
+\renewcommand{\c}{\gamma}
+\newcommand{\msts}{\text{MSTS}}
+\newcommand{\goal}{{\text{goal}}}
+\newcommand{\xv}{{\bar x}}
+\newcommand{\Kdown}{K_\text{down}}
+\newcommand{\Kburn}{K_\text{burn}}
+\newcommand{\Ksam}{K_\text{sam}}
+
+\usepackage{subcaption}
+\usepackage{multirow} 
+
+\slidestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Examples for Model-based Planning}{
+
+\tiny
+
+\twocol{.5}{.4}{\centering
+
+\movh[]{.7}{movies/14-Mordatch-CIO}\\
+Mordatch et al: CIO (SIGGRAPH'12)
+
+\medskip
+
+\movh[]{.7}{movies/20-Garret-PDDLStream}\\
+Garrett et al: PDDLStream (ICAPS'20)
+
+}{\centering
+
+\movh[]{.6}{movies/RSS-concat600600}\\
+Toussaint at al: LGP (RSS'18)
+
+\medskip
+
+\movh[]{.9}{movies/21-valentingRSSsubmission}\\
+Hartmann et al. (IROS 20)
+%\movh[]{.4}{movies/OpenAI-game-pushAround}\\
+%\hfill OpenAI Hide \& Seek (arxiv'19)
+
+}
+
+%% \medskip
+
+%% \normalsize
+%% %% Mujoco?
+
+%% \cen{\emph{What does it take to generate such behavior?}}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{One possible formulation: Logic-Geometric Program (LGP)}{
+
+~
+
+\twocol[.07]{.4}{.4}{
+
+\tiny
+\begin{align*}
+\hspace*{-5mm}\min_{s_{1:K} \atop x:[0,KT]\to \XX} & \int_0^{KT} c(\xv(t))~ dt  \\
+\hspace*{-5mm}\st~
+& \xv(0)=\xv_0,~ s_K \models \goal\\
+& \forall_{k\in\{1,..,K\}}:~ s_k \in \text{succ}(s_{k\1}) \\
+& \forall_{k\in\{1,..,K\}}:~ \hat\phi(\xv(t_k), s_{k\1}, s_k)\le0 \\
+& \forall_{t\in[0,T]}:~     \bar\phi(\xv(t), s_{k(t)})\le0
+\end{align*}
+
+}{\small
+
+\medskip
+
+\item {Constraints} $\hat\phi, \bar\phi$ {define correct physics in a differentiable manner}
+
+\medskip
+
+\item The {skeleton} $s_{1:K}$ defines the {schedule of physical modes}
+
+}
+
+~
+
+~
+
+\cit{Toussaint}{Logic-Geometric Programming: An Optimization-Based Approach to Combined Task and Motion Planning}{IJCAI'15}
+
+\cit{Toussaint, Lopes}{Multi-Bound Tree Search for Logic-Geometric Programming}{ICRA'17}
+
+\cit{Toussaint, Allen, Smith, Tenenbaum}{Differentiable Physics and Stable Modes for Tool-Use and Manipulation Planning}{R:SS'18}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{renderings of example solutions...}{
+
+\threecol{.3}{.4}{.25}{\centering
+
+%\vspace*{-5mm}
+\movh[]{.9}{movies/RSS-concat600600}%
+\anchor{-40,-7}{\ttiny(R:SS 18)}
+
+%~
+
+%%\movh[]{.9}{videos/19-forceBased-pushWithStickFloat3_COMP}
+\movh[loop]{.9}{videos/19-forceBased-pushWithStick-good_COMP}
+
+}{\centering
+
+\movh[loop]{.9}{movies/21-valentingRSSsubmission}%
+\anchor{-40,-7}{\ttiny(IROS 20)}
+%20-IROS-BUGAassembly}
+
+\medskip
+
+\movh[loop]{.75}{videos/19-forceBased-liftRing-dynamic_COMP}%
+\anchor{-40,-7}{\ttiny(IROS 20)}
+
+}{\centering
+
+~
+
+\movh[loop]{.9}{movies/20-DeepVisualReasoningData}%
+\anchor{-40,-7}{\ttiny(R:SS 20)}
+
+
+~
+
+\movh[loop]{.9}{videos/19-banana-03}
+
+~
+
+%\movh[]{.9}{videos/19-forceBased-bookOnShelf2_COMP}
+
+}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\slide{LGP Discussion}{
+
+\item Good about LGP:
+\pause
+\begin{items}
+\item Strong generalization! Sometimes discovers surprising solutions -- not just immitating data
+\pause
+\item Explicit understanding of the underlying problem of sequential manipulation:
+\item %3D space \& shapes,
+contact/interaction modes $\oto$ discrete decisions / complementarities
+
+\item that structure is missing in many other formalisms, (MDPs, RL, path planning)
+\end{items}
+
+~\pause
+
+\item There are many limitations (scaling, perception, control, transfer to real)...
+\pause
+
+particularly limiting:
+\begin{items}
+\item Can we in principle ``discover any possible solution''? ~ No!% Is it ``physics complete''? 
+\item Pre-defined interaction modes
+\item Local optima in all these $\PP_i(s_{1:k})$
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\item So what now? ~ Learning? LLMs? Or Model-based Planning?
+
+~\pause
+
+\item Generic answer: both/all...
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{PaLM-E}{
+
+\twocol{.45}{.5}{
+\item In a nutshell:
+\begin{items}
+\item LLMs take images (+segmentations), vectors, \& language as input
+\item LLMs predict action plans as output ~ (or VQA..)
+\end{items}
+}{
+
+\show[.9]{palme-LLM}
+
+}
+
+
+\medskip
+
+{\hfill\tiny\url{https://palm-e.github.io/}}
+
+\cit{PaLM-E: An Embodied Multimodal Language Model}{Danny Driess, Fei Xia, Mehdi S. M. Sajjadi, Corey Lynch, Aakanksha Chowdhery, Brian Ichter, Ayzaan Wahid, Jonathan Tompson, Quan Vuong, Tianhe Yu, Wenlong Huang, Yevgen Chebotar, Pierre Sermanet, Daniel Duckworth, Sergey Levine, Vincent Vanhoucke, Karol Hausman, Marc Toussaint, Klaus Greff, Andy Zeng, Igor Mordatch, Pete Florence}{ICML'23}
+
+\small
+
+\twocol{.45}{.45}{\centering
+
+\movh[]{.7}{videos/23-palme-planning_4x_compressed}
+
+``Bring me the rice chips from the drawer''
+
+
+}{\centering
+
+\movh[]{.7}{videos/23-palme-green_star}
+
+``Bring me the green star''
+
+}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Meta-Optimization and Program Search}{
+
+\show{mops1}
+
+\twocol{.5}{.45}{\small
+
+{\tiny [CoRL'25]}
+
+\item Use an LLM to find an NLP that corresponds a natural language instruction
+
+\item Use BBO to optimize hyperparameters (``geometric details'') of the NLP
+
+}{
+
+\movc[]{.7}{videos/25-MOPS}
+
+}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\item PaLM-E: We trained the LM to predict the same actions than our previous model-based planner generated
+\begin{items}
+\item The role of our previous planner was \textbf{data generation} to train the LM
+\item Great: The LM can predict these actions also when only  language/images/etc are given as input
+\item While a model-based planner needs perfect information as input (``privileged'')
+\end{items}
+
+~\pause
+
+\item MOPS: LM basically unchanged, but
+\begin{items}
+\item The output are ``robot programs'' (NLPs) that we can solve, verify, refine
+\item So we use the model-based knowledge on the output side
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\item \emph{Combining model-based solvers with data-based AI} is a core challenge of modern AI
+
+~
+
+\begin{items}
+\item Model-based knowledge: hard constraints, safety, engineering precision, \textbf{generalization}, exact/verifiable
+
+\medskip
+
+\item Data-based models: Deciding based on partial \& noisy information/sensors; interpreting images, natural language, informal information; \textbf{generalization}, fast, scaling to ``unsolvable'' problems
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Discussion: Ways to combine both sides from ML perspective}{
+
+\pause
+
+\item Data: ~ (cf.\ Teacher - Student paradigm)
+\begin{items}
+\item Use model-based solvers to generate data for training (``distilling'') direct decision models
+\item ``Thinking slow $\to$ thinking fast''
+\item The solvers \emph{teach} the learning models optimal decision by providing data on optimal decisions
+\end{items}
+
+~\pause
+
+\item Loss:
+\begin{items}
+\item Directly penalize predictions with ``residual to physics''
+\item Physics Informed Neural Networks (PINNs), or Theory-Trained Neural Networks (TTNs)
+
+{\tiny Typically to predict solutions to differential equations, but also beyond.}
+\end{items}
+
+~\pause
+
+\item Architecture:
+\begin{items}
+\item Convolutions, Transformer, RNNs, PointNet, SE(3)-equivariant...
+\item But also: AlphaZero, Chain of Thought
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\sublecture{Constrained Sampling RL}{
+
+\tiny
+
+very recent work on model-based sampling to address the RL exploration challenge...
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Recall the RL exploration challenge}{
+
+\item Action noise, or espilon-greedy Q-learning is not explicitly explorative
+
+\pause
+
+\item Idea: Use model-based solvers to \emph{sample the space of possibilities}
+
+~
+
+~\pause
+
+let's skil over some very techical slides...
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{NLP Sampling}{
+
+\cit{Toussaint, Braun \& Ortiz-Haro}{NLP Sampling: Combining MCMC and NLP methods for diverse constrained sampling}{arXiv:2407.03035 (2024)}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{Motivation}{
+
+%% \item More robust TAMP solving:
+%% \begin{items}
+%% \item NLPs may be sub-problems in TAMP (e.g.\ constrained sequence of grasps/placements)
+%% \item \emph{Optimizers} may run into local optimum, return false infeasible
+%% \item \emph{NLP sampling} can return diverse (more global) solutions
+%% \end{items}
+
+%% ~\pause
+
+%% \item More diverse data generatation
+
+%% ~\pause
+
+%% \item Bridge between MCMC methods and constrained optimization:
+%% \begin{items}
+%% \item MCMC methods generate samples \emph{globally} ~ (but mixing time..)
+%% \item Stein-Variational promises to cover the distribution \emph{globally} ~ (but...)
+%% \item Diffusion denoising \emph{globally} transports probability mass from
+%% $\NN(0,1)$ to all modes
+%% \end{items}
+
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Problem Formulation}{
+
+\medskip
+
+\item Problem: Sample
+\begin{align*}
+x \sim \Frac1Z \exp(-f(x)) \st g(x)\le 0,~ h(x)=0 ~,
+\end{align*}
+
+\medskip
+
+\begin{items}
+\item other notation: sample from $p(x) \propto \exp(-f(x))~ \ind{g(x)\le 0}~ \ind{h(x)=0}$
+\item with smoothly differentiable energy $f:\RRR^n\to \RRR$ and constraints
+$g:\RRR^n\to\RRR^m,~ h:\RRR^n \to \RRR^{m'}$, point-wise access to $f,g,h,\na f,\na g, \na h$
+\item \emph{no prior data available}
+\end{items}
+
+%% \item \emph{Combining constrained optimization and sampling}
+~
+
+\cit{Toussaint, Braun \& Ortiz-Haro}{NLP Sampling: Combining MCMC and NLP methods for diverse constrained sampling}{arXiv:2407.03035 (2024)}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Relation to MCMC Methods}{
+
+\small
+\vspace*{-8mm}
+
+\begin{align*}
+x \sim \Frac1Z \exp(-f(x)) \st g(x)\le 0,~ h(x)=0 ~,
+\end{align*}
+
+\item Special Case Polytope Sampling:
+\begin{items}
+\item Only linear inequalities ~ (no equalities, no energy) $\to$ feasible space is polytope
+\item Many interesting methods exist: Ball \& Dikin Walks, \emph{Hit-and-Run}
+\end{items}
+
+%\pause
+
+\item Special Case Manifold Sampling:
+\begin{items}
+\item Only equalities ~ (no inequalities, no energy); also called ``constrained sampling''
+\item Interesting methods exist: Manifold RRTs, Riemannian manifold MCMC
+\end{items}
+
+\item Whatever we come up with, specialised methods should be subsumed
+
+\pause
+
+\item Why not just use plain MCMC on $p(x)$?
+\begin{items}
+\item At (infeasible) initialization, $p(x)$ is flat ($p(x)=0, \na p(x)=0$) $\to$ naive MCMC,
+Langevin, SVGD have no gradient at all
+\item Efficient methods need to make use of $g,h,\na g, \na h$ evaluations
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Our Approach:~ Restart + Slack Downhill + Interior MCMC}{
+%\slide{Relaxed NLP}{
+
+%\small
+
+\item Slack vector $s(x) = ([g(x)]_+, |h(x)|) \in \RRR^{m+m'}$
+\item Relaxed unconstrained problem:
+\begin{align*}
+F_{\c\m}(x) &= \c f(x) + \m s(x)^\T s(x) ~.
+\end{align*}
+\begin{items}
+\item Minimizing $F_{01}$: pure \textbf{slack downhill} (Phase I
+optimization)
+\item Sampling from $\exp(-F_{1\mu}),\mu\gg 1$: \textbf{interior
+sampling}
+\end{items}
+
+~%\pause
+
+\item Approach:~ Restarts + Slack Downhill + Interior MCMC:
+\begin{enumerate}
+\item \textbf{Restart} at seed $x$, potentially conditional to previous samples $D$
+\item \textbf{Slack Downhill} method to reach feasible point $x$
+\item \textbf{Interior MCMC} method to ``mix inside mode''
+\end{enumerate}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{(i) Methods for Restarting}{
+
+\item Three options, given previous samples $D=\{x_i\}$:
+\begin{items}
+\item Uniform: Sample $x\sim\UU[l,u]$ independent of previous
+samples
+\item \textbf{Distant restarts}: Sample candidates $\{x_1,..,x_C\}$ uniformly, select $\argmax_i \min_{y\in D} |y-x_i|$
+\item \textbf{``point away'' restarts}: Sample candidates $\{x_1,..,x_C\}$ uniformly, compute  slack step $\d_i$ for each, select
+$\argmin_i \max_{y\in D} \Frac{(y-x_i)^\T \d_i}{|y-x_i|\, |\d_i|}$ ~ (minimizes the alignment of slack direction with data)
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{(ii) Methods for Slack Downhill}{
+
+\item Closely related to ``Phase I Optimization''
+\begin{items}
+\item Aim is to reach (into) the feasible space
+\item (We also explored $\e$-shifting inequalities to really target the \emph{interior})
+\end{items}
+
+\item Downhill on $F_{01} = s(x)^\T s(x)$, iterate:
+\begin{items}
+\item Some downhill $-\na F_{\c\m}$ step: {G}auss-{N}ewton or Plain {grad}ient
+\item (Add some noise: none, {iso}tropic, {cov}ariant)
+\item Step rejection: Wolfe, none, ({M}etropolis-{H}asting (MH))
+\end{items}
+
+~%\pause
+
+\item Spoiler:
+\begin{items}
+\item No surprise: Gauss-Newton very efficient
+\item A bit surprise: Wolfe often not helpful
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{(iii) Methods for Interior MCMC}{
+
+\item Very similar to the downhill methods, but now on $F_{1\infty}$:
+\begin{items}
+\item Langevin: gradient + iso noise + MH
+\item Riemannian Langevin: Gauss-Newton + covariant noise + MH
+\end{items}
+
+{\footnotesize
+~%\pause
+
+\item Side note:
+\begin{items}\tiny
+\item The acceptance probability of MH is closely related to the Armijo rule in Backtracking line search (see paper):
+
+\cen{($\frac{p(x')}{p(x)}~ \frac{q(x|x')}{q(x'|x)} \ge 1$) $\qquad\oto\qquad$ ({\tiny$F(x') \le F(x) + \rho \na F(x)^\T (x'-x)$})}
+\end{items}
+
+}
+
+~%\pause
+
+\item Very different kinds of interior MCMC methods:
+\begin{items}
+\item Non-linear Manifold Rapidly-Exploring Random Tree (mRRT, see paper)
+\item \textbf{Non-linear Metropolis-Adjusted Hit-and-Run (NHR)}
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{(iii) Hit-and-Run}{
+
+~
+
+\show[.4]{har0}
+
+%% \cen{
+%% \showh[.3]{har0}\qquad
+%% \showh[.3]{har}}
+%% {\tiny\hfill(from Abbasi-Yadkori et al., AISTATS'17)}
+
+~
+
+\item Want to extend this to
+\begin{items}
+\item Non-uniform energy $\to$ Metropolis-Adjustment
+\item Non-linear inequalities $\to$ iteratively approximate them linear along the hit-line
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{(iii) Non-linear Metropolis-Adjusted Hit-and-Run (NHR)}{
+
+\tiny
+\begin{algorithmic}[1]
+\Require Non-linear inequalities $g(x)$, energy $f(x)$, max step $\d_\text{max}$, box bounds $l,u\in\RRR^n$, initial (near-)interior point $x\in\RRR^n$
+\Repeat
+\State sample random direction $d = z / |z|$ with $z \in \NN(0,1)$
+\State initialize $[\b_{\lo},\b_{\up}] = [-\d_\text{max}, \d_\text{max}]$
+\State clip $[\b_{\lo},\b_{\up}]$ with lower ($\bar g = l-x, a=-d$) and upper ($\bar g = x-u, a=d$) bounds
+\State clip $[\b_{\lo},\b_{\up}]$ with $\bar g = g(x), a= J_g(x) d$ \Comment{is optional!}\label{lineClipInit}
+\Repeat \label{lineLineSampling}
+\State \textbf{if} $\b_{\lo} > \b_{\up}$ \textbf{then} break \Comment{failure, no step}
+\State $y \gets x+\b d$ with $\b\sim[\b_{\lo},\b_{\up}]$ uniform
+\State linearize $g^y = g(y), G^y = J_g(y)$
+\If{$g^y \le 0$}
+\State with probability $\min\{1, \frac{\exp\{-f(y)\}}{\exp\{-f(x)\}}\}$ accept
+  $x\gets y$
+\State break
+\EndIf
+\State only for $i$ with $g^y_i\ge 0$: clip $[\b_{\lo},\b_{\up}]$ with $\bar g = g^y + G^y(x-y)$ and $a=G^y d$
+\Until forever
+\Until forever
+\end{algorithmic}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Restarts + Slack Downhill + Interior MCMC methods}{
+
+\item Choose your method of choice for Restarts, Slack Downhill, \& Interior MCMC
+
+\item Choose hyperparameters:
+\begin{items}
+\item $\Kdown$: Limit on slack downhill steps before you give up and restart ($\sim 50$)
+\item $\Kburn$: How many MCMC burn-in steps before actually sampling? ($\sim 2$)
+\item $\Ksam$: How many interior MCMC samples before restarting? ($\sim 10$)
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{First some tests on toy problems...}{
+
+
+\item Efficient mixing with just 1 or 2 steps of NHR:
+
+~
+
+\begin{figure}\centering
+    \begin{subfigure}[t]{0.25\textwidth}
+        \showh[1.]{demos/demo_ineqOverstep_1}
+        \caption{Pure GN downhill without interior sampling}
+    \end{subfigure}
+    %% \hfill
+    %% \begin{subfigure}[t]{0.23\textwidth}
+    %%     \showh[1.]{demos/demo_ineqOverstep_12}
+    %%     \caption{Downhill with overstepping GN steps ($\alpha=1.2$)}
+    %% \end{subfigure}
+    \qquad
+    \begin{subfigure}[t]{0.25\textwidth}
+        \showh[1.]{demos/demo_Kburn_1}
+        \caption{Pure downhill with single NHR interior sampling burn-in step ($\Kburn=1$)}
+    \end{subfigure}
+    \qquad
+    \begin{subfigure}[t]{0.25\textwidth}
+        \showh[1.]{demos/demo_Kburn_2}
+        \caption{Same with $\Kburn=2$}
+    \end{subfigure}
+
+    %% \caption{\label{demoD}Samples generated by different downhill and interior methods.}
+\end{figure}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\item Sanity Check: NHR, plain MCMC, Langevin all sample correctly
+\begin{figure}\centering
+
+\raisebox{6mm}{{\small\rotatebox{90}{NHR}}}\quad
+\showh[.15]{demos/demo_f_HR_Kburn_2}\quad
+\showh[.15]{demos/demo_f_HR_Kburn_10}\quad
+\showh[.15]{demos/demo_f_HR_Kburn_50}
+
+\medskip
+
+\raisebox{6mm}{{\small\rotatebox{90}{MCMC}}}\quad
+\showh[.15]{demos/demo_f_MCMC_Kburn_2}\quad
+\showh[.15]{demos/demo_f_MCMC_Kburn_10}\quad
+\showh[.15]{demos/demo_f_MCMC_Kburn_50}
+
+\medskip
+
+\raisebox{3mm}{{\small\rotatebox{90}{Langevin}}}\quad
+\showh[.15]{demos/demo_f_Langevin_Kburn_2}\quad
+\showh[.15]{demos/demo_f_Langevin_Kburn_10}\quad
+\showh[.15]{demos/demo_f_Langevin_Kburn_50}  
+%% \caption{\label{demoF} NHR and Langevin for sampling from
+%% a box with interior energy $f=(x-(1,1))^2$, for varying $\Kburn$. Captions report on
+%% Evaluations/Sample and Earth Mover Distance to ground truth. Plain
+%% MCMC is visually also very similar, but converges somewhat
+%% slower. (Evaluations per sample are
+%% roughly proportional to $\Kburn$ as only a single sample $\Ksam=1$ is
+%% taken after burn-in.)}
+\end{figure}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\item \emph{Modes} problem: Sampling from $2^d+1$ modes
+
+~
+
+\hspace*{-20mm}\begin{minipage}{1.2\columnwidth}
+\begin{figure}[h]
+%\raisebox{-28mm}{\small\rotatebox{90}{$\msts_p$ / \# Samples \hspace{6mm} Samples}}~
+    \begin{subfigure}[t]{0.2\textwidth}
+        \show[.9]{demos/demo_modes2_HR}
+%        \showh[1.]{demos/demo_modes2_HR_msts}
+        \caption{Pure GN downhill in 2D}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.2\textwidth}
+        \show[.9]{demos/demo_modes2_HR5}
+%        \showh[1.]{demos/demo_modes2_HR5_msts}
+        \caption{NHR ($\Kburn=5$) in 2D}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.2\textwidth}
+        \show[.9]{demos/demo_modes6_HR5}
+%        \showh[1.]{demos/demo_modes6_HR5_msts}
+        \caption{NHR ($\Kburn=5$) in 6D}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.2\textwidth}
+        \show[.9]{demos/demo_modes6_HR5dist}
+%        \showh[1.]{demos/demo_modes6_HR5dist_msts}
+        \caption{same with $\texttt{dist}_{100}$}
+    \end{subfigure}
+    %% \caption{\label{demoModes}Performances on the modes problem. The top row shows generated samples in 2D (a-b) and 6D (c-d). The bottom row shows $\msts_p$ with growing \#samples. }
+\end{figure}
+\end{minipage}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{What is a good metric of Performance or Diversity?}{
+
+~
+
+\begin{items}
+\item Earth Mover Distance or similar (to ground truth) -- sure, but infeasible
+\item Metrics based on neighbor distances (kNN distance histograms, also SVGD): do not
+capture global mode diversity!
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Minimum Spanning Tree Score (MSTS)}{
+
+\hspace*{-5mm}\twocol[.05]{.65}{.3}{
+
+\show[.3]{minimum_spanning_tree}
+
+\item For samples $D=\{ x_i \}_{i=1}^n$, $\msts_p(D)=$ \emph{total cost of Minimum Spanning Tree with edge costs $|x-x'|^p$}
+
+~
+
+\begin{items}
+\item For $p=1$, Euclidean MST size/length. $\msts_1(D)$ strictly
+increases with $n=|D|$. We hypothesize with $O(n^{1-1/d})$ -- \emph{mathematicians?}
+\item For $p=2$, becomes \emph{sum of sqr-distances between
+modes} $\to$ \textbf{mode-separatedness!}
+\end{items}
+
+
+}{\centering
+
+\show[.9]{demos/demo_modes2_HR5}
+\showh[1.]{demos/demo_modes2_HR5_msts}
+
+}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\item \emph{Modes} problem: Sampling from $2^d+1$ modes
+
+~
+
+\hspace*{-20mm}\begin{minipage}{1.2\columnwidth}
+\begin{figure}[h]
+\raisebox{-28mm}{\small\rotatebox{90}{$\msts_p$ / \# Samples \hspace{6mm} Samples}}~
+    \begin{subfigure}[t]{0.2\textwidth}
+        \show[.9]{demos/demo_modes2_HR}
+        \showh[1.]{demos/demo_modes2_HR_msts}
+        \caption{Pure GN downhill in 2D}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.2\textwidth}
+        \show[.9]{demos/demo_modes2_HR5}
+        \showh[1.]{demos/demo_modes2_HR5_msts}
+        \caption{NHR ($\Kburn=5$) in 2D}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.2\textwidth}
+        \show[.9]{demos/demo_modes6_HR5}
+        \showh[1.]{demos/demo_modes6_HR5_msts}
+        \caption{NHR ($\Kburn=5$) in 6D}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.2\textwidth}
+        \show[.9]{demos/demo_modes6_HR5dist}
+        \showh[1.]{demos/demo_modes6_HR5dist_msts}
+        \caption{same with $\texttt{dist}_{100}$}
+    \end{subfigure}
+    %% \caption{\label{demoModes}Performances on the modes problem. The top row shows generated samples in 2D (a-b) and 6D (c-d). The bottom row shows $\msts_p$ with growing \#samples. }
+\end{figure}
+\end{minipage}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{}{
+
+%% \begin{figure}\centering
+%%     \begin{subfigure}[t]{0.32\textwidth}
+%%         \showh[1.]{demos/demo_IK_mRRT}
+%%         \caption{Pure GN downhill}
+%%     \end{subfigure}
+%%     %\hfill
+%%     \begin{subfigure}[t]{0.32\textwidth}
+%%         \showh[1.]{demos/demo_IK_mRRT_Kburn_2}
+%%         \caption{mRRT with $\Kburn=2$ burn-in steps}
+%%     \end{subfigure}
+%%     %\hfill
+%%     \begin{subfigure}[t]{0.32\textwidth}
+%%         \showh[1.]{demos/demo_IK_mRRT_Kburn_10}
+%%         \caption{mRRT with $\Kburn=10$}
+%%     \end{subfigure}\\
+    
+%%     % \vspace{0.2cm} % Adjust the vertical space between rows as needed
+    
+%%     \hspace{.62\textwidth}
+    
+%%     \begin{subfigure}[t]{0.32\textwidth}
+%%         \showh[1.]{demos/demo_IK_Langevin_Kburn_2}
+%%         \caption{Langevin with $\Kburn=2$}
+%%     \end{subfigure}
+%%     %\hfill
+%%     \begin{subfigure}[t]{0.32\textwidth}
+%%         \showh[1.]{demos/demo_IK_Langevin_Kburn_10}
+%%         \caption{Langevin with $\Kburn=10$}
+%%     \end{subfigure}
+    
+%%     %% \caption{\label{demoIK}Samples generated by different downhill and interior methods for the Inverse Kinematics problem ($x \in \mathbb{R}^7$, only the first two dimensions displayed). Note the high evaluations per sample for Langevin methods in this highly non-linear setting.}
+%% \end{figure}
+
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{Robotics Problems}{\centering
+
+%% %\showh[1.]{pics/IK1}
+
+%% %\twocol{.45}{.45}{
+
+%% \begin{minipage}{.8\textwidth}
+
+%% \showh[.1]{pics-reach/0000.png}%
+%% \showh[.1]{pics-reach/0001.png}%
+%% \showh[.1]{pics-reach/0002.png}%
+%% \showh[.1]{pics-reach/0003.png}%
+%% \showh[.1]{pics-reach/0004.png}%
+%% \showh[.1]{pics-reach/0005.png}%
+%% \showh[.1]{pics-reach/0006.png}%
+%% \showh[.1]{pics-reach/0007.png}%
+%% \showh[.1]{pics-reach/0008.png}%
+%% \showh[.1]{pics-reach/0009.png}
+
+%% \showh[.1]{pics-torus/0001.png}%
+%% \showh[.1]{pics-torus/0002.png}%
+%% \showh[.1]{pics-torus/0003.png}%
+%% \showh[.1]{pics-torus/0004.png}%
+%% \showh[.1]{pics-torus/0005.png}%
+%% \showh[.1]{pics-torus/0006.png}%
+%% \showh[.1]{pics-torus/0007.png}%
+%% \showh[.1]{pics-torus/0008.png}%
+%% \showh[.1]{pics-torus/0009.png}%
+%% \showh[.1]{pics-torus/0010.png}
+
+%% %}{
+
+%% \showh[.2]{pics-pushReach/0000.png}%
+%% \showh[.2]{pics-pushReach/0001.png}%
+%% \showh[.2]{pics-pushReach/0002.png}%
+%% \showh[.2]{pics-pushReach/0003.png}%
+%% \showh[.2]{pics-pushReach/0004.png}\\
+%% \showh[.2]{pics-pushReach/0005.png}%
+%% \showh[.2]{pics-pushReach/0006.png}%
+%% \showh[.2]{pics-pushReach/0007.png}%
+%% \showh[.2]{pics-pushReach/0008.png}%
+%% \showh[.2]{pics-pushReach/0009.png}\\
+%% \showh[.2]{pics-pushReach/0015.png}%
+%% \showh[.2]{pics-pushReach/0016.png}%
+%% \showh[.2]{pics-pushReach/0017.png}%
+%% \showh[.2]{pics-pushReach/0018.png}%
+%% \showh[.2]{pics-pushReach/0019.png}
+
+%% \end{minipage}
+%}
+
+%% \begin{figure}\centering
+%%   \begin{subfigure}[t]{0.15\textwidth}
+%%     \showh[1.]{pics/IK1}
+%%     \caption{Simple IK}
+%%   \end{subfigure}
+%%   \qquad
+%%   \begin{subfigure}[t]{0.15\textwidth}
+%%     \showh[1.]{pics/cylin1}
+%%     \caption{Cylinder Obstacle}
+%%   \end{subfigure}
+%%   \qquad
+%%   \begin{subfigure}[t]{0.3\textwidth}
+%%     \showh[1.]{pics/push1}
+%%     \caption{4-step push-place-grasp-touch}
+%%   \end{subfigure}
+
+%% \caption{\label{figRob}a) IK problem: reaching for the yellow target;
+%% b) similar, with a large cylindrical obstacle (implying non-linear
+%% collision inequalities and disconnected modes), c) a complex
+%% sequential manipulation planning problem over 4 consecutive
+%% configurations: start-of-box-push, end-of-box-push, reach-stick, and
+%% touch-target-with-stick -- overlaid in this solution
+%% illustration. See text for details.}
+%% \end{figure}
+
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Robotics Problems}{
+
+\vspace*{-10mm}\twocol{.45}{.45}{
+
+\movc[]{.6}{videos/25-NLPsampling-reach}
+
+}{
+
+\movc[]{.6}{videos/25-NLPsampling-torus}
+
+~
+
+\movc[]{.8}{videos/25-NLPsampling-PushToReach}
+\ttiny\hfill (49-dim)
+
+}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{$\msts$/evals vs. sample/evals plots}{
+
+%% ~\anchor{200,30}{\tiny{\url{https://github.com/MarcToussaint/24-NLP-Sampling}}}
+
+\ttiny 
+172\,800 experiments: 8 problems, 1\,584 tested method combinations,
+and 10 runs for each of these combinations;
+(\texttt{GN, grad}),  (\texttt{none, iso, cov}), (\texttt{none, Wolfe,
+MH}),  (\texttt{NHR, mRRT, MCMC, Langevin}),
+$\Kburn=$(\texttt{0, 5, 20}), $\Ksam=$(\texttt{1,
+5, 20, 100}), restart=(\texttt{uni, nov, dist}) 
+
+~
+
+\newcommand{\subfig}[2]{
+\begin{subfigure}[t]{0.25\textwidth}
+    \centering
+    \includegraphics[width=\textwidth, trim=0 10 0 40, clip]{#1-perf}\\[-1ex]
+    \caption{\tiny #2}
+\end{subfigure}
+}
+
+\hspace*{-15mm}\begin{minipage}{1.1\columnwidth}
+\begin{figure}\centering
+\subfig{plots/all1/box.2}{Box 2D}\hspace*{-3mm}%
+\subfig{plots/all1/box.6}{Box 6D}\hspace*{-3mm}%
+\subfig{plots/all1/modes.2}{Modes 2D}\hspace*{-3mm}%
+\subfig{plots/all1/modes.6}{Modes 6D}\hspace*{-3mm}%
+
+\medskip
+
+\subfig{plots/all1/linear-program}{Linear Programs}\hspace*{-3mm}%
+\subfig{plots/all1/IK}{Simple IK}\hspace*{-3mm}%
+\subfig{plots/all1/cylinder-obstacle}{Cylinder Obstacle}\hspace*{-3mm}%
+\subfig{plots/all1/push}{4-step Push}\hspace*{-3mm}%
+\end{figure}
+\end{minipage}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{Evaluations}{
+
+%% \begin{figure}[t]\centering
+%% \raisebox{0cm}{\parbox{0cm}{\centering \small \rotatebox{90}{Non-robotics problems}}\hspace{.5cm}}
+%% \begin{minipage}[c]{.95\textwidth}
+%%     \showh[.23]{plots/cornelius_plots/non_robotic_tasks/downhill_method_best_performers}\hspace*{1mm}
+%%     \showh[.23]{plots/cornelius_plots/non_robotic_tasks/downhill_noise_method_best_performers}\hspace*{1mm}
+%%     \showh[.23]{plots/cornelius_plots/non_robotic_tasks/downhill_reject_method_best_performers_no_mh}\hspace*{1mm}
+%%     \showh[.23]{plots/cornelius_plots/non_robotic_tasks/downhill_reject_method_best_performers_no_wolfe}\hspace*{1mm}
+    
+%%     \showh[.23]{plots/cornelius_plots/non_robotic_tasks/interior_sampling_method_best_performers}\hspace*{1mm}
+%%     \showh[.23]{plots/cornelius_plots/non_robotic_tasks/interior_samples_taken_best_performers}\hspace*{1mm}
+%%     \showh[.23]{plots/cornelius_plots/non_robotic_tasks/interior_sampling_burn_in_steps_best_performers}\hspace*{1mm}
+%%     \showh[.23]{plots/cornelius_plots/non_robotic_tasks/restart_seed_method_best_performers}\hspace*{1mm}
+%% \end{minipage}
+
+%% \vspace*{.6cm}
+
+%% \raisebox{0cm}{\parbox{0cm}{\centering \small \rotatebox{90}{Robotics problems}}\hspace{.5cm}}
+%% \begin{minipage}[c]{.95\textwidth}
+%%     \showh[.23]{plots/cornelius_plots/robotic_tasks/downhill_method_best_performers}\hspace*{1mm}
+%%     \showh[.23]{plots/cornelius_plots/robotic_tasks/downhill_noise_method_best_performers}\hspace*{1mm}
+%%     \showh[.23]{plots/cornelius_plots/robotic_tasks/downhill_reject_method_best_performers_no_mh}\hspace*{1mm}
+%%     \showh[.23]{plots/cornelius_plots/robotic_tasks/downhill_reject_method_best_performers_no_wolfe}\hspace*{1mm}
+
+%%     \showh[.23]{plots/cornelius_plots/robotic_tasks/interior_sampling_method_best_performers}\hspace*{1mm}
+%%     \showh[.23]{plots/cornelius_plots/robotic_tasks/interior_samples_taken_best_performers}\hspace*{1mm}
+%%     \showh[.23]{plots/cornelius_plots/robotic_tasks/interior_sampling_burn_in_steps_best_performers}\hspace*{1mm}
+%%     \showh[.23]{plots/cornelius_plots/robotic_tasks/restart_seed_method_best_performers}\hspace*{1mm}
+%% \end{minipage}
+
+%% \end{figure}
+
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Findings}{
+
+\small
+
+\item What doesn't pay off:
+\begin{items}
+\item Burn-in steps for interior sampling
+\item Plain gradient steps (Gauss-Newton always at least as good)
+\item Downhill reject methods (\texttt{Wolfe, MH}) hardly! (Among
+best, but often without $\ge$)
+\item Downhill noise (Same: sometimes among best, more often 
+detrimental.)
+\end{items}
+
+\pause
+
+\item What pays off:
+\begin{items}
+\item Non-linear Hit-and-Run! Esp. for inequality-dominated problems;
+including \emph{Modes}
+
+\item \textbf{ManifoldRRT!} Esp.\ for equality-dominated problems (IK, 4-step Push)
+
+Plain MCMC (blue) and Langevin (violet) are particularly inefficient on these!
+
+\item Interior samples are cheap, but pay off less in terms of
+diversity-per-sample
+\end{items}
+
+\pause
+
+\item Surprising:
+\begin{items}
+\item Distant restart seeding only \emph{sometimes} pays off (esp.\ for modes problem)
+
+%% But for robotics problems: \textbf{distant restart seeding is
+%%  particularly detrimental!}
+
+%% \hfill $\to$ These problems are both, highly multi-model \emph{and} local\qquad~
+\end{items}
+
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Discussion -- NLP Sampling}{
+
+~
+
+\item NLP Sampling is interesting in its own right
+\begin{items}
+\item A new formalism that combines non-linear hard constraints (NLP) with sampling
+\item bridges between MCMC methods and constrained optimization
+\item connects to alternative ``diverse optimization'' methods (Quality Diversity, MAP elites)
+\end{items}
+
+~\pause
+
+
+\item Applicability within TAMP {\tiny (providing $\PP_i(s_{1:k})$-samplers, related to PDDLstream)}
+
+\item Relates back to old \emph{Planning-as-Inference} work {\tiny (using sampling for inference)}
+
+~\pause
+
+\item Idea: Apply to diversely sample physical possibilities in manipulation
+
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Constrained Sampling RL}{
+
+~\pause
+
+
+\item \emph{``Applying NLP Sampling to RL to address the exploration problem''}
+
+~
+
+\tiny [preprint, but already outdated:]
+
+\cit{M Toussaint, C Braun, E Cobo-Briesewitz, S Auddy, A Jordana, J Carpentier}{Constrained Sampling to Guide Universal Manipulation RL}{arXiv:2602.08557 (2026)}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Problem Formulation}{
+
+\small
+
+\item Informally: Goal-conditioned MDP where the start/goal distribution is uniform on a constrained manifold
+
+~\pause
+
+\item A \emph{Constrained Goal-Conditioned MDP} is defined by:
+\begin{items}
+\item state space $\SS \subseteq \RRR^d$, action space $\AA$, dynamics $p(s'|s,a)$, a goal-conditioned reward function $R(s',s,g)$, discount factor $\g\in (0,1)$,
+\pause
+\item constrained space
+\begin{align*}
+  \SS_c = \{ s\in\SS : g_c(s) \le 0, h_c(s)=0 \},
+\end{align*}
+with $g_c: \RRR^d \to \RRR^{g_c}$ and $h_c: \RRR^d \to \RRR^{h_c}$ point-wise differentiable,\\
+which defines start/goal distribution $p_0(s) = \UU(\SS_c)$
+\pause
+\item Problem: Find $\pi: s,g \mapsto a$ to maximize
+\begin{align*}\label{eqOpt}
+  & \max_\pi \quad \Exp[s,g \sim p_0]{ V^\pi(s,g) }~, \\
+  & \text{with } V^\pi(s,g) = \Exp{ \Sum_t \g^t R(s_{t\po},s_t,g) \| \pi, s_{t=0}=s } ~.
+\end{align*}
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Problem Formulation}{
+
+\item Notes:
+\begin{items}
+\item The ``RL'' part is standard: with only black-box access to dynamics
+
+\item The ``constraint space part'' injects prior structure:
+
+Differentiable constraints $\to$ more informed algorithms \emph{and exploration}
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Which constraints concretely?}{
+
+\small
+
+\item Necessary collision, contact, and force constraints (following standard traj-opt through contacts), as well as assumption that starts/goals can be held in quasi-static equilibrium
+
+~\pause
+
+%\cit{Toussaint, Ha, Driess}{Describing Physics For Physical Reasoning: Force-based Sequential Manipulation Planning}{RAL/IROS 2020}
+
+\begin{items}\tiny
+\item Binary contact indicator $c_{ij} \in\{0,1\}$ for shape pairs $(i,j)$
+
+\item Sample 1 to 3 random supports contacts for object
+
+\item Given $c_{ij}$, sample random configuration $s$ s.t.:
+\begin{align*}
+\forall_{ij}: \quad & d_{ij} \ge 0 &&\text{(non-collision)} \\
+\forall_{ij: c_{ij}=1}: \quad &  d_{ij}=0,~ d^p_{ij}=0,~ d^p_{ji} = 0~, && \text{(shapes touch)} \\%\label{onS}\\
+& n_{ij}^\T f_{ij} \le 0~, && \text{(positive force normal)} \\%\label{posF}\\
+& \norm{(\Id - n_{ij} n_{ij}^\T) f_{ij}}^2 \le \mu^2 \norm{n_{ij}^\T f_{ij}}^2~. && \text{(friction cone)} \\%\label{fric}
+\text{for object $i$}: \quad & F_i = M_i g_i^\text{grav} && \text{(quasi-static equilibrium)}
+\end{align*}
+
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\twocol[.05]{.45}{.45}{
+
+\movc[]{.8}{data/videos/panda_sphere_samples}
+\movc[]{.8}{data/videos/double_sphere_samples}
+
+}{
+
+\movc[]{.8}{data/videos/panda_cube_samples}
+\movc[]{.8}{data/videos/sphere_cube_samples}
+
+}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Combining Constrained Sampling with RL}{
+
+\small
+
+\item \emph{Reset sampling}: sample $g,s \sim p(x)$ for each episode
+\begin{items}\tiny
+\item The RL method full exchangeable -- we focus on TD7, tested also sbTD3, sbTD3+HER, TD7+HER
+\item The truncation time limit is rather short (curriculum) $\to$ short rollouts covering our constrained manifold
+\end{items}
+
+\pause
+
+\hspace*{5ex}\begin{minipage}{.8\columnwidth}\ttiny
+\begin{algorithmic}[1]
+  \While{$t < T_\text{end}$}
+  \State sample new starts/goals batch $B$ depending on phase $\a = \min(1, t/T_\text{curr})$
+  \For{$k=1..T_\text{block}$}
+  \State single step in $E$ parallel envs; add $\{(s,a,r,s')_i\}_{i=1}^E$ to replay buffer
+  \State single gradient update of $Q(s,g,a)$, $\pi(s,g)$ (and encoder in TD7)
+  \State $t = t+1$
+  \EndFor
+  \EndWhile
+\end{algorithmic}
+\end{minipage}
+
+\medskip\pause
+
+\item Additional reset strategies (modifying start state sampling)
+\begin{items}
+\item \emph{Projected interpolation resets:}~ For $a\sim p$, we reset to
+\vspace*{-2ex}
+\begin{align*}
+  s=\argmin_{s'\in\DD} \norm{\phi(s') - [t\phi(a)+(1-t) \phi(g)]}\quad\text{with}\quad t\sim\UU[0,1]
+\end{align*}
+\vspace*{-3ex}
+%with state vector embedding $\phi:\SS \to \RRR^d$
+\item \emph{Reset curriculum:} Same, but $t\sim\UU[0,\a]$ and truncation time $\propto \a$
+\end{items}
+
+\medskip\pause
+
+\item \textbf{Reminds at PRMs!} ``connecting uniform samples'' ~ (but we train a universal reactive $\pi$)
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\val}[3]{{#1}{\scalebox{.6}{$\pm${#2}}}}
+\newcommand{\bfval}[3]{\textbf{#1}{\scalebox{.6}{$\pm${#2}}}}
+
+\newlength{\wid}
+\newlength{\hei}
+\setlength{\wid}{200pt}
+\setlength{\hei}{150pt}
+
+\renewcommand{\mov}[2]{
+\centering\movie[width=#1\wid,height=#1\hei,autostart]{}{#2.mp4}
+}
+
+%% \renewcommand{\twocol}[2]{
+%%   \vspace*{5mm}\hspace*{-4mm}%  
+%%   \begin{minipage}[c]{.4\columnwidth}\small #1\end{minipage}\hspace*{5mm}%
+%%     \begin{minipage}[c]{.5\columnwidth}\vspace{10pt} #2\end{minipage}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Panda-Sphere}{
+
+\mov{1.25}{data/videos/panda_sphere-Jun4}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Sphere-Cube}{
+
+\mov{1.25}{data/videos/sphere_cube_May24-doubleBest}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Panda-Cube}{
+
+\mov{1.25}{data/videos/panda_cube_May23}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Double-Sphere}{
+
+\mov{1.25}{data/videos/double_sphere-May23}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Allegro-Cube}{
+
+\mov{1.25}{data/videos/allegro_cube_Jun16}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \slide{}{
+
+%% \begin{items}
+%% \item Integrating HER makes it a little better, but not critical
+%% \item Comparision to reverse curriculum
+%% \end{items}
+
+%% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\small
+\item Baseline sampler \textbf{R}: Random init $x$ and ``drop'' (run sim until static)
+
+\medskip
+
+\tiny
+\centering
+
+\begin{tabular}{|c|@{~}c@{~}|@{~}c@{~}|c@{~~}c|c@{~~}c|}
+  \hline
+& Goals & Starts &  Panda-sphere & \shortstack{Sparse\\Panda-sphere} \\
+\hline
+\multirow{3}{*}{\shortstack{No\\Constrained Sampling}} & \multirow{3}{*}{R}
+  & R   & \val{0.044}{0.050}{4} & \val{0.002}{0.001}{5} \\
+& & Ri  & \val{0.084}{0.010}{5} & \val{0.013}{0.027}{5} \\
+& & Ric & \val{0.051}{0.045}{8} & \val{0.042}{0.037}{5} \\
+\hline
+\multirow{3}{*}{\shortstack{Constrained Sampling\\For Goals Only}} & \multirow{3}{*}{C}
+  & R   & \val{0.017}{0.033}{4} & \val{0.001}{0.001}{5} \\
+& & Ri  & \val{0.385}{0.217}{5} & \val{0.000}{0.001}{5} \\
+& & Ric & \val{0.390}{0.241}{8} & \val{0.218}{0.179}{5} \\
+\hline
+\multirow{3}{*}{CSRL} & \multirow{3}{*}{C}
+  & C   & \val{0.486}{0.558}{4} & \val{0.121}{0.267}{5} \\
+& & Ci  & \val{0.923}{0.074}{5} & \val{0.710}{0.021}{5} \\
+& & Cic & \bfval{0.965}{0.005}{8} & \bfval{0.959}{0.010}{5} \\
+  \hline
+\end{tabular}
+
+\medskip
+
+\begin{tabular}[t]{|@{~}c@{~}|@{~}c@{~}|c|c|}
+\hline
+  Goals & Starts & Sphere-cube & Panda-cube \\
+\hline
+C & C   & \val{0.000}{0.000}{5} & \val{0.157}{0.133}{5} \\
+C & Ci  & \val{0.399}{0.323}{6} & \val{0.211}{0.146}{5} \\
+C & Cic & \bfval{0.700}{0.045}{5} & \bfval{0.411}{0.166}{6} \\
+\hline
+\end{tabular}
+
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Discussion: Ways to combine model-based and data-based methods}{\label{lastpage}
+
+\small
+
+\item Synthetic data generation,~ Teacher--Student paradigm:
+\begin{items}
+\item Use model-based solvers to generate data for training (``distilling'') direct decision models
+\item The solvers \emph{teach} the learning models optimal decision by providing data on optimal decisions
+\end{items}
+
+\item Loss,~ PINNs:
+\begin{items}
+\item Directly penalize predictions with ``residual to physics''
+\item Physics Informed Neural Networks (PINNs), or Theory-Trained Neural Networks (TTNs)
+\end{items}
+
+\item Architecture:
+\begin{items}
+\item Convolutions, Transformer, RNNs, PointNet, SE(3)-equivariant...
+\item But also: AlphaZero, Chain of Thought
+\end{items}
+
+\medskip\pause
+
+\item Exploration in RL:
+\begin{items}
+\item Use model-based solvers to diversely sample possible states
+\item RL ``only'' needs to learn to travel between these states, not discover them
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slidesfoot

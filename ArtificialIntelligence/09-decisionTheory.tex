@@ -1,0 +1,591 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Artificial Intelligence}
+\renewcommand{\coursepicture}{course_ai}
+\renewcommand{\coursedate}{Summer 2026}
+
+\renewcommand{\topic}{Decision Theory, Objectives, \& Value Alignment}
+\renewcommand{\keywords}{}
+
+\slides
+
+\slidestitle
+
+\providecommand{\bibentry}[1]{}
+
+\providecommand{\citehere}[1]{{\fontsize{5}{1}\selectfont\bibentry{#1}\par}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\story{
+AI research is about systems that make decisions. Decisions can be made on the basis of a known model (reasoning/planning), on the basis of given data (learning), or interactively by iteratively deciding and collecting data from the environment. But a core question is how the objective is defined, and there exist very interesting definitions of objectives within AI.
+
+AI typically is about systems that are \emph{optimal} under some objective, that is, some definition of cost, loss, utility, or return. Is it limiting that systems are always described as (approximately) optimal? Decision Theory provides the basic underlying formalism and theory on this. Utility functions can define a non-linear relation between outcomes and the objective, which can lead to risk seeking or risk averse behavior. We will also discuss, on a high-level, interesting objectives that relate to continuously seeking to learn or gain information, which are in constrast to objectives that are about a concrete pre-fixed task. Finally, decision theory also provides us with a useful notation for more structured (e.g., sequential) decision problems, called \emph{Decision Networks}.
+
+%% To find optimal decisions we need to optimize expectations, which can be hard for general objectives (e.g. a black-box utility function). Monte Carlo methods (essentially ``estimating by brute-force sampling'') are a very generic and useful approach, which we will discuss after a recap of probability basics.
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Outline}{
+
+\item Decision Theory Essentials
+
+\item Objectives: Information Gain, ``Curiosity'', Exploration, Intrinsic Motivation, Etc
+
+\item Value Alignment
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\sublectureHide{Decision Theory}{
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Basic Decision-Theoretic Formalism}{
+
+{\tiny [cf.\ Russel \& Norvig, Chapter 16]
+
+}
+
+~
+
+\item Decision variable $a \in \AA$
+
+\item Outcome variable $y \sim P(y|a)$
+
+\item Utility function $U: y \mapsto U(y) \in \RRR$
+
+\item ``Principle of maximal expected utility'': A \textbf{rational} agent should choose
+$$ \argmax_a~ \Exp[P(y|a)]{U(y)} $$
+
+~
+
+\item ``Decision Theory = combines Probabilities + Utilities of outcomes of choices''
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Classical Decision Theory}{
+
+{\tiny [esp. in Economics (von Neumann \& Morgenstern, 1944)]}
+
+~
+
+\item \emph{Is the assumtion that ``agents are rational'' limiting?}
+
+~\pause
+
+\item Assumption: Rational agents should have preferences $y\preceq y'$ over outcomes
+
+\item \textbf{Theorem:} If preferences are ``consistent'' (orderable, transitive, continuous, substitutable, monotone, decomposable) $\To$
+\begin{items}
+\item There exists a utility function $U$ such that the agent's preferences $y\preceq y'$ are consistent to $U(y) \le U(y')$
+\item The utility of a probabilistic outcome is the expected utility $\Exp{U(y)} = \sum_y P(y) U(y)$
+\end{items}
+
+~\tiny
+
+\item Note: There might exist many utility functions $U(y)$ that explain the same agent's preferenes.
+
+(Details: Russel \& Norvig, Chapter 16)
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Are Optimality Formulations Limiting?}{
+
+\item {\tiny A comment I once got from a cognitive scientist:\\}
+``Why are AI people so obsessed with optimization? Humans are not
+optimal!''
+
+\medskip\mypause
+
+\item That's a total misunderstanding of what ``being optimal'' means
+
+\item Optimality principles are a means to describe systems:
+\begin{items}
+\item Feynman's ``unworldliness measure'' objective function
+\item Everything can be cast optimal -- under \emph{some} objective/utility
+\item Optimality principles are just a scientific means of formally describing
+systems and their behaviors (esp.\ in physics, economy, ... and AI)
+\end{items}
+
+\item Background reading: \cit{Toussaint, Ritter \& Brock}{The Optimization Route to
+Robotics -- and Alternatives}{K\"unstliche Intelligenz, 2015}
+
+%% \color{gray}
+%% \item Generally, I would roughly distinguish three basic types of problems:
+%% \begin{items}
+%% \item Optimization 
+%% \item Logical/categorial Inference ~ (CSP, find feasible solutions)
+%% \item Probabilistic Inference
+%% \end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Risk Averse and Seeking Utilities}{
+
+\pause
+
+\item Non-linear relations between outcome and utility:
+
+~
+
+\item If $y\in\RRR$ is ``outcome/money'', a \textbf{utility} $U(y)$ assigns different \emph{value} to different amounts of money
+
+\twocol{.4}{.5}{
+
+\item Risk averse: concave $U(y)$
+\item Risk seeking: convex $U(y)$
+
+~
+
+~
+
+}{
+
+\show[.7]{utilityFunction}
+{\tiny\hfill [Russel \& Norvig, Ch.~16]}
+
+}
+\tiny
+
+\url{https://en.wikipedia.org/wiki/Expected_utility_hypothesis} and \url{https://en.wikipedia.org/wiki/Risk_aversion}.
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\sublecture{Decision Networks}{
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Decision Networks -- representing structured decision problems}{
+
+{\tiny (aka.\ Influence Diagrams)}
+
+\item Computer Science formalism for general (also sequential) decision making:
+
+\medskip
+
+\item A \defn{Decision Network} is a direct acyclic graph (DAG), where nodes are either
+\begin{items}
+\item a decision variable $a_i$ \anchor{10,-4}{\showh[.035]{decisionNet-a}}
+\item a random variable (outcome) $x_i$ or $y_i$ \anchor{10,-4}{\showh[.035]{decisionNet-x}}
+\item a utility $u_i$ ~ (or reward $r_i$) \anchor{10,-4}{\showh[.035]{decisionNet-r}}
+\end{items}
+and each variable is determined by a
+\begin{items}
+\item decision policy $\pi_i: \text{parents} \mapsto a_i$
+\item conditional probability $y_i \sim P(y_i \| \text{parents})$
+\item utility function $u_i = U_i(\text{parents})$
+\end{items}
+
+\medskip
+
+\item By default, the overall objective is $\sum_i r_i$
+\anchor{50,20}{\showh[.35]{decisionNet-MDP}}
+\begin{items}
+\item The problem is: find decision policies $\pi_i$ to maximize $\Exp{\sum_i r_i}$
+\item But some formalisms allow only for one global utility node.
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Example: Markov Decision Process (MDP)}{
+
+~
+
+\show[.35]{decisionNet-MDP}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{ML as Decision Making}{
+
+\item Think of ML as a decision problem: ``You're given a data set $D=\{(x_i,y_i)\}_{i=1}^n$, then a new query $x'$, how do you decide on $\hat y'$?''
+
+~
+
+\item What is the decision network?
+
+~\pause
+
+\twocol{.35}{.6}{
+
+\showh[.8]{decisionNet-ML1}
+
+}{
+\footnotesize
+\item data $D=\{(x_i,y_i)\}_{i=1}^n$ ~ (i.i.d. $D \overset{n}\sim p(x,y)$ from unknown $p$)
+\item new query $x'$ and (unobserved) label $y'$ ~ (also  $(x',y')\sim p(x,y)$ from \emph{same} $p$!)
+\item prediction $\hat y'$
+\item loss function $l(\hat y',y')$ ~ (``penalty for mismatch between $\hat y'$ and $y'$'')
+}
+
+~\pause
+
+\item Objective: \qquad $\argmin_{\hat y'}~ \Exp[p(y'|x')]{l(\hat y',y')}$
+\begin{items}
+\item This is called \emph{Risk Minimization} in \emph{Statistical Learning Theory}. Caveat: $p(y'|x')$ is unknown!
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{ML as Decision Making}{
+
+\item ML usually not about a single prediction $y$, but a \emph{function} $f_\t$ with parameters $\t$:
+
+~
+%{\includegraphics[scale=1.5]{decisionNet-ML1}}}
+
+\twocol{.45}{.5}{
+
+\showh[.8]{decisionNet-ML2}
+%\showh[.8]{decisionNet-ML1}
+
+}{
+\footnotesize
+\item decision variable: parameters (aka.\ weights) $\t \in \RRR^d$
+\item function $f_\t$ is defined by parameters $\t$
+\item (deterministic) prediction $\hat y'=f_\t(x')$
+}
+
+~\pause
+
+~
+
+\item Objective: \qquad $\argmin_\t~ \Exp[p(x',y')]{l(f_\t(x'),y')}$
+
+\pause
+
+\item As we still don't know $p(x,y)$, we approximate the expectation as in Monte Carlo:
+
+$$\Exp[p(x',y')]{l(f_\t(x'),y')} ~\approx ~\frac{1}{n}\sum_{i=1}^n l(f_\t(x_i),y_i) \qquad\text{with data $D=\{(x_i,y_i)\}_{i=1}^n$}$$
+
+\tiny This is called \emph{\textbf{Empirical} Risk Minimization} in \emph{Statistical Learning Theory}.
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{\label{lastpage}
+
+\item This was a definition of \emph{Supervised Machine Learning} in decision theoretic terms, namely as \emph{Empirical Risk Minimization}.
+
+~
+
+\item In this view:
+\begin{items}
+\item In ML, the decision is about $\t$ or the function $f_\t$
+\item It is a single-step decision process: from $D$ we decide on $\t$
+\item No formalization of sequential decision making
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\sublecture{Objectives}{
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\slide{}{
+\item What objectives can we have in AI?
+
+\pause
+\begin{items}
+\item Sure: reward maximization, if rewards are given extrinsically. But what are other generic/intrinsic ones?
+\end{items}
+
+~\pause
+
+\item In ML:
+\begin{items}
+\item Supervised ML: Given data $D=\{(x_i,y_i)\}$, minimize $\Exp[(x,y)\sim D]{-\log p_\t(y | x)}$
+\item Regularization: minimize $\norm{\t}$ (or some other complexity metric of the model $p_\t$)
+\item Unsupervised ML (in generative AI): Given data $D=\{x_i\}$, minimize $\Exp[x\sim D]{-\log p_\t(x)}$
+\item Generally: minimize the description length of the data under model $p_\t$ ~ (image/video encoders)
+
+~
+
+\tiny
+
+\item Are there other objectives in ML? ~ Some specific to images (e.g.\ SSIM) or other modalities. But usually all capture some form of error to the data.
+
+(consider GANs)
+
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Information Gain Maximization}{
+
+\pause\small
+
+\item Recall the \emph{bandits} setting: $a\in\{1,..,K\}$, return $r\sim P(r | a)$, with $P(r | a)$ is unknown
+\begin{items}
+\item We collected data $D$, and have mean estimates $\hat \mu_a$ and mean uncertainties $\hat \s_a$, for each $a$
+\item More generally, we only have a \emph{distribution} $p(\mu_a|D)$ over what the mean is, for each $a$
+\end{items}
+
+\pause
+
+\item \textbf{Information gain:}
+\begin{items}
+\item Choose $a = \argmax IG(\mu_a, a) = H(p(\mu_a|D)) - \Exp[r|a]{H(p(\mu_a \| r, a, D))}$
+\item I.e., for each $a$, consider what you might observe ($p(r|a)$) and how that would reduce the entropy of your model
+\end{items}
+
+~\pause
+
+\item In \textbf{Active Learning}, decisions $x$ are observing a new labelled data point $(x,y)$
+\begin{items}
+\item Information gain: $IG(f,x) = H(p(f|D)) - \Exp[y|a]{H(p(f \| D \cup \{(x,y)\}))}$
+\item Pick label $x$ if observation of $y$ would reduce entropy of your model most
+\end{items}
+
+\pause
+
+\item In \textbf{Next Best View} planning, decisions $x$ are about a camera pose to observe a shape
+\begin{items}
+\item Choose the camera pose so that, in expectation, the image would reduce your entropy over shape estimate most
+\cit{van Hoof, Kroemer, Amor, Peters}{Maximally Informative Interaction Learning for Scene Exploration}{IROS 2012}
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Information Gain Maximization}{
+
+~
+
+\item In AI it is common that the utility is defined in terms of gaining information
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Curiosity \& Instrinsic Rewards}{
+
+\item Classical ideas about curiosity and \emph{intrinsic rewards/motivation}:
+
+%\cit{Oudeyer, Gottlieb, Lopes}{Intrinsic motivation, curiosity, and learning: Theory and applications in educational technologies}{Progress in brain research, 2016}
+\cit{Oudeyer, Kaplan, Hafner}{Intrinsic motivation systems for autonomous mental development}{Evolutionary Computation, 2007}
+%\cit{Schmidhuber}{A possibility for implementing curiosity and boredom in model-building neural controllers}{SAB, 1991}
+\cit{Schmidhuber}{Curious model-building control systems}{IJCNN 1991}
+\cit{Schmidhuber}{Self-motivated development through rewards for predictor errors/improvements}{AAAI 2005}
+
+\begin{items}
+\item ``curiosity rewards'' should relate to ``prediction errors'' ~ (what we called NNL or \emph{surprise})
+\item You reward observing $x$ when you have high prediction errors (observations surprise you)
+\pause
+\item[] $\to$ leads to permanently watching a white noise TV
+\pause
+\item Instead ``curiosity rewards'' for ``predictor improvements''
+\cit{Lopes, Lang, Toussaint, Oudeyer}{Exploration in model-based reinforcement learning by empirically estimating learning progress}{NeurIPS 2012}
+\end{items}
+
+\medskip\pause
+
+\item \emph{Intrinsic} rewards could mean two things (meaning sometimes debated):
+\begin{items}
+\item Agents are trained with rewards $R = R_{ext} + R_{int}$ with $R_{ext}$ being extrinsic and ultimate evaluation objective; but $R_{int}$ is added by the algorithm design, e.g.\ to help with exploration (but is not part of the ultimate evaluation objective)
+\item $R_{int}$ is a reward term that is not a function of state and action (like $R(s,a)$) but a function of internal states of the agent (like it's current state of knowledge, entropy, etc)
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{In the context of RL and Skill Aquisition}{
+
+\item Early work:
+\cit{Simsek, Barto}{An intrinsic reward mechanism for efficient exploration}{ICML 2006}
+\begin{items}
+\item Formulates the \emph{derived} MDP describing the change of internal variables ($V$, $\pi$)
+\end{items}
+
+~\pause
+
+\item Unsupervised Skill Acquisition in RL
+\begin{items}
+%\cit{Eysenbach et al}{Diversity is All You Need: Learning Skills without a Reward Function}{arXiv:1802.06070}
+\item Skill: discrete $z$; policy $\pi(a | s,z)$
+\item Maximize the mutual information $I(\tau; z) = H(\tau) - H(\tau | z)$, where $\tau$ is some ``feature'' (e.g.\ state transitions)
+\cit{Laskin et al}{CIC: Contrastive Intrinsic Control for Unsupervised Skill Discovery}{arXiv:2202.00161}
+\item Or directly the entropy of visited states \cit{Liu, Abbeel}{Behavior from the void: Unsupervised active pre-training}{NeurIPS 2021}
+\end{items}
+
+\tiny~
+
+\item In other words, these methods aim to generate state transitions (or other behavior features) that are overall diverse $H(\tau)$, but predictable when a skill is executed $- H(\tau | z)$
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Conclusion}{
+
+~
+
+\item Task-/Reward-Free AI is super interesting
+\begin{items}
+\item Intrinsic objectives, about information gain, exploration, skill discovery
+\item Independent from any particular tasks or external objectives
+\end{items}
+
+~
+
+\item In robotics:
+\begin{items}
+\item Learn to discover and control all degrees of freedom of the environment that
+are controllable
+\item All mechanical/kinematics DOFs, objects, light/temperature, mood of humans
+\cit{Otte, Kulick, Toussaint, Brock}{Entropy-based strategies for physical exploration of the environment's degrees of freedom}{IROS 2014}
+{\urlfont\url{https://ieeexplore.ieee.org/abstract/document/6942623}}
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\sublecture{Value Alignment}{
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\twocol[.05]{.45}{.45}{
+
+\show[.6]{20-russell}
+
+
+}{
+
+
+\item Stuart Russell
+\begin{items}
+\item Russell \& Norvig: \emph{Artificial Intelligence: A Modern
+Approach} (1995)
+\item Decision \& Game Theory
+\end{items}
+
+~
+
+\citehere{2019-russell-HumanCompatibleAI}
+
+}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\key{Value Alignment}
+\slide{Russell: Value Alignment}{
+
+\item ``Standard model of AI''
+\begin{items}
+\item Define some objective; maximize
+\item Russell's view: \emph{Eventually} (not yet) AI systems will be able to optimize anything we define\\
+$\to$ we should think about what we define
+\end{items}
+
+~\pause
+
+\item Difficulty in defining objectives
+\begin{items}
+\item Consequences (aspects of optimal behavior) unclear
+\item Humans are bad at defining objectives
+\end{items}
+
+~\pause
+
+\item Russell's proposal:
+\begin{items}
+\item Systems should infer human preferences from behavior
+\item Avoid overfitting
+\item Large apriori uncertainty (incl.\ noise assumption in human behavior) to avoid overfitting
+\end{items}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{}{
+
+\twocol[.05]{.45}{.45}{
+
+%\show{10-abbeel}
+\show[.9]{16-hadfield-menell.png}
+
+~
+
+\citehere{2016-hadfield-menell-CooperativeInverseReinforcement}
+
+}{
+
+\item Game-theoretic formalization of \emph{Value Alignment}
+\begin{items}
+\item ..is just one possible formulation
+\item example for efforts to make ``Value Alignment'' more rigorous
+\end{items}
+
+}
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\slide{Conclusion}{\label{lastpage}
+
+\item Entropy \& Information are fundamentally important concepts in AI
+\begin{items}
+\item ML as Minimal Description length
+\end{items}
+
+\medskip
+
+\item There exist interesting formalizations of ``task-free AI''
+\begin{items}
+\item Information Gain, Active Learning, Unsupervised RL, Skill Discovery
+\end{items}
+
+\medskip
+
+\item Value Alignment is all about how to define a ``good'' objective for AI
+
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\ttiny
+\ifthenelse{\isundefined{\scripthead}}{
+\bibliographystyle{plainurl-lis}
+\bibliography{b3-ReinforcementLearning,b4-InverseRL}
+}{}
+
+\slidesfoot
+
+
+\slidesfoot

@@ -1,0 +1,659 @@
+\input{../latex/shared}
+
+\renewcommand{\course}{Artificial Intelligence}
+\renewcommand{\coursepicture}{course_ai}
+\renewcommand{\coursedate}{Summer 2026}
+
+\renewcommand{\exnum}{Exercise 00}
+
+\exercises
+%\excludecomment{solution}
+\exercisestitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Marginals \& Conditionals}
+
+We have a joint probability $P(X,Y)$ over 2 binary random variables
+$X,Y$ as described by the matrix
+$$
+P(X,Y)
+= \mat{cc}{ .06 & .24 \\ .14 & .56} ~.
+$$
+(Recall our convention of writing a probability distribution as matrix, with row index corresponding to the first random variable.)
+
+\begin{enumerate}
+\item What are $P(X)$, $P(Y)$, and $P(X|Y)$?
+%% \item Are $X$ and $Y$ independent?
+\end{enumerate}
+
+\begin{solution}
+$P(X) = \sum_Y P(X, Y) = \mat{c}{ 0.06 \\ 0.14} + \mat{c}{ 0.24 \\ 0.56} = \mat{c}{ 0.3 \\ 0.7}$ \\
+$P(Y) = \sum_X P(X, Y)  = \mat{cc}{ 0.06 & 0.24} + \mat{cc}{ 0.14 & 0.56} =  \mat{cc}{ 0.2 & 0.8}$ \\
+$P(X|Y) = \frac{P(X,Y)}{P(Y)} = \mat{cc}{ .06 & .24 \\ .14 & .56} \mat{cc}{ \frac{1}{0.2} & 0 \\ 0 & \frac{1}{0.8}} = \mat{cc}{ 0.3 & 0.3 \\ 0.7 & 0.7}  $
+
+\end{solution}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Bayes' Theorem}
+
+\begin{enumerate}
+\item Box 1 contains 8 apples and 4 oranges. Box 2 contains 10 apples and 2
+oranges. First, a box is chosen with equal probability; then a fruit drawn uniformly from that box. What is the
+probability of choosing an apple? If an apple is chosen, what is the
+probability that it came from box 1?
+
+{\small (Help: The first thing to think about in such exercises is: \emph{What are the random variables?} That helps to match the text description with the learnt equations. E.g., here we can identify two random variables: $B$ (=which box is chosen), and $F$ (=which type of fruit is chosen).)
+
+}
+
+~
+
+\item The blue M\&M was introduced in 1995.
+Before then, the color mix in a bag of plain M\&Ms was:
+30\% Brown, 20\% Yellow, 20\% Red, 10\% Green, 10\% Orange, 10\% Tan.
+Afterward it was: 24\% Blue , 20\% Green, 16\% Orange, 14\% Yellow, 13\% Red,
+13\% Brown.
+
+A friend of mine has two bags of M\&Ms, and he tells me that one is from
+1994 and one from 1996.  He won't tell me which is which, but he gives me
+one M\&M from each bag.  One is yellow and one is green.  What is the
+probability that the yellow M\&M came from the 1994 bag?
+\end{enumerate}
+
+\begin{solution}
+\begin{enumerate}
+\item $P(F=apple) = P(F=apple|B=1) P(B=1) + P(F=apple|B=2)P(B=2) = \frac{8}{12} \frac{1}{2} + \frac{10}{12} \frac{1}{2} = \frac{3}{4} $ \\
+$P(B=1|F=apple) =  \frac{P(F=apple|B=1)P(B=1)}{P(F=apple)} =  \frac{\frac{8}{12} \frac{1}{2}}{\frac{3}{4}} = \frac{4}{9} $
+
+\item
+Variables: Bag1 is the year of the first bag we picked from and from which we got the yellow M\&M. We assume $P(Bag1=1994) = P(Bag1=1996)=0.5$.\\
+$P(Bag1=1994 | yellow, green ) = \frac{P(yellow, green | Bag1=1994) P(Bag1=1994) }{P(yellow, green | Bag1=1994) P(Bag1=1994) + P(yellow, green | Bag1=1996) P(Bag1=1996) } $\\
+$P(yellow, green | Bag1=1994) = 0.2 * 0.2 = 0.04$\\
+$P(yellow, green | Bag1=1996) = 0.14 * 0.1 = 0.014$\\
+$P(Bag1=1994 | yellow, green ) =  \frac{0.04 * 0.5}{0.04 * 0.5 + 0.014 * 0.5} \approxeq 0.74$
+\end{enumerate}
+\end{solution}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Mean and Variance Estimators}
+
+You are given data $D= \{ y_i \}_{i=1}^n$ of real numbers $y_i\in\RRR$. You may assume that the data is sampled from an underlying Gaussian distribution $p(y) = \NN(y | \mu, \s^2)$, but $\mu,\s$ are not known to you. You estimate the mean as $\hat\mu = \frac{1}{n} \sum_i y_i$. (Note that this is the Monte Carlo estimate of $\Exp[p(y)]{y}$.)
+
+\begin{enumerate}
+\item Show that $\frac{1}{n} \sum_i (y_i - \hat\mu)^2 = \[\frac{1}{n}\sum_i y_i^2\] - \hat \mu^2$.
+
+{\small (This $\hat\s^2 = \frac{1}{n} \sum_i (y_i - \hat\mu)^2$ is one way to estimate the true variance $\s^2$. In textbooks you also find $\hat\s^2 = \frac{1}{n-1} \sum_i (y_i
+- \hat\mu)^2$. Discuss the difference with the tutor.)
+
+}
+
+\item Since the data $D$ is a random variable, also your estimated mean $\hat\mu$ is random. You have to expect that it deviates somewhat from the unknown true $\mu$. The expected squared error $\Exp[p(D)]{(\hat\mu(D) - \mu)^2}$ is also the \emph{variance of the mean estimator $\hat\mu$}.
+
+How can you estimate the variance of your mean estimator? In other words, how precise is the mean estimator depending on $n$ and $\s^2$? If you cannot derive this analytically (which is fine), what would you guess roughly?
+\end{enumerate}
+
+\begin{solution}
+\begin{enumerate}
+    \item \begin{align*}
+        \frac{1}{n} \sum_i (y_i - \hat\mu)^2 &= \frac{1}{n} \sum_i (y_i^2 - 2y_i\hat\mu + {\hat\mu}^2) \\
+        &= \frac{1}{n} \left[\sum_i y_i^2 - \sum_i 2y_i\hat\mu + \sum_i{\hat\mu}^2 \right]\\
+        &= \frac{1}{n} \left[\sum_i y_i^2 - 2\hat\mu\sum_i y_i + n{\hat\mu}^2 \right]\\
+        &= \frac{1}{n} \sum_i y_i^2 - \frac{1}{n} 2\hat\mu\sum_i y_i + {\hat\mu}^2\\
+        &= \frac{1}{n} \sum_i y_i^2 - 2\hat\mu\hat\mu + {\hat\mu}^2\\
+        &= \left[\frac{1}{n} \sum_i y_i^2\right] - {\hat\mu}^2
+    \end{align*}
+    \item $\Var{\hat{\mu}} = \Var{\frac{1}{n} \sum_i y_i} = \frac{1}{n^2}\Var{ \sum_i y_i} = \frac{1}{n^2}\sum_i\Var{ y_i} = \frac{1}{n^2}\sum_i \sigma^2 = \frac{\sigma^2}{n}$. \\
+    In the first step, we inserted the definition of our estimator, in the second step we used a property of the variance, in the thirst step, we used the fact that all the $y_i$ are independent of each other to take the sum out of the variance.
+\end{enumerate}
+\end{solution}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{The Monty Hall Problem (For fun, if there is time in the tutorials)}
+
+I have three boxes. In one I put a prize, and two are empty. I then
+mix up the boxes. You want to pick the box with the prize in it, but do not know in which one it is (the prior is uniform).
+
+You choose one box but leave it closed. I then select one of the
+two \emph{other} boxes, open it, and it turns out empty. I then give
+you the chance to change your choice of boxes---should you do so?
+
+Derive the respective chances.
+
+\begin{solution}
+    The chance of picking the box with the prize is $\frac{1}{3}$. Thus, the chance that the prize is in one of the other two boxes is $\frac{2}{3}$.
+
+    The action of opening a box does not change the $\frac{2}{3}$ chance of the prize being in one of the boxes that you did not choose.
+
+    Thus, you should switch boxes, and the respective chances of the strategies are $P_\text{not switching}(\text{winning}) = \frac{1}{3}$ and $P_\text{switching}(\text{winning}) = \frac{2}{3}$.
+\end{solution}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \exsection{Sum of 3 dices}
+
+%% You have 3 dices (potentially fake dices where each one has a
+%% different probability table over the 6 values). You're given all three
+%% probability tables $P(D_1)$, $P(D_2)$, and $P(D_3)$. Write down the
+%% equations and an algorithm (in pseudo code) that computes the
+%% conditional probability $P(S|D_1)$ of the sum of all three dices
+%% conditioned on the value of the first dice.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \exsection{Conditionalized versions of product and Bayes rule}
+
+%% Prove from first principles the conditionalized version of the product
+%% rule (the same as the product rule, but every term is additionally
+%% conditioned on $Z$):
+%% \begin{align}
+%%   P (X, Y | Z) = P(Y | X, Z)~ P (X|Z) ~.
+%% \end{align}
+%% Also prove the conditionalized version of Bayes’ rule
+%% \begin{align}
+%%   P (X|Y, Z) = \frac{P (Y |X, Z)P (X|Z)}{P (Y |Z)} ~.
+%% \end{align}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \exsection{Implementing Bayes Rule}
+
+%% a)
+%% Assume there is a robot that is trying to determine if a door is open.
+%% It has a perception module which is charaterized by the following conditional
+%% probabilities
+%% $$p(Z=\text{sense open} | X=\text{is open}) = .6$$
+%% $$p(Z=\text{sense closed} | X=\text{is open}) = .4$$
+%% $$p(Z=\text{sense open} | X=\text{is closed}) = .2$$
+%% $$p(Z=\text{sense closed} | X=\text{is closed}) = .8$$
+%% where $X$ is the state of the door.
+
+%% The robot has a prior belief of the state of door:
+%% $bel(X=\text{is open}) = 0.5$ and $bel(X=\text{is closed}) =.5$.
+%% It perceives the observations ``open'', ``closed'', ``open'', ``open'', ``open''.
+%% Use Bayes' rule to update the belief.
+%% What is the belief/posterior after each update step?
+
+%% ~
+
+%% b)
+%% Implement Bayes' rule in a programming language of your choice and repeat a).
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \exsection{Präsenzaufgabe: ~ Bedingte Wahrscheinlichkeit}
+
+%% \begin{enumerate}
+
+%% \item Die Wahrscheinlichkeit, an der bestimmten tropischen Krankheit
+%%   zu erkranken, betr"agt 0,02\%.  Ein Test, der bestimmt, ob man
+%%   erkrankt ist, ist in 99,995\% der F"alle korrekt. Wie hoch ist die
+%%   Wahrscheinlichkeit, tats"achlich an der Krankheit zu leiden, wenn
+%%   der Test positiv ausf"allt?
+
+%% \item Eine andere seltene Krankheit betrifft 0,005\% aller
+%%   Menschen. Ein entsprechender Test ist in 99,99\% der F"alle
+%%   korrekt. Mit welcher Wahrscheinlichkeit ist man bei positivem
+%%   Testergebnis von der Krankheit betroffen?
+
+%% \item Es gibt einen neuen Test f"ur die Krankheit aus b), der in
+%%   99,995\% der F"alle korrekt ist. Wie hoch ist hier die
+%%   Wahrscheinlichkeit, erkrankt zu sein, wenn der Test positiv
+%%   ausf"allt?
+
+%% \end{enumerate}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Computation Graphs and Chain Rule (1 Pt)}
+
+\begin{enumerate}
+\item Consider the computation graph that has $x$ as input and then computes
+the quantities
+$$ a(x), b(x,a), c(a,b), f(x,c) $$
+
+Write down $\frac{df}{dx}$ using the General Chain rule in \textbf{both}, the forward and the backward version.
+
+\item We now concretely assume
+% Previous:
+%\begin{align*}
+%a(x) &= 2x \\
+%b(x,a) &= \sin(x+a) \\
+%c(a,b) &= ab \\
+%f(x,c) &= 3x - c ~.
+%\end{align*}
+%
+\begin{align*}
+a(x) &= x^2 \\
+b(x,a) &= \cos(x+a) \\
+c(a,b) &= 2ab \\
+f(x,c) &= 3x + c ~.
+\end{align*}
+
+What are $\frac{df}{dc}, \frac{df}{db}, \frac{df}{da}$, and $\frac{df}{dx}$? 
+
+What are $\frac{da}{dx}, \frac{db}{dx}$, and $\frac{dc}{dx}$?
+\end{enumerate}
+
+\begin{solution}
+\begin{enumerate}
+\item forward
+$$\frac{df}{dx} = \frac{\del f}{\del x} + \frac{\del f}{\del c} \frac{d c}{d x} $$
+
+backward
+$$\frac{df}{dx} = \frac{\del f}{\del x} + \frac{d f}{d a} \frac{\del a}{\del x} + \frac{d f}{d b} \frac{\del b}{\del x} $$
+
+\item
+% Previous:
+%$$\frac{df}{dc} = -1\comma \frac{df}{db} = -a\comma  \frac{df}{da} = -a \cos(x+a) - b \comma \frac{df}{dx} = 3 + [-a \cos(x+a) - b] 2 + (-a)\cos(x+a) = 3 - 2b - 3a\cos(x+a) $$
+%$$\frac{da}{dx} = 2\comma \frac{db}{dx} = 3\cos(x+a)\comma \frac{dc}{dx} = 0 + a[3\cos(x+a)] + 2b \comma \frac{df}{dx} = 3 - 3a\cos(x+a) - 2b$$
+
+$$\frac{df}{dc} = 1\comma \frac{df}{db} = 2a\comma  \frac{df}{da} = -2a \sin(x+a) + 2b \comma \frac{df}{dx} = 3 + [-2a \sin(x+a) + 2b] 2x - 2a\sin(x+a)$$
+$$\frac{da}{dx} = 2x\comma \frac{db}{dx} = -\sin(x+a)-2x\sin(x+a)\comma \frac{dc}{dx} = 4xb + 2a(-\sin(x+a)-2x\sin(x+a))$$
+\end{enumerate}
+\end{solution}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Regression using PyTorch AutoGrad (1 Pt)}
+
+This is a coding exercise, but you do not have to hand it in. You will discuss it in the tutorials as usual. The exercise is to implement linear regression and neural networks using PyTorch and AutoGrad.
+
+Please read (roughly) through the following tutorial:
+
+\url{https://pytorch.org/tutorials/beginner/basics/autogradqs_tutorial.html}
+
+
+\begin{enumerate}
+\item Please download the data
+  \url{https://www.user.tu-berlin.de/mtoussai/teaching/data/dataQuadReg1D.txt}
+
+You can plot it from cmd line using\newline @gnuplot -e "plot 'dataQuadReg1D.txt'; pause(-1)"@  (if the @gnuplot@ dep package is installed).
+
+\item Install PyTorch. For this, follow the instructions on \url{https://pytorch.org/}. You don't need CUDA for this exercise, i.e.\ a CPU only version of PyTorch is sufficient. If you are using pip, you can install it with \\ @pip3 install torch --extra-index-url https://download.pytorch.org/whl/cpu@
+
+\item Load the data into a $n\times 2$ numpy array $D$ and plot the data with matplotlib
+
+\item Implement linear regression with PyTorch, roughly like this:
+  \begin{items}
+  \item Load the data into torch tensors @X@ (first column of $D$) and @Y@ (second column of $D$).\\
+  Tip: @X = torch.from_numpy(D[:,0]).float().unsqueeze(1)@ if @D@ is the numpy array. @X@ will have dimension $n\times 1$
+  \item Define a linear model exactly as in beginning of the torch-autograd tutorial, except: Replace '5' by '1' (only 1D input); replace '3' by '1' (only 1D output); replace @binary_cross_entropy@ with a mean squared error loss
+  \item For $i=1..1000$
+    \begin{items}
+      \item forward pass through your model, i.e.\ where you compute the predictions @YPred = ...@
+      \item compute the loss. Tip: @loss = (YPred - Y).square()...@ (not finished)
+      \item call @loss.backward()@
+      \item Perform a gradient descent step $W \gets W - \a\cdot$@W.grad@ with $\a=0.01$, and similarly for $b$. Tip: You have to wrap this in a @with torch.no_grad():@ context manager, otherwise it does not work (find out the reason yourself or ask in the tutorials).
+      \item zero accumulated gradients of the parameters. Tip: @W.grad.zero_()@
+    \end{items}
+    
+  \end{items}
+
+\item After training, evaluate the trained model over a grid of 100 points over the interval $[-3,4]$, and plot the function. You are also welcome to do this evaluation/plotting during the training procedure
+
+\item Torch has the @torch.nn.functional.relu@ function to implement a non-linear computation step. How can you add this to the code above, together with a second linear computation step ($W_2, b_2$), to define a minimalistic 2-layer neural network? Assume the hidden dimension to be 16 and also plot the function after training.
+
+\item Play around with $\a$, and the hidden size of the network in f). What do you observe?
+\end{enumerate}
+
+Tips: PyTorch uses floats instead of doubles as standard, therefore, when interacting with numpy, ensure to convert properly, e.g. with @.float()@. The PyTorch API is very similar to numpy (but not identical!).
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Domain modeling}
+
+Consider the domain of delivering mail to people's offices in a department
+of three people with two offices. The mail should be picked up from the central
+inbox and delivered to the recipient's office.
+
+a) Categorize the domain as per slide 03:11\footnote{Lecture 3, slide
+11} of the lecture.
+
+b) Specify a factored \emph{state} model of this domain
+
+c) Specify a relational PDDL model of this domain
+
+
+\exsection{Tree search}
+
+Consider the blocks world domain specified on slide 03:17. A search
+tree on this domain contains state in the nodes and actions on the
+edges. Assume the ``Start State'' of Figure 10.4.
+
+a) Expand the tree until you have found the solution given in Figure 10.3. At 
+each node, specify all possible follow-up actions.
+
+b) Expand the tree to find a solution which takes more than three steps, and 
+does \emph{not} contain the original solution.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Computing a really optimal policy for a bandit problem}
+
+Consider 3 binary bandits, that is, 3 bandits with binary outcome
+$y\in\{0,1\}$. The unknown parameters $\t=(\m_1,\m_2,\m_3)$ of the three
+bandits are their win probabilities, $P(y_i \= 1) = \m_i \in [0,1]$.
+
+The state of knowledge of the agent (slide 04:42) can be described
+by the \emph{belief} $b_t(\t)$. Assume we use three separate Beta
+distributions to represent the blief
+$$b_t(\t) = \prod_{i=1}^3 \Beta(\m_i \| \a_{i,t}, \b_{i,t})$$
+and start with a prior $b_0(\t)$ with $\a_{i,0}=\b_{i,0}=1$ for each $i$.
+
+Provide a detailed pseudo code for Belief Planning (slide 04:44)
+to compute an optimal policy that maximizes $\<\sum_{t=1}^T
+y_t\>$. Assume a finite horizon $T=10$. How exactly can you store the
+value function $V_t(b)$ using a fixed size table? How exactly is
+$P(y_t\|a_t,b_{t\1})$ computed?
+
+(Recall that $b[a_t,y_t]$ denotes the belief update, i.e., the belief
+you get when updating $b$ with additional data $a_t,y_t$.)
+
+What is the computational complexity depending on the number $n$ of
+bandits and horizon $T$.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Simulating a Markov Decision Problem}
+
+Consider the following minimalistic MDP:
+\begin{itemize}
+\item The state space is $s_t \in \ZZZ$
+\item The action space is $a_t \in\{-1, +1\}$
+\item The transition probabilities are
+$$P(s'|s,a) = \begin{cases} .8
+& \text{if~} s'=s+a \\ .2 & s'=s-a \\ 0
+& \text{otherwise}\end{cases}$$
+\item The initial state distribution is $P(s_0) = [s_0=0]$ (1 for $s_0=0$ and
+zero otherwise)
+\item The reward is binary with probability is $P(r\=1|s) = [s=10]$
+(reward of 1 for $s=10$ and zero otherwise)
+\end{itemize}
+
+Use your favorite programming language to implement this MDP. For
+this, implement 3 routines that sample from the respective probability
+distributions and can be used like
+\begin{itemize}
+\item state = SampleInitialState()
+\item newState = SampleNextState(oldState, action)
+\item reward = SampleReward(state, action)
+\end{itemize}
+
+Simulate 1000 episodes, each of length $T=100$, where actions are
+drawn randomly. Let $R = \sum_{t=0}^T r_t$ be the total reward collect
+in an episode. What is the average $R$ over the 1000 simulated
+episodes?
+
+What is the average reward of those episodes where $a_0 = +1$ vs.\
+ those where $a_0=-1$?
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Q-iteration}
+
+Consider the same minimalistic MDP as for the last exercise:
+\begin{itemize}
+\item The state space is $s_t \in \ZZZ$
+\item The action space is $a_t \in\{-1, +1\}$
+\item The transition probabilities are
+
+$P(s'|s,a) = \begin{cases} .8
+& \text{if~} s'=s+a \\ .2 & s'=s-a \\ 0
+& \text{otherwise}\end{cases}$
+\item The initial state distribution is $P(s_0) = [s_0=0]$ (1 for $s_0=0$ and
+zero otherwise)
+\item The reward is binary with probability is $P(r\=1|s) = [s=10]$
+(reward of 1 for $s=10$ and zero otherwise)
+\end{itemize}
+
+Use Q-iteration to compute the optimal Q-function.
+
+a) Do this assuming the so-called infinite horizion stationary case,
+which computes a single $Q^*(s,a)$ that optimizes the discounted
+future return. Use $\g=.95$.
+
+b) Do this for the finite horizon $T=20$. In this case you need to
+compute a different $Q_t^*(s,a)$ for $t=20,..,0$ using the eqs on
+slide 04:36. Initialize $Q^*_{21}(s,a)=0$. And use $\g=1$.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Belief planning}
+
+Proof that optimality in the belief MDP implies ``optimality in
+the original problem'' in the bandit context (slide 04:43). For this,
+you need to formalize what ``optimality in the original problem''
+actually means: How do you formalize optimality of an agent subject to
+the fact that he cannot know what world he lives in but only has a
+prior $P(\t)$?
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Computing a really optimal policy for a bandit problem}
+
+Consider 3 binary bandits, that is, 3 bandits with binary outcome
+$y\in\{0,1\}$. The unknown parameters $\t=(\m_1,\m_2,\m_3)$ of the three
+bandits are their win probabilities, $P(y_i \= 1) = \m_i \in [0,1]$.
+
+The state of knowledge of the agent (slide 04:42) can be described
+by the \emph{belief} $b_t(\t)$. Assume we use three separate Beta
+distributions to represent the blief
+$$b_t(\t) = \prod_{i=1}^3 \Beta(\m_i \| \a_{i,t}, \b_{i,t})$$
+and start with a prior $b_0(\t)$ with $\a_{i,0}=\b_{i,0}=1$ for each $i$.
+
+Provide a detailed pseudo code for Belief Planning (slide 04:44)
+to compute an optimal policy that maximizes $\<\sum_{t=1}^T
+y_t\>$. Assume a finite horizon $T=10$. How exactly can you store the
+value function $V_t(b)$ using a fixed size table? How exactly is
+$P(y_t\|a_t,b_{t\1})$ computed?
+
+(Recall that $b[a_t,y_t]$ denotes the belief update, i.e., the belief
+you get when updating $b$ with additional data $a_t,y_t$.)
+
+What is the computational complexity depending on the number $n$ of
+bandits and horizon $T$.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Monte Carlo Tree Search (UCT) for an MDP}
+
+\emph{Sorry for the long text. Below are implementation tips, which
+should make it not so difficult to implement.}
+
+Consider the same minimalistic MDP as for the last exercise:
+\begin{itemize}
+\item The state space is $s_t \in \ZZZ$
+\item The action space is $a_t \in\{-1, +1\}$
+\item The transition probabilities are
+
+$P(s'|s,a) = \begin{cases} .8
+& \text{if~} s'=s+a \\ .2 & s'=s-a \\ 0
+& \text{otherwise}\end{cases}$
+\item The initial state distribution is $P(s_0) = [s_0=0]$ (1 for $s_0=0$ and
+zero otherwise)
+\item The reward is binary with probability is $P(r\=1|s) = [s=10]$
+(reward of 1 for $s=10$ and zero otherwise)
+\end{itemize}
+
+In the last exercise you simulated 1000 episodes, each of length
+$T=100$, where actions are drawn randomly. Note that this is
+called \emph{Flat Monte Carlo} (slide 04:17).
+
+Now extend this to implement Monte Carlo Tree Search using UCT as
+the \textsc{TreePolicy} and random actions (as above) as
+the \textsc{RolloutPolicy}. Some notes:
+\begin{itemize}
+\item Limit the horizon to $T=20$
+\item You will have to represent a ``tree'' (actually a graph) which has
+two types of nodes: state nodes and action nodes:
+
+\show[.3]{mcts-mdp}
+\item For each node $v$ you will have to store
+\begin{items}
+\item Which action or state (integer) it refers to
+\item For state nodes only: the list $\del v$ of child action nodes
+\item For action nodes only: the unique state $s_t$ that this action
+is executed in
+\item The number $n(v)$ counting how often you have visited this node in rollouts
+\item The number $Q(n)$ counting how much reward has been collected
+from rollouts visiting this node
+\end{items}
+Note that there is no need to store the parent(s) for state nodes or
+children of action nodes (dashed arcs). Instead, you can store for any
+$t$ a list of states that have been visited.
+\item The \textsc{TreePolicy}: When in a state node, choose the action
+according to the UCB criterion of all child actions. Then use the
+simulator to sample the next state, and transition to the action's
+child node that corresponds to this state. When there is an action
+that has never been played in a state, play it and add a new action
+node; if the outcome state is new as well, add a new node for this
+outcome as well.
+\item The \textsc{RolloutPolicy} is as in the previous exercise
+\item To realize the \textsc{Backup}, store the list of nodes that have been
+visited during the TreePolicy. Increment the $n(v)$ and $Q(n)$ for all
+these nodes.
+\item \textbf{Implementation tip:} If you find storing lists of nodes
+inconvenient, you can directly maintain two big tables $n(t,s,a)$ and
+$Q(t,s,a)$, which store the visitations and rewards for any tree level
+$t$, state $s$ and action $a$.
+\end{itemize}
+
+At the end, output for the first few action nodes the
+tuple $(t, s_t, a_t, Q(s_t,a_t))$, where
+$$Q(s_t,a_t) = \frac{Q(v_{a_t})}{n(v_{a_t})} ~,$$
+$t$ is the tree level and $s_t$ is the unique parent state of the action $a_t$.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Formulating a maze MDP, and basic values}
+
+
+\show[.2]{maze33}
+
+Consider the $3\times 3$ maze as illustrated above. The following describes the MDP informally. Your exercise will require to write down explicitly the probability/reward tables $P(s_0), P(s'|s,a), R(s,a)$.
+\begin{itemize}
+\item We have 9 states, as enumerated in the figure.
+\item The action space (in each state) is $\AA=\{\text{N,E,S,W}\}$ (north, east, south, west).
+\item In the interior (in state 5), with 85\% chance a choice of action leads to the intended state transition, and with the remaining 15\% chance the state transition is uniformly random over moving into one of the three unintended directions (each with 5\% chance).
+%% with 80\% chance a choice of action leads to the intended state transition, and with the remaining 20\% chance the state transition is uniformly random over moving north/east/south/west (each with 5\% chance).
+\item At walls, the state transition probabilities are as above, but when the actual transition would go beyond the wall, the agent instead does not move at all ($s'=s$)
+\item State 8 is a trap state, which means that all actions lead to no movement ($s=8 \To s'=8$)
+\item The start state is always $s_0=7$
+\item Rewards $r_t$ are deterministic. Executing any action in any state always gives a reward of $-1$. In addition being in state $s=9$ (the goal) the agent receives a reward of $10$ (for any action the agent chooses).
+\item Let's assume a discount factor of $0.9$.
+\end{itemize}
+
+\begin{enumerate}
+\item Explicitly provide the probability/reward tables $P(s_0), P(s'|s,a), R(s,a)$ that define the respective MDP.
+\item The \emph{value} $V^\pi(s)$ of a state $s$ for a policy $\pi$ is defined as
+$$
+V^\pi(s) = \Exp{ r_0 + \g r_1 + \g^2 r_2 + \cdots \| s_0\=s; \pi }~,
+$$
+
+Consider the goal state $s=9$, and a policy $\pi$ that always chooses walking south. For simplicity, neglect the 20\% noise (chance of actions not leading to the intended transition), so that this agent will always stay at the goal when initialized there.
+
+What is the value $V^\pi(s=9)$ of the goal state for this agent?
+
+\begin{solution}
+wild guess: $\frac{9}{1-\g}$
+\end{solution}
+
+\item What is the value $V^\pi(s=6)$ for this agent? And what is the value $V^\pi(s=3)$ for this agent? (Again, assuming no transition noise.)
+
+\begin{solution}
+wild guesses: $\frac{9 \g}{1-\g}-1$, $\frac{9 \g^\2}{1-\g}-1\g$
+\end{solution}
+
+\item Discuss how the values $V^\pi(s=9), V^\pi(s=6), V^\pi(s=3)$ for this agent would be different when accounting for the transition noise. Provide some 'numerical guess' of the values based on how you guess the influence of stochasticity is. (Note: This process is now inherently stochastic, and exactly deriving the values is hard and not required -- we'll derive this in the next lectures.)
+
+\begin{solution}
+They should drop quite a bit. When starting in 9, you could guess chance to get trapped, which reduces return a lot, essentially cuts the infinite sum. When starting in 6, you could estimate chance to get trapped even before reaching the goal.
+\end{solution}
+
+\end{enumerate}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\exsection{Matrix Equations \& Derivatives (5 Pts)}
+
+%(This exercise aims to guide you to the solution of Linear Regression, mentioned in the lecture.)
+
+\begin{enumerate}
+	\item Let $X,A$ be arbitrary matrices, $A$ invertible. Solve for $X$: [1 Pt]
+$$ X A + A^\T = \Id $$
+
+\item Let $X,A,B$ be arbitrary matrices, $(C-2A^\T)$ invertible. Solve for $X$: [1 Pt]
+$$ X^\T C = [2 A (X + B)]^\T $$
+
+\item Let $x\in\RRR^n,y\in\RRR^d,A\in\RRR^{d\times n}$. $A$ obviously \emph{not}
+	invertible, but let $A^\T A$ be invertible. Solve for $x$: [1 Pt]
+$$ (A x - y)^\T A = \vec 0_n^\T $$
+
+\item As above, additionally $B\in\RRR^{n\times n}$, $B$
+	positive-definite. Solve for $x$: [1 Pt]
+$$ (A x - y)^\T A + x^\T B = \vec 0_n^\T $$
+\end{enumerate}
+
+The last result can be used to derive the solution to Linear Regression (and more generally, Ridge Regression). To see this,
+here is a very useful rule (the generalization of the ``product rule''):
+The derivative of the scalar product $f(x)^\T g(x)$ (where $f(x)$ and $g(x)$ are ``some expressions of $x$'') is:
+$$\Del x \[f(x)^\T g(x)\] = f(x)^\T \Del x g(x) + g(x)^\T \Del x f(x)$$
+{\footnotesize [To be more precise: $f,g:\RRR^n \to \RRR^d$ are differentiable vector-valued functions.]}
+
+\begin{enumerate}
+\item[e)] Apply this rule to compute the derivative $\Del x \[ (Ax -
+	y)^\T (Ax - y) + x^\T B x\]$ and relate it to exercise d), when $B$ is also symmetric. [1 Pt]
+\end{enumerate}
+
+
+\begin{solution}
+	a)
+	\begin{align}
+	X A + A^\T &= \Id \\
+	X A  &= \Id - A^\T \\
+    X &= (\Id - A^\T) A^\1
+	\end{align}
+	
+	b)
+	\begin{align}
+	X^\T C &= [2 A (X + B)]^\T \\
+	C^\T X &= 2 A (X + B) \\
+	(C^\T - 2A) X &= 2 A B \\
+	X &= (C^\T - 2A)^\1 2 A B
+	\end{align}
+	
+	c)
+	\begin{align}
+	(A x - y)^\T A &= \vec 0_n^\T \\
+	A^\T (A x - y) &= \vec 0_n \\
+	A^\T A x  &= A^\T y\\
+	x  &= (A^\T A)^\1 A^\T y
+	\end{align}
+	
+	d)
+	\begin{align}
+	(A x - y)^\T A + x^\T B &= \vec 0_n^\T \\
+	A^\T (A x - y) + B^\T x &= \vec 0_n \\
+	A^\T A x - A^\T y + B^\T x &= \vec 0_n \\
+	(A^\T A +B^\T) x &= A^\T y \\
+	x &= (A^\T A + B^\T)^\1 A^\T y
+	\end{align}
+	$(A^\T A + B^\T)$ is invertible (even without the assumption of $A^\T A$ being invertible from c)), since $A^\T A$ is semi-pos-def for any $A$, and $B$ is pos-def, so their sum is pos-def.
+	
+	e)
+	\begin{align*}
+	        & \Del x \[ (Ax - y)^\T (Ax - y) + x^\T B x\] \\
+	        &= \Del x (Ax-y)^\T(Ax-y) + \Del x x^\T B x \\
+	        &= (Ax-y)^\T\Del x (Ax-y) + (Ax-y)^\T \Del x (Ax-y)^\T + \Del x \((x^\T)(Bx)\)\\
+	        &= (Ax-y)^\T A \Del x x + (Ax-y)^\T A \Del x x^\T + x^\T (B + B^\T) \hspace{50pt} [\Del x \((x^\T)(Bx)\) = x^\T B + (Bx)^\T = x^\T (B + B^\T)] \\
+		&= 2(Ax-y)^\T A + 2x^\T B \hspace{50pt} \text{[since $B=B^\T$]}
+	\end{align*}
+	Note: The end-result is a row vector.
+\end{solution}
+
+\exerfoot
